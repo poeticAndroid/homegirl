@@ -138,15 +138,14 @@ class Machine
 
   private void toggleFullscren()
   {
+    this.fullscreen = !this.fullscreen;
     if (this.fullscreen)
     {
-      SDL_SetWindowFullscreen(this.win, 0);
-      this.fullscreen = false;
+      SDL_SetWindowFullscreen(this.win, SDL_WINDOW_FULLSCREEN_DESKTOP);
     }
     else
     {
-      SDL_SetWindowFullscreen(this.win, SDL_WINDOW_FULLSCREEN_DESKTOP);
-      this.fullscreen = true;
+      SDL_SetWindowFullscreen(this.win, 0);
     }
   }
 }

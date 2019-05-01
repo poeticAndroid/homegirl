@@ -6,7 +6,7 @@ import riverd.lua.types;
 import machine;
 
 /**
-  a program that the machine can run
+a program that the machine can run
 */
 class Program
 {
@@ -14,8 +14,8 @@ class Program
   lua_State* lua; /// Lua state
 
   /** 
-    Initiate a new program!
-  */
+Initiate a new program!
+*/
   this(Machine machine)
   {
     this.machine = machine;
@@ -26,8 +26,8 @@ class Program
   }
 
   /**
-    advance the program one step
-  */
+advance the program one step
+*/
   void step()
   {
   }
@@ -43,14 +43,22 @@ class Program
 void registerFunctions(Program program)
 {
   auto lua = program.lua;
+
+  //Setup the userdata
+  auto prog = cast(Program*) lua_newuserdata(lua, Program.sizeof);
+  *prog = program;
+  lua_setglobal(lua, "__program");
+
   extern (C) int pset(lua_State* L)
   {
     long x = lua_tointeger(L, -2);
     long y = lua_tointeger(L, -1);
-    program.machine.screen.pset(cast(uint) x, cast(uint) y);
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    Program* prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.screen.pset(cast(uint) x, cast(uint) y);
     return 0;
   }
 
   lua_register(lua, "pset", &pset);
-
 }
