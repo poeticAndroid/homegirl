@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/homegirl
+homegirl.so
+homegirl.dylib
+homegirl.dll
+homegirl.a
+homegirl.lib
+homegirl-test-*
+*.exe
+*.o
+*.obj
+*.lst
