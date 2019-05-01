@@ -1,6 +1,28 @@
 import std.stdio;
 
-void main()
+import machine;
+import program;
+
+int main(string[] args)
 {
-	writeln("Edit source/app.d to start your project.");
+	Machine machine;
+	try
+	{
+		machine = new Machine();
+	}
+	catch (Exception e)
+	{
+		writeln(e);
+		return 1;
+	}
+
+	machine.program = new Program(machine);
+	while (machine.running)
+	{
+		machine.step();
+	}
+
+	machine.shutdown();
+	writeln("THE END!");
+	return 0;
 }
