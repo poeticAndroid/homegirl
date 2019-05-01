@@ -9,6 +9,8 @@ class Pixmap
 {
   uint width; /// width of pixel map
   uint height; /// height of pixel map
+  ubyte fgColor; /// index of foreground color
+  ubyte bgColor; /// index of background color
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
 
@@ -50,19 +52,19 @@ class Pixmap
   {
     if (x >= this.width || y >= this.height)
       return 0;
-    uint i = y * this.width + x;
+    const i = y * this.width + x;
     return this.pixels[i];
   }
 
   /**
     set color of specific pixel
   */
-  void pset(uint x, uint y, ubyte color)
+  void pset(uint x, uint y)
   {
     if (x >= this.width || y >= this.height)
       return;
     uint i = y * this.width + x;
-    this.pixels[i] = color;
+    this.pixels[i] = this.fgColor;
   }
 
 }

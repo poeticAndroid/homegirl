@@ -1,7 +1,7 @@
 module program;
 
-import std.random;
-import bindbc.sdl;
+import riverd.lua;
+import riverd.lua.types;
 
 import machine;
 
@@ -11,11 +11,18 @@ import machine;
 class Program
 {
   Machine machine; /// the machine that this program runs on
+  lua_State* lua; /// Lua state
 
-  /// constructor
+  /** 
+    Initiate a new program!
+  */
   this(Machine machine)
   {
     this.machine = machine;
+    // Load the Lua library.
+    dylib_load_lua();
+    this.lua = luaL_newstate();
+    registerFunctions(this);
   }
 
   /**
@@ -23,12 +30,27 @@ class Program
   */
   void step()
   {
-    for (uint y = 0; y < machine.screen.height; y++)
-    {
-      for (uint x = 0; x < machine.screen.width; x++)
-      {
-        machine.screen.pset(x, y, cast(ubyte) uniform(0, 64));
-      }
-    }
   }
+
+  // === _privates === //
+  // private void registerFunctions()
+  // {
+  //   auto program = this;
+
+  // }
+}
+
+void registerFunctions(Program program)
+{
+  auto lua = program.lua;
+  extern (C) int pset(lua_State* L)
+  {
+    long x = lua_tointeger(L, -2);
+    long y = lua_tointeger(L, -1);
+    program.machine.screen.pset(cast(uint) x, cast(uint) y);
+    return 0;
+  }
+
+  lua_register(lua, "pset", &pset);
+
 }

@@ -1,4 +1,6 @@
 import std.stdio;
+import riverd.lua;
+import riverd.lua.types;
 
 import machine;
 import program;

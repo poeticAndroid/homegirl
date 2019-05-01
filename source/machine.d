@@ -14,6 +14,7 @@ import program;
 class Machine
 {
   bool running = true; /// is the machine running?
+  bool fullscreen = false; /// is the machine running in full screen?
   Pixmap screen = new Pixmap(320, 180, 128); /// screen memory
   Program program; /// the program currently running on the machine
 
@@ -37,6 +38,15 @@ class Machine
       {
       case SDL_QUIT:
         running = false;
+        break;
+      case SDL_KEYDOWN:
+        switch (event.key.keysym.sym)
+        {
+        case SDLK_F11:
+          this.toggleFullscren();
+          break;
+        default:
+        }
         break;
       default:
       }
@@ -98,7 +108,7 @@ class Machine
 
   private void draw_screen()
   {
-    uint i;
+    uint i = 0;
     int dx;
     int dy;
     SDL_GetWindowSize(this.win, &dx, &dy);
@@ -124,5 +134,19 @@ class Machine
       }
     }
     SDL_RenderPresent(ren);
+  }
+
+  private void toggleFullscren()
+  {
+    if (this.fullscreen)
+    {
+      SDL_SetWindowFullscreen(this.win, 0);
+      this.fullscreen = false;
+    }
+    else
+    {
+      SDL_SetWindowFullscreen(this.win, SDL_WINDOW_FULLSCREEN_DESKTOP);
+      this.fullscreen = true;
+    }
   }
 }
