@@ -30,13 +30,15 @@ advance the program one step
 */
   void step()
   {
+    luaL_dostring(this.lua, q"{
+      pset(32,32)
+    }");
   }
 
   // === _privates === //
   // private void registerFunctions()
   // {
   //   auto program = this;
-
   // }
 }
 
@@ -49,13 +51,13 @@ void registerFunctions(Program program)
   *prog = program;
   lua_setglobal(lua, "__program");
 
-  extern (C) int pset(lua_State* L)
+  extern (C) int pset(lua_State* L) @trusted
   {
     long x = lua_tointeger(L, -2);
     long y = lua_tointeger(L, -1);
     //Get the pointer
     lua_getglobal(L, "__program");
-    Program* prog = cast(Program*) lua_touserdata(L, -1);
+    auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.machine.screen.pset(cast(uint) x, cast(uint) y);
     return 0;
   }

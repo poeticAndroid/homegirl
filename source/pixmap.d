@@ -9,8 +9,8 @@ class Pixmap
 {
   uint width; /// width of pixel map
   uint height; /// height of pixel map
-  ubyte fgColor; /// index of foreground color
-  ubyte bgColor; /// index of background color
+  ubyte fgColor = 1; /// index of foreground color
+  ubyte bgColor = 0; /// index of background color
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
 
