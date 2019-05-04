@@ -1,66 +1,123 @@
 module program;
 
+import std.stdio;
+import std.string;
+import std.file;
+import std.random;
 import riverd.lua;
 import riverd.lua.types;
 
 import machine;
 
 /**
-a program that the machine can run
+	a program that the machine can run
 */
 class Program
 {
-  Machine machine; /// the machine that this program runs on
-  lua_State* lua; /// Lua state
+	bool running = true; /// is the program running?
+	Machine machine; /// the machine that this program runs on
+	lua_State* lua; /// Lua state
 
-  /** 
-Initiate a new program!
-*/
-  this(Machine machine)
-  {
-    this.machine = machine;
-    // Load the Lua library.
-    dylib_load_lua();
-    this.lua = luaL_newstate();
-    registerFunctions(this);
-  }
+	/** 
+		Initiate a new program!
+	*/
+	this(Machine machine, string filename)
+	{
+		this.machine = machine;
+		// Load the Lua library.
+		dylib_load_lua();
+		this.lua = luaL_newstate();
+		luaL_openlibs(this.lua);
+		this.registerFunctions();
 
-  /**
-advance the program one step
-*/
-  void step()
-  {
-    luaL_dostring(this.lua, q"{
-      pset(32,32)
-    }");
-  }
+		string luacode = readText(filename);
 
-  // === _privates === //
-  // private void registerFunctions()
-  // {
-  //   auto program = this;
-  // }
-}
+		if (luaL_dostring(this.lua, toStringz(luacode)))
+		{
+			auto err = lua_tostring(this.lua, -1);
+			writeln("Lua err: " ~ fromStringz(err));
+			this.running = false;
+		}
+	}
 
-void registerFunctions(Program program)
-{
-  auto lua = program.lua;
+	/**
+		advance the program one step
+	*/
+	void step(uint timestamp)
+	{
+		lua_getglobal(this.lua, "_step");
+		lua_pushinteger(this.lua, cast(long) timestamp);
+		if (lua_pcall(this.lua, 1, 0, 0))
+		{
+			auto err = lua_tostring(this.lua, -1);
+			writeln("Lua err: " ~ fromStringz(err));
+			this.running = false;
+		}
+	}
 
-  //Setup the userdata
-  auto prog = cast(Program*) lua_newuserdata(lua, Program.sizeof);
-  *prog = program;
-  lua_setglobal(lua, "__program");
+	/**
+		end the program properly
+	*/
+	void shutdown()
+	{
+		this.running = false;
+		lua_close(this.lua);
+	}
 
-  extern (C) int pset(lua_State* L) @trusted
-  {
-    long x = lua_tointeger(L, -2);
-    long y = lua_tointeger(L, -1);
-    //Get the pointer
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.screen.pset(cast(uint) x, cast(uint) y);
-    return 0;
-  }
+	// === _privates === //
 
-  lua_register(lua, "pset", &pset);
+	private void registerFunctions()
+	{
+		auto lua = this.lua;
+
+		//Setup the userdata
+		auto prog = cast(Program*) lua_newuserdata(lua, Program.sizeof);
+		*prog = this;
+		lua_setglobal(lua, "__program");
+
+		extern (C) int panic(lua_State* L) @trusted
+		{
+			lua_getglobal(L, "__program");
+			auto prog = cast(Program*) lua_touserdata(L, -1);
+			prog.shutdown();
+			writeln("Shit hit the fan!");
+			return 0;
+		}
+
+		lua_atpanic(lua, &panic);
+
+		extern (C) int print(lua_State* L) @trusted
+		{
+			const msg = lua_tostring(L, -1);
+			writeln("Program says: " ~ fromStringz(msg));
+			return 0;
+		}
+
+		lua_register(lua, "print", &print);
+
+		extern (C) int setfgcolor(lua_State* L) @trusted
+		{
+			const cindex = lua_tointeger(L, -1);
+			lua_getglobal(L, "__program");
+			auto prog = cast(Program*) lua_touserdata(L, -1);
+			prog.machine.screens[0].pixmap.fgColor = cast(ubyte) cindex;
+			return 0;
+		}
+
+		lua_register(lua, "setfgcolor", &setfgcolor);
+
+		extern (C) int pset(lua_State* L) @trusted
+		{
+			const x = lua_tointeger(L, -2);
+			const y = lua_tointeger(L, -1);
+			//Get the pointer
+			lua_getglobal(L, "__program");
+			auto prog = cast(Program*) lua_touserdata(L, -1);
+			prog.machine.screens[0].pixmap.pset(cast(uint) x, cast(uint) y);
+			return 0;
+		}
+
+		lua_register(lua, "pset", &pset);
+	}
+
 }

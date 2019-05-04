@@ -18,7 +18,7 @@ int main(string[] args)
 		return 1;
 	}
 
-	machine.program = new Program(machine);
+	machine.program = new Program(machine, "startup.lua");
 	while (machine.running)
 	{
 		machine.step();
