@@ -172,22 +172,24 @@ class Machine
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
       if (screen.top <= 0)
+      {
         SDL_RenderClear(ren);
+      }
       else
       {
         this.rect.x = 0;
         this.rect.y = dy - scale * 3;
-        SDL_GetWindowSize(this.win, &this.rect.x, &this.rect.y);
+        SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }
       rect.x = 0;
       rect.y = 0;
       rect.w = pixmap.width;
-      rect.h = pixmap.height;
+      rect.h = pixmap.height - screen.top / screen.pixelHeight;
       rect2.x = dx;
       rect2.y = dy;
-      rect2.w = pixmap.width * screen.pixelWidth * scale;
-      rect2.h = pixmap.height * screen.pixelHeight * scale;
+      rect2.w = rect.w * screen.pixelWidth * scale;
+      rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
       if (!pixmap.texture)
         pixmap.createTexture(this.ren);
