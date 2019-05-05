@@ -7,24 +7,24 @@ import program;
 
 int main(string[] args)
 {
-	Machine machine;
-	try
-	{
-		machine = new Machine();
-	}
-	catch (Exception e)
-	{
-		writeln(e);
-		return 1;
-	}
+  Machine machine;
+  try
+  {
+    machine = new Machine();
+  }
+  catch (Exception e)
+  {
+    writeln(e);
+    return 1;
+  }
 
-	machine.program = new Program(machine, "startup.lua");
-	while (machine.running)
-	{
-		machine.step();
-	}
+  machine.programs ~= new Program(machine, "startup.lua");
+  while (machine.running)
+  {
+    machine.step();
+  }
 
-	machine.shutdown();
-	writeln("THE END!");
-	return 0;
+  machine.shutdown();
+  writeln("THE END!");
+  return 0;
 }

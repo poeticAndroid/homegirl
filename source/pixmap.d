@@ -1,70 +1,98 @@
 module pixmap;
 
 /**
-	index-based pixel map
+  index-based pixel map
 */
 class Pixmap
 {
-	uint width; /// width of pixel map
-	uint height; /// height of pixel map
-	ubyte fgColor = 1; /// index of foreground color
-	ubyte bgColor = 0; /// index of background color
-	ubyte[] pixels; /// all the pixels
-	ubyte[] palette; /// the color palette
+  uint width; /// width of pixel map
+  uint height; /// height of pixel map
+  ubyte colorBits; /// bits per color
+  ubyte fgColor = 1; /// index of foreground color
+  ubyte bgColor = 255; /// index of background/transparent color
+  ubyte[] pixels; /// all the pixels
+  ubyte[] palette; /// the color palette
 
-	/**
-		create new pixmap
-	*/
-	this(uint width, uint height, ubyte colorBits)
-	{
-		this.width = width;
-		this.height = height;
-		this.pixels.length = this.width * this.height;
-		uint colors = 1;
-		for (ubyte i = 0; i < colorBits; i++)
-			colors *= 2;
-		this.palette.length = colors * 3;
-		for (uint i = 0; i < this.pixels.length; i++)
-		{
-			this.pixels[i] = 0;
-		}
-		for (uint i = 3; i < this.palette.length; i++)
-		{
-			this.palette[i] = cast(ubyte)((i * 255) / this.palette.length);
-		}
-	}
+  /**
+    create new pixmap
+  */
+  this(uint width, uint height, ubyte colorBits)
+  {
+    this.width = width;
+    this.height = height;
+    this.colorBits = colorBits;
 
-	/**
-		edit a color in the color palette
-	*/
-	void setColor(uint index, ubyte red, ubyte green, ubyte blue)
-	{
-		uint i = 3 * index;
-		this.palette[i + 0] = (red % 16) * 17;
-		this.palette[i + 1] = (green % 16) * 17;
-		this.palette[i + 2] = (blue % 16) * 17;
-	}
+    uint colors = 1;
+    for (ubyte i = 0; i < colorBits; i++)
+      colors *= 2;
+    this.palette.length = colors * 3;
+    for (ubyte i = 0; i < colors; i++)
+    {
+      this.setColor(i, i, i, i);
+    }
 
-	/**
-		get color of specific pixel
-	*/
-	ubyte pget(uint x, uint y)
-	{
-		if (x >= this.width || y >= this.height)
-			return 0;
-		const i = y * this.width + x;
-		return this.pixels[i];
-	}
+    this.pixels.length = this.width * this.height;
+    for (uint i = 0; i < this.pixels.length; i++)
+    {
+      this.pixels[i] = 0;
+    }
+  }
 
-	/**
-		set color of specific pixel
-	*/
-	void pset(uint x, uint y)
-	{
-		if (x >= this.width || y >= this.height)
-			return;
-		uint i = y * this.width + x;
-		this.pixels[i] = this.fgColor;
-	}
+  /**
+    edit a color in the color palette
+  */
+  void setColor(uint index, ubyte red, ubyte green, ubyte blue)
+  {
+    uint i = 3 * index;
+    this.palette[i + 0] = (red % 16) * 17;
+    this.palette[i + 1] = (green % 16) * 17;
+    this.palette[i + 2] = (blue % 16) * 17;
+  }
+
+  /**
+    get color of specific pixel
+  */
+  ubyte pget(uint x, uint y)
+  {
+    if (x >= this.width || y >= this.height)
+      return this.bgColor;
+    const i = y * this.width + x;
+    return this.pixels[i];
+  }
+
+  /**
+    set color of specific pixel
+  */
+  void pset(uint x, uint y, ubyte c)
+  {
+    if (x >= this.width || y >= this.height)
+      return;
+    uint i = y * this.width + x;
+    this.pixels[i] = c;
+  }
+
+  /**
+    set specific pixel to foreground color
+  */
+  void plot(int x, int y)
+  {
+    this.pset(x, y, this.fgColor);
+  }
+
+  /**
+    copy pixels from another pixmap
+  */
+  void copyFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h)
+  {
+    for (uint y = 0; y < h; y++)
+    {
+      for (uint x = 0; x < w; x++)
+      {
+        ubyte c = src.pget(sx + x, sy + y);
+        if (c != src.bgColor)
+          this.pset(dx + x, dy + y, c);
+      }
+    }
+  }
 
 }

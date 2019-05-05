@@ -1,19 +1,19 @@
 {
-	"authors": [
-		"poeticAndroid"
-	],
-	"copyright": "Copyright © 2019, poeticAndroid",
-	"dependencies": {
-		"bindbc-sdl": "~>0.8.0",
-		"riverd-lua": "~>1.0.3"
-	},
-	"description": "A fantasy console.",
-	"license": "proprietary",
-	"name": "homegirl",
-	"versions": [
-		"SDL_209"
-	],
-	"subConfigurations": {
-		"riverd-lua": "dynamic"
-	}
+  "authors": [
+    "poeticAndroid"
+  ],
+  "copyright": "Copyright © 2019, poeticAndroid",
+  "dependencies": {
+    "bindbc-sdl": "~>0.8.0",
+    "riverd-lua": "~>1.0.3"
+  },
+  "description": "A fantasy console.",
+  "license": "proprietary",
+  "name": "homegirl",
+  "versions": [
+    "SDL_209"
+  ],
+  "subConfigurations": {
+    "riverd-lua": "dynamic"
+  }
 }

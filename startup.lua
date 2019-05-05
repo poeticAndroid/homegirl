@@ -1,11 +1,21 @@
+sec = 0
+frames = 0
 
 function _step(t)
-  for y = 0,180 do
-    for x = 0,320 do
+  for y = 0,8 do
+    for x = 0,8 do
       setfgcolor(math.random(0,255))
-      pset(x,y)
+      plot(x,y)
     end
+  end
+  s = math.floor( t/1000)
+  frames = frames + 1
+  if sec < s then
+    print(frames)
+    sec = s
+    frames = 0
   end
 end
 
 print("This is the program!")
+ 
