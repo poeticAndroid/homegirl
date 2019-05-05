@@ -26,7 +26,7 @@ class Machine
   this()
   {
     this.init_window();
-    this.screens ~= new Screen(0, 5);
+    this.screens ~= new Screen(3, 5);
   }
 
   /**
@@ -101,6 +101,7 @@ class Machine
   private SDL_Window* win; /// the main window
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
+  private auto rect2 = new SDL_Rect();
 
   private void init_window()
   {
@@ -141,10 +142,17 @@ class Machine
     int dy;
     SDL_GetWindowSize(this.win, &dx, &dy);
     if (dx < width)
-      SDL_SetWindowSize(this.win, width, dy);
+    {
+      dx = width;
+      SDL_SetWindowSize(this.win, dx, dy);
+    }
     if (dy < height)
-      SDL_SetWindowSize(this.win, dx, height);
+    {
+      dy = height;
+      SDL_SetWindowSize(this.win, dx, dy);
+    }
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
+
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
@@ -158,16 +166,12 @@ class Machine
         nextPos = this.screens[i + 1].top;
       if (screen.top >= nextPos)
         continue;
-      nextPos = (nextPos - screen.top) / screen.pixelHeight;
-      uint pi = 0;
-      uint pa = 0;
       dx = (dx - pixmap.width * screen.pixelWidth * scale) / 2;
       dy = (dy - pixmap.height * screen.pixelHeight * scale) / 2;
       dy += screen.top * scale;
 
-      SDL_SetRenderDrawColor(ren, pixmap.palette[pa++], pixmap.palette[pa++],
-          pixmap.palette[pa++], 255);
-      if (screen.top < 1)
+      SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
+      if (screen.top <= 0)
         SDL_RenderClear(ren);
       else
       {
@@ -176,25 +180,21 @@ class Machine
         SDL_GetWindowSize(this.win, &this.rect.x, &this.rect.y);
         SDL_RenderFillRect(ren, rect);
       }
-      this.rect.w = scale * screen.pixelWidth;
-      this.rect.h = scale * screen.pixelHeight;
+      rect.x = 0;
+      rect.y = 0;
+      rect.w = pixmap.width;
+      rect.h = pixmap.height;
+      rect2.x = dx;
+      rect2.y = dy;
+      rect2.w = pixmap.width * screen.pixelWidth * scale;
+      rect2.h = pixmap.height * screen.pixelHeight * scale;
       screen.render();
-      for (uint y = 0; y < pixmap.height; y++)
-      {
-        if (y >= nextPos)
-          break;
-        for (uint x = 0; x < pixmap.width; x++)
-        {
-          pa = pixmap.pixels[pi++] * 3 % pixmap.palette.length;
-          SDL_SetRenderDrawColor(ren, pixmap.palette[pa++],
-              pixmap.palette[pa++], pixmap.palette[pa++], 255);
-          rect.x = dx + x * screen.pixelWidth * scale;
-          rect.y = dy + y * screen.pixelHeight * scale;
-          SDL_RenderFillRect(ren, rect);
-        }
-      }
+      if (!pixmap.texture)
+        pixmap.createTexture(this.ren);
+      pixmap.updateTexture();
+      SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
     }
-    SDL_RenderPresent(ren);
+    SDL_RenderPresent(this.ren);
   }
 
   private void toggleFullscren()

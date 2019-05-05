@@ -2,8 +2,8 @@ sec = 0
 frames = 0
 
 function _step(t)
-  for y = 0,8 do
-    for x = 0,8 do
+  for y = 0,360 do
+    for x = 0,640 do
       setfgcolor(math.random(0,255))
       plot(x,y)
     end

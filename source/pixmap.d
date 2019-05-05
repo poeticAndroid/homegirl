@@ -1,5 +1,8 @@
 module pixmap;
 
+import std.stdio;
+import bindbc.sdl;
+
 /**
   index-based pixel map
 */
@@ -12,6 +15,7 @@ class Pixmap
   ubyte bgColor = 255; /// index of background/transparent color
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
+  SDL_Texture* texture; /// texture representation of pixmap
 
   /**
     create new pixmap
@@ -36,6 +40,31 @@ class Pixmap
     {
       this.pixels[i] = 0;
     }
+  }
+
+  void createTexture(SDL_Renderer* ren)
+  {
+    this.texture = SDL_CreateTexture(ren, SDL_PIXELFORMAT_BGR888,
+        SDL_TEXTUREACCESS_STREAMING, this.width, this.height);
+  }
+
+  void updateTexture()
+  {
+    // SDL_UpdateTexture(this.texture, null, cast(void**) this.pixels, this.width);
+    ubyte* pixels = null;
+    int pitch;
+    SDL_LockTexture(this.texture, null, cast(void**)&pixels, &pitch);
+    uint src = 0;
+    uint dest = 0;
+    for (uint i = 0; i < this.pixels.length; i++)
+    {
+      src = this.pixels[i] * 3 % this.palette.length;
+      pixels[dest++] = this.palette[src++];
+      pixels[dest++] = this.palette[src++];
+      pixels[dest++] = this.palette[src++];
+      pixels[dest++] = 255;
+    }
+    SDL_UnlockTexture(this.texture);
   }
 
   /**
