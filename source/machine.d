@@ -18,6 +18,7 @@ import program;
 */
 class Machine
 {
+  SDL_Window* win; /// the main window
   bool running = true; /// is the machine running?
   bool fullscreen = false; /// is the machine running in full screen?
   Screen[] screens; /// all the screens
@@ -124,8 +125,20 @@ class Machine
     }
   }
 
+  void toggleFullscren()
+  {
+    this.fullscreen = !this.fullscreen;
+    if (this.fullscreen)
+    {
+      SDL_SetWindowFullscreen(this.win, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    }
+    else
+    {
+      SDL_SetWindowFullscreen(this.win, 0);
+    }
+  }
+
   // === _privates === //
-  private SDL_Window* win; /// the main window
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
   private auto rect2 = new SDL_Rect();
@@ -226,16 +239,4 @@ class Machine
     SDL_RenderPresent(this.ren);
   }
 
-  private void toggleFullscren()
-  {
-    this.fullscreen = !this.fullscreen;
-    if (this.fullscreen)
-    {
-      SDL_SetWindowFullscreen(this.win, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    }
-    else
-    {
-      SDL_SetWindowFullscreen(this.win, 0);
-    }
-  }
 }

@@ -7,6 +7,9 @@ import riverd.lua.types;
 
 import program;
 
+/**
+  register some functions for a lua program
+*/
 void registerFunctions(Program program)
 {
   auto lua = program.lua;
@@ -27,6 +30,7 @@ void registerFunctions(Program program)
 
   lua_atpanic(lua, &panic);
 
+  /// print(message)
   extern (C) int print(lua_State* L) @trusted
   {
     const msg = lua_tostring(L, -1);
@@ -36,6 +40,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "print", &print);
 
+  /// int createscreen(mode, colorbits)
   extern (C) int createscreen(lua_State* L) @trusted
   {
     const mode = lua_tointeger(L, -2);
@@ -48,6 +53,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "createscreen", &createscreen);
 
+  /// int createviewport(parent, left, top, width, height)
   extern (C) int createviewport(lua_State* L) @trusted
   {
     const parentId = lua_tointeger(L, -5);
@@ -64,6 +70,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "createviewport", &createviewport);
 
+  /// removeviewport(vpID)
   extern (C) int removeviewport(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, -1);
@@ -75,6 +82,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "removeviewport", &removeviewport);
 
+  /// setfgcolor(index)
   extern (C) int setfgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tointeger(L, -1);
@@ -94,6 +102,27 @@ void registerFunctions(Program program)
 
   lua_register(lua, "setfgcolor", &setfgcolor);
 
+  /// setbgcolor(index)
+  extern (C) int setbgcolor(lua_State* L) @trusted
+  {
+    const cindex = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (prog.activeViewport)
+    {
+      prog.activeViewport.pixmap.bgColor = cast(ubyte) cindex;
+    }
+    else
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+    }
+    return 0;
+  }
+
+  lua_register(lua, "setbgcolor", &setbgcolor);
+
+  /// plot(x, y)
   extern (C) int plot(lua_State* L) @trusted
   {
     const x = lua_tointeger(L, -2);

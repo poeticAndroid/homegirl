@@ -13,3 +13,4 @@ homegirl-test-*
 *.o
 *.obj
 *.lst
+config.json
