@@ -28,14 +28,19 @@ int main(string[] args)
   try
   {
     config = parseJSON(readText("./config.json"));
-    SDL_SetWindowPosition(machine.win, cast(int) config["window"].object["left"].integer,
-        cast(int) config["window"].object["top"].integer,);
-    SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
-        cast(int) config["window"].object["height"].integer,);
-    if (config["window"].object["maximized"].boolean)
-      SDL_MaximizeWindow(machine.win);
-    if (config["window"].object["fullscreen"].boolean)
-      machine.toggleFullscren();
+    if (config["window"].type == JSONType.object)
+    {
+      if ("left" in config["window"] && "top" in config["window"])
+        SDL_SetWindowPosition(machine.win, cast(int) config["window"].object["left"].integer,
+            cast(int) config["window"].object["top"].integer,);
+      if ("width" in config["window"] && "height" in config["window"])
+        SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
+            cast(int) config["window"].object["height"].integer,);
+      if ("maximize" in config["window"] && config["window"].object["maximized"].boolean)
+        SDL_MaximizeWindow(machine.win);
+      if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
+        machine.toggleFullscren();
+    }
   }
   catch (Exception e)
   {
