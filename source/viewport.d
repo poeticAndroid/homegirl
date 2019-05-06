@@ -35,6 +35,7 @@ class Viewport
   */
   void detach()
   {
+    this.pixmap.destroyTexture();
     if (this.parent)
     {
       auto parent = this.parent;
@@ -67,7 +68,32 @@ class Viewport
   }
 
   /**
-    render any children onto this viewport
+    check if this viewport is (in) given viewport
+  */
+  bool isInViewport(Viewport vp)
+  {
+    Viewport parent = this;
+    while (parent)
+    {
+      if (parent == vp)
+      {
+        return true;
+      }
+      parent = parent.getParent();
+    }
+    return false;
+  }
+
+  /**
+    Check if this viewport contains/is given viewport
+  */
+  bool containsViewport(Viewport vp)
+  {
+    return vp.isInViewport(this);
+  }
+
+  /**
+    Render any children onto this viewport
   */
   void render()
   {

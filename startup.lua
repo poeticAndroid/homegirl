@@ -1,3 +1,5 @@
+createscreen(3,5)
+
 sec = 0
 frames = 0
 

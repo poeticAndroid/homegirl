@@ -42,29 +42,46 @@ class Pixmap
     }
   }
 
-  void createTexture(SDL_Renderer* ren)
+  /**
+    initiate texture representation
+  */
+  void initTexture(SDL_Renderer* ren)
   {
     this.texture = SDL_CreateTexture(ren, SDL_PIXELFORMAT_BGR888,
         SDL_TEXTUREACCESS_STREAMING, this.width, this.height);
   }
 
+  /**
+    refresh all pixels in texture to represent pixmap
+  */
   void updateTexture()
   {
-    // SDL_UpdateTexture(this.texture, null, cast(void**) this.pixels, this.width);
-    ubyte* pixels = null;
+    ubyte* texdata = null;
     int pitch;
-    SDL_LockTexture(this.texture, null, cast(void**)&pixels, &pitch);
+    SDL_LockTexture(this.texture, null, cast(void**)&texdata, &pitch);
     uint src = 0;
     uint dest = 0;
     for (uint i = 0; i < this.pixels.length; i++)
     {
       src = this.pixels[i] * 3 % this.palette.length;
-      pixels[dest++] = this.palette[src++];
-      pixels[dest++] = this.palette[src++];
-      pixels[dest++] = this.palette[src++];
-      pixels[dest++] = 255;
+      texdata[dest++] = this.palette[src++];
+      texdata[dest++] = this.palette[src++];
+      texdata[dest++] = this.palette[src++];
+      texdata[dest++] = 255;
     }
     SDL_UnlockTexture(this.texture);
+  }
+
+  /**
+    destroy texture representation
+  */
+  void destroyTexture()
+  {
+    if (this.texture)
+    {
+      SDL_DestroyTexture(this.texture);
+      this.texture = null;
+    }
   }
 
   /**
@@ -117,7 +134,7 @@ class Pixmap
     {
       for (uint x = 0; x < w; x++)
       {
-        ubyte c = src.pget(sx + x, sy + y);
+        const c = src.pget(sx + x, sy + y);
         if (c != src.bgColor)
           this.pset(dx + x, dy + y, c);
       }

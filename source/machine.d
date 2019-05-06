@@ -4,8 +4,11 @@ import std.stdio;
 import std.string;
 import std.format;
 import std.math;
+import std.algorithm.searching;
+import std.algorithm.mutation;
 import bindbc.sdl;
 
+import viewport;
 import screen;
 import pixmap;
 import program;
@@ -26,7 +29,7 @@ class Machine
   this()
   {
     this.init_window();
-    this.screens ~= new Screen(3, 5);
+    // this.screens ~= new Screen(3, 5);
   }
 
   /**
@@ -95,6 +98,30 @@ class Machine
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
+  }
+
+  /**
+    create new screen
+  */
+  Screen createScreen(ubyte mode, ubyte colorBits)
+  {
+    Screen screen = new Screen(mode, colorBits);
+    this.screens ~= screen;
+    return screen;
+  }
+
+  /**
+    remove a screen
+  */
+  void removeScreen(Viewport screen)
+  {
+    auto i = countUntil(this.screens, screen);
+    if (i > 0)
+    {
+      this.screens = this.screens.remove(i);
+      screen.pixmap.destroyTexture();
+      screen.detach();
+    }
   }
 
   // === _privates === //
@@ -192,7 +219,7 @@ class Machine
       rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
       if (!pixmap.texture)
-        pixmap.createTexture(this.ren);
+        pixmap.initTexture(this.ren);
       pixmap.updateTexture();
       SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
     }
