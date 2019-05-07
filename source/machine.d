@@ -1,7 +1,5 @@
 module machine;
 
-import std.stdio;
-import std.string;
 import std.format;
 import std.math;
 import std.algorithm.searching;
@@ -10,7 +8,6 @@ import bindbc.sdl;
 
 import viewport;
 import screen;
-import pixmap;
 import program;
 
 /**
@@ -125,6 +122,9 @@ class Machine
     }
   }
 
+  /**
+    toggle fullscreen on/off
+  */
   void toggleFullscren()
   {
     this.fullscreen = !this.fullscreen;

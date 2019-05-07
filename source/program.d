@@ -3,8 +3,6 @@ module program;
 import std.stdio;
 import std.string;
 import std.file;
-import std.random;
-import std.algorithm.searching;
 import riverd.lua;
 import riverd.lua.types;
 

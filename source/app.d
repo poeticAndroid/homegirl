@@ -1,9 +1,6 @@
 import std.stdio;
 import std.file;
 import std.json;
-import std.string;
-import riverd.lua;
-import riverd.lua.types;
 import bindbc.sdl;
 
 import machine;

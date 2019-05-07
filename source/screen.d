@@ -1,7 +1,6 @@
 module screen;
 
 import viewport;
-import pixmap;
 
 /**
   Class representing a screen
@@ -22,5 +21,4 @@ class Screen : Viewport
     this.pixelHeight = cast(ubyte)(2 - (mode & 2) / 2);
     super(null, 0, 0, 640 / this.pixelWidth, 360 / this.pixelHeight, colorBits);
   }
-
 }

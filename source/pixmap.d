@@ -1,6 +1,5 @@
 module pixmap;
 
-import std.stdio;
 import bindbc.sdl;
 
 /**
