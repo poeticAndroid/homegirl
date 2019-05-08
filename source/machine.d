@@ -158,7 +158,7 @@ class Machine
 
     // Create a window
     this.win = SDL_CreateWindow("Homegirl", SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, 1280 + 32, 720 + 18, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+        SDL_WINDOWPOS_UNDEFINED, 640 + 48, 360 + 48, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (win == null)
     {
       SDL_Quit();

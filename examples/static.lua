@@ -6,7 +6,7 @@ frames = 0
 function _step(t)
   for y = 0, 360 do
     for x = 0, 640 do
-      setfgcolor(math.random(0, 255))
+      fgcolor(math.random(0, 255))
       plot(x, y)
     end
   end

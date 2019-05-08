@@ -1,1 +1,1 @@
-dofile("./examples/showimage.lua")
+dofile("./examples/sun.lua")

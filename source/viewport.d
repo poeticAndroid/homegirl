@@ -49,7 +49,7 @@ class Viewport
   */
   Viewport createViewport(int left, int top, uint width, uint height)
   {
-    Viewport vp = new Viewport(this, left, top, width, height, this.pixmap.colorBits);
+    Viewport vp = new Viewport(this, left, top, width, height, 0);
     this.children ~= vp;
     return vp;
   }

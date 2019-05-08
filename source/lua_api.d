@@ -258,8 +258,8 @@ void registerFunctions(Program program)
 
   lua_register(lua, "usepalette", &usepalette);
 
-  /// setfgcolor(index)
-  extern (C) int setfgcolor(lua_State* L) @trusted
+  /// fgcolor(index)
+  extern (C) int fgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
@@ -276,10 +276,10 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "setfgcolor", &setfgcolor);
+  lua_register(lua, "fgcolor", &fgcolor);
 
-  /// setbgcolor(index)
-  extern (C) int setbgcolor(lua_State* L) @trusted
+  /// bgcolor(index)
+  extern (C) int bgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
@@ -296,7 +296,7 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "setbgcolor", &setbgcolor);
+  lua_register(lua, "bgcolor", &bgcolor);
 
   /// plot(x, y)
   extern (C) int plot(lua_State* L) @trusted
@@ -319,4 +319,46 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "plot", &plot);
+
+  /// bar(x, y, width, height)
+  extern (C) int bar(lua_State* L) @trusted
+  {
+    const x = lua_tonumber(L, -4);
+    const y = lua_tonumber(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+    }
+    prog.activeViewport.pixmap.bar(cast(int) x, cast(int) y, cast(uint) width, cast(uint) height);
+    return 0;
+  }
+
+  lua_register(lua, "bar", &bar);
+
+  /// line(x1, y1, x2, y2)
+  extern (C) int line(lua_State* L) @trusted
+  {
+    const x1 = lua_tonumber(L, -4);
+    const y1 = lua_tonumber(L, -3);
+    const x2 = lua_tonumber(L, -2);
+    const y2 = lua_tonumber(L, -1);
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+    }
+    prog.activeViewport.pixmap.line(cast(int) x1, cast(int) y1, cast(int) x2, cast(int) y2);
+    return 0;
+  }
+
+  lua_register(lua, "line", &line);
 }

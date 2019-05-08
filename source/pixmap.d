@@ -1,5 +1,6 @@
 module pixmap;
 
+import std.math;
 import bindbc.sdl;
 
 /**
@@ -122,6 +123,34 @@ class Pixmap
   void plot(int x, int y)
   {
     this.pset(x, y, this.fgColor);
+  }
+
+  /**
+    draw a filled rectange with foreground color
+  */
+  void bar(int x, int y, uint width, uint height)
+  {
+    for (uint _y = 0; _y < height; _y++)
+    {
+      for (uint _x = 0; _x < width; _x++)
+      {
+        plot(x + _x, y + _y);
+      }
+    }
+  }
+
+  /**
+    draw a line with foreground color
+  */
+  void line(int x1, int y1, int x2, int y2)
+  {
+    auto dx = x2 - x1;
+    auto dy = y2 - y1;
+    auto l = fmax(abs(dx), abs(dy));
+    for (auto i = 0; i <= l; i++)
+    {
+      plot(cast(int) round(x1 + dx * (i / l)), cast(int) round(y1 + dy * (i / l)));
+    }
   }
 
   /** 
