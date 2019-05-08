@@ -88,10 +88,10 @@ class Pixmap
   */
   void setColor(uint index, ubyte red, ubyte green, ubyte blue)
   {
-    uint i = 3 * index;
-    this.palette[i + 0] = (red % 16) * 17;
-    this.palette[i + 1] = (green % 16) * 17;
-    this.palette[i + 2] = (blue % 16) * 17;
+    uint i = (3 * index) % this.palette.length;
+    this.palette[i++] = (red % 16) * 17;
+    this.palette[i++] = (green % 16) * 17;
+    this.palette[i++] = (blue % 16) * 17;
   }
 
   /**
@@ -138,6 +138,15 @@ class Pixmap
           this.pset(dx + x, dy + y, c);
       }
     }
+  }
+
+  /**
+    copy palette from another pixmap
+  */
+  void copyPaletteFrom(Pixmap src)
+  {
+    for (uint c = 0; c < src.palette.length / 3; c++)
+      this.setColor(c, src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2],);
   }
 
 }

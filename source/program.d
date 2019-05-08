@@ -10,6 +10,8 @@ import machine;
 import screen;
 import viewport;
 import lua_api;
+import pixmap;
+import image_loader;
 
 /**
   a program that the machine can run
@@ -22,6 +24,8 @@ class Program
 
   Viewport[] viewports; /// the viewports accessible by this program
   Viewport activeViewport; /// viewport currently active for graphics operations
+
+  Pixmap[] pixmaps; /// pixmap images created or loaded by this program
 
   /** 
     Initiate a new program!
@@ -124,6 +128,36 @@ class Program
       i--;
       if (this.viewports[i] && this.viewports[i].containsViewport(vp))
         this.removeViewport(cast(uint) i);
+    }
+  }
+
+  /**
+    create pixmap
+  */
+  uint createPixmap(uint width, uint height, ubyte colorBits)
+  {
+    this.pixmaps ~= new Pixmap(width, height, colorBits);
+    return cast(uint) this.pixmaps.length - 1;
+  }
+
+  /**
+    create pixmap
+  */
+  uint loadPixmap(string filename)
+  {
+    this.pixmaps ~= loadImage(filename);
+    return cast(uint) this.pixmaps.length - 1;
+  }
+
+  /**
+    remove a viewport
+  */
+  void removePixmap(uint pmid)
+  {
+    if (this.pixmaps[pmid])
+    {
+      this.pixmaps[pmid].destroyTexture();
+      this.pixmaps[pmid] = null;
     }
   }
 

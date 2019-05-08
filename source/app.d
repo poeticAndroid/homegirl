@@ -2,6 +2,7 @@ import std.stdio;
 import std.file;
 import std.json;
 import bindbc.sdl;
+import bindbc.freeimage;
 
 import machine;
 import program;
@@ -10,6 +11,10 @@ int main(string[] args)
 {
   Machine machine;
   JSONValue config;
+  const ret = loadFreeImage();
+  if (ret == FISupport.noLibrary)
+    writeln("Couldn't load FreeImage!");
+
   // start machine
   try
   {
