@@ -6,7 +6,7 @@
   "dependencies": {
     "bindbc-freeimage": "~>0.1.1",
     "bindbc-sdl": "~>0.8.0",
-    "riverd-lua": "~>1.0.3"
+    "riverd-loader": "~>1.0.2"
   },
   "description": "A fantasy console.",
   "license": "proprietary",
