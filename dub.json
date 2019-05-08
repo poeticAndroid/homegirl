@@ -17,8 +17,5 @@
   "versions": [
     "SDL_209",
     "FI_318"
-  ],
-  "libs": [
-    "freeimage"
   ]
 }

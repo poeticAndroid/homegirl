@@ -57,10 +57,10 @@ void registerFunctions(Program program)
   extern (C) int createviewport(lua_State* L) @trusted
   {
     const parentId = lua_tointeger(L, -5);
-    const left = lua_tointeger(L, -4);
-    const top = lua_tointeger(L, -3);
-    const width = lua_tointeger(L, -2);
-    const height = lua_tointeger(L, -1);
+    const left = lua_tonumber(L, -4);
+    const top = lua_tonumber(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
@@ -85,8 +85,8 @@ void registerFunctions(Program program)
   /// int createimage(width, height, colorbits)
   extern (C) int createimage(lua_State* L) @trusted
   {
-    const width = lua_tointeger(L, -3);
-    const height = lua_tointeger(L, -2);
+    const width = lua_tonumber(L, -3);
+    const height = lua_tonumber(L, -2);
     const colorBits = lua_tointeger(L, -1);
     //Get the pointer
     lua_getglobal(L, "__program");
@@ -110,6 +110,30 @@ void registerFunctions(Program program)
 
   lua_register(lua, "loadimage", &loadimage);
 
+  /// int imagewidth(imgID)
+  extern (C) int imagewidth(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].width);
+    return 1;
+  }
+
+  lua_register(lua, "imagewidth", &imagewidth);
+
+  /// int imageheight(imgID)
+  extern (C) int imageheight(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].height);
+    return 1;
+  }
+
+  lua_register(lua, "imageheight", &imageheight);
+
   /// forgetimage(imgID)
   extern (C) int forgetimage(lua_State* L) @trusted
   {
@@ -125,13 +149,13 @@ void registerFunctions(Program program)
   /// copyimage(imgID, x, y, imgx, imgy, width, height)
   extern (C) int copyimage(lua_State* L) @trusted
   {
-    const imgID = lua_tointeger(L, -7);
-    const x = lua_tointeger(L, -6);
-    const y = lua_tointeger(L, -5);
-    const imgx = lua_tointeger(L, -4);
-    const imgy = lua_tointeger(L, -3);
-    const width = lua_tointeger(L, -2);
-    const height = lua_tointeger(L, -1);
+    const imgID = lua_tonumber(L, -7);
+    const x = lua_tonumber(L, -6);
+    const y = lua_tonumber(L, -5);
+    const imgx = lua_tonumber(L, -4);
+    const imgy = lua_tonumber(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -158,12 +182,12 @@ void registerFunctions(Program program)
   extern (C) int drawimage(lua_State* L) @trusted
   {
     const imgID = lua_tointeger(L, -7);
-    const x = lua_tointeger(L, -6);
-    const y = lua_tointeger(L, -5);
-    const imgx = lua_tointeger(L, -4);
-    const imgy = lua_tointeger(L, -3);
-    const width = lua_tointeger(L, -2);
-    const height = lua_tointeger(L, -1);
+    const x = lua_tonumber(L, -6);
+    const y = lua_tonumber(L, -5);
+    const imgx = lua_tonumber(L, -4);
+    const imgy = lua_tonumber(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -237,7 +261,7 @@ void registerFunctions(Program program)
   /// setfgcolor(index)
   extern (C) int setfgcolor(lua_State* L) @trusted
   {
-    const cindex = lua_tointeger(L, -1);
+    const cindex = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (prog.activeViewport)
@@ -257,7 +281,7 @@ void registerFunctions(Program program)
   /// setbgcolor(index)
   extern (C) int setbgcolor(lua_State* L) @trusted
   {
-    const cindex = lua_tointeger(L, -1);
+    const cindex = lua_tonumber(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (prog.activeViewport)
@@ -277,8 +301,8 @@ void registerFunctions(Program program)
   /// plot(x, y)
   extern (C) int plot(lua_State* L) @trusted
   {
-    const x = lua_tointeger(L, -2);
-    const y = lua_tointeger(L, -1);
+    const x = lua_tonumber(L, -2);
+    const y = lua_tonumber(L, -1);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

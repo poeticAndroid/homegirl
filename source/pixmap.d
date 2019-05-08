@@ -124,7 +124,7 @@ class Pixmap
     this.pset(x, y, this.fgColor);
   }
 
-  /**
+  /** 
     copy pixels from another pixmap
   */
   void copyFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h)
@@ -141,12 +141,13 @@ class Pixmap
   }
 
   /**
-    copy palette from another pixmap
+    copy palette from another pixmap 
   */
   void copyPaletteFrom(Pixmap src)
   {
-    for (uint c = 0; c < src.palette.length / 3; c++)
-      this.setColor(c, src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2],);
+    uint c = cast(uint) src.palette.length / 3;
+    while (c--)
+      this.setColor(c, src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]);
   }
 
 }
