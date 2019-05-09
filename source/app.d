@@ -50,7 +50,7 @@ int main(string[] args)
   }
 
   // run machine
-  machine.programs ~= new Program(machine, "startup.lua");
+  machine.startProgram("startup.lua");
   while (machine.running)
   {
     machine.step();

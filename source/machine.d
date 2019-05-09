@@ -65,14 +65,9 @@ class Machine
       if (program)
       {
         if (!program.running)
-        {
-          program.shutdown();
-          this.programs[i] = null;
-        }
+          this.shutdownProgram(program);
         else
-        {
           program.step(SDL_GetTicks());
-        }
       }
     }
     this.draw_screens();
@@ -88,14 +83,29 @@ class Machine
     {
       Program program = this.programs[i];
       if (program)
-      {
-        program.shutdown();
-        this.programs[i] = null;
-      }
+        this.shutdownProgram(program);
     }
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
+  }
+
+  /**
+    start a program
+  */
+  void startProgram(string filename)
+  {
+    this.programs ~= new Program(this, filename);
+  }
+
+  /**
+    shut down a program
+  */
+  void shutdownProgram(Program program)
+  {
+    auto i = countUntil(this.programs, program);
+    program.shutdown();
+    this.programs[i] = null;
   }
 
   /**

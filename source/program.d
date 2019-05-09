@@ -40,12 +40,23 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = readText(filename);
+    string luacode = "function _init() end\nfunction _step() end\nfunction _shutdown() end\n" ~ readText(
+        filename);
     if (luaL_dostring(this.lua, toStringz(luacode)))
     {
       auto err = lua_tostring(this.lua, -1);
       writeln("Lua err: " ~ fromStringz(err));
       this.running = false;
+    }
+    if (this.running)
+    {
+      lua_getglobal(this.lua, "_init");
+      if (lua_pcall(this.lua, 0, 0, 0))
+      {
+        auto err = lua_tostring(this.lua, -1);
+        writeln("Lua error: " ~ fromStringz(err));
+        this.running = false;
+      }
     }
   }
 
@@ -69,10 +80,19 @@ class Program
   */
   void shutdown()
   {
+    if (this.running)
+    {
+      lua_getglobal(this.lua, "_shutdown");
+      if (lua_pcall(this.lua, 0, 0, 0))
+      {
+        auto err = lua_tostring(this.lua, -1);
+        writeln("Lua error: " ~ fromStringz(err));
+      }
+    }
     this.running = false;
     lua_close(this.lua);
     auto i = this.viewports.length;
-    while (i > 0)
+    while (i)
       this.removeViewport(cast(uint)--i);
   }
 
