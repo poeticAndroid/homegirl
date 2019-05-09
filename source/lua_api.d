@@ -40,7 +40,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "print", &print);
 
-  /// int createscreen(mode, colorbits)
+  /// createscreen(mode, colorbits): id
   extern (C) int createscreen(lua_State* L) @trusted
   {
     const mode = lua_tointeger(L, -2);
@@ -53,7 +53,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "createscreen", &createscreen);
 
-  /// int createviewport(parent, left, top, width, height)
+  /// createviewport(parent, left, top, width, height): id
   extern (C) int createviewport(lua_State* L) @trusted
   {
     const parentId = lua_tointeger(L, -5);
@@ -82,7 +82,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "removeviewport", &removeviewport);
 
-  /// int createimage(width, height, colorbits)
+  /// createimage(width, height, colorbits): id
   extern (C) int createimage(lua_State* L) @trusted
   {
     const width = lua_tonumber(L, -3);
@@ -97,7 +97,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "createimage", &createimage);
 
-  /// int loadimage(filename)
+  /// loadimage(filename): id
   extern (C) int loadimage(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, -1));
@@ -110,7 +110,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "loadimage", &loadimage);
 
-  /// int imagewidth(imgID)
+  /// imagewidth(imgID): width
   extern (C) int imagewidth(lua_State* L) @trusted
   {
     const imgId = lua_tointeger(L, -1);
@@ -122,7 +122,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "imagewidth", &imagewidth);
 
-  /// int imageheight(imgID)
+  /// imageheight(imgID): height
   extern (C) int imageheight(lua_State* L) @trusted
   {
     const imgId = lua_tointeger(L, -1);
@@ -258,6 +258,47 @@ void registerFunctions(Program program)
 
   lua_register(lua, "usepalette", &usepalette);
 
+  /// setcolor(color, red, green, blue)
+  extern (C) int setcolor(lua_State* L) @trusted
+  {
+    const c = lua_tointeger(L, -4);
+    const r = lua_tonumber(L, -3);
+    const g = lua_tonumber(L, -2);
+    const b = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
+    return 0;
+  }
+
+  lua_register(lua, "setcolor", &setcolor);
+
+  /// getcolor(color, channel): value
+  extern (C) int getcolor(lua_State* L) @trusted
+  {
+    const col = lua_tointeger(L, -2);
+    const chan = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    const i = cast(uint)((col * 3 + chan) % prog.activeViewport.pixmap.palette.length);
+    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i] % 16);
+    return 1;
+  }
+
+  lua_register(lua, "getcolor", &getcolor);
+
   /// fgcolor(index)
   extern (C) int fgcolor(lua_State* L) @trusted
   {
@@ -297,6 +338,25 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "bgcolor", &bgcolor);
+
+  /// pget(x, y): color
+  extern (C) int pget(lua_State* L) @trusted
+  {
+    const x = lua_tonumber(L, -2);
+    const y = lua_tonumber(L, -1);
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+    }
+    lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
+    return 1;
+  }
+
+  lua_register(lua, "pget", &pget);
 
   /// plot(x, y)
   extern (C) int plot(lua_State* L) @trusted
