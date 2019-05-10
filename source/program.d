@@ -40,8 +40,15 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = "function _init() end\nfunction _step() end\nfunction _shutdown() end\n" ~ readText(
-        filename);
+    string luacode = q"{
+      function _init()
+      end
+      function _step()
+        exit(0)
+      end
+      function _shutdown()
+      end
+    }" ~ readText(filename);
     if (luaL_dostring(this.lua, toStringz(luacode)))
     {
       auto err = lua_tostring(this.lua, -1);
@@ -88,12 +95,15 @@ class Program
         auto err = lua_tostring(this.lua, -1);
         writeln("Lua error: " ~ fromStringz(err));
       }
+      this.running = false;
     }
-    this.running = false;
-    lua_close(this.lua);
-    auto i = this.viewports.length;
-    while (i)
-      this.removeViewport(cast(uint)--i);
+    else
+    {
+      lua_close(this.lua);
+      auto i = this.viewports.length;
+      while (i)
+        this.removeViewport(cast(uint)--i);
+    }
   }
 
   /**
@@ -102,6 +112,7 @@ class Program
   uint createScreen(ubyte mode, ubyte colorBits)
   {
     Screen screen = this.machine.createScreen(mode, colorBits);
+    screen.program = this;
     this.viewports ~= screen;
     this.activeViewport = screen;
     return cast(uint) this.viewports.length - 1;
@@ -118,6 +129,7 @@ class Program
     else
       parent = this.viewports[parentId];
     Viewport vp = parent.createViewport(left, top, width, height);
+    vp.program = this;
     this.viewports ~= vp;
     this.activeViewport = vp;
     return cast(uint) this.viewports.length - 1;

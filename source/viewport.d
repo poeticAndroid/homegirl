@@ -3,6 +3,7 @@ module viewport;
 import std.algorithm.searching;
 import std.algorithm.mutation;
 import pixmap;
+import program;
 
 /**
   Class representing a viewport
@@ -13,6 +14,7 @@ class Viewport
   int left; /// position of left side of viewport relative to parent
   int top; /// position of top of viewport relative to parent
   bool visible = true; /// whether this viewport will be rendered or not
+  Program program; /// the program that owns this viewport
 
   /**
     create a new Viewport
@@ -41,6 +43,10 @@ class Viewport
       auto parent = this.parent;
       this.parent = null;
       parent.removeViewport(this);
+    }
+    if (this.program)
+    {
+      this.program = null;
     }
   }
 

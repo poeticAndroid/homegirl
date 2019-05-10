@@ -59,18 +59,23 @@ class Machine
     }
 
     // advance the programs
+    uint runningPrograms = 0;
     for (uint i = 0; i < this.programs.length; i++)
     {
       Program program = this.programs[i];
       if (program)
       {
+        runningPrograms++;
         if (!program.running)
           this.shutdownProgram(program);
         else
           program.step(SDL_GetTicks());
       }
     }
+
     this.draw_screens();
+    if (runningPrograms == 0)
+      this.running = false;
   }
 
   /**

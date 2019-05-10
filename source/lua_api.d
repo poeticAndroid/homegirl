@@ -30,6 +30,18 @@ void registerFunctions(Program program)
 
   lua_atpanic(lua, &panic);
 
+  /// exit(code)
+  extern (C) int exit(lua_State* L) @trusted
+  {
+    const code = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.shutdown();
+    return 0;
+  }
+
+  lua_register(lua, "exit", &exit);
+
   /// print(message)
   extern (C) int print(lua_State* L) @trusted
   {

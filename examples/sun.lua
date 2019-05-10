@@ -1,23 +1,39 @@
 createscreen(0, 4)
 
-s = 10
+x = 0
+y = 0
+dx = 1
+dy = 0
+c = 0
 
-for i = 0, 319, s do
-  fgcolor(i % 16)
-  line(160, 90, i, 0)
-end
-
-for i = 0, 179, s do
-  fgcolor(i % 16)
-  line(160, 90, 320, i)
-end
-
-for i = 319, 0, -s do
-  fgcolor(i % 16)
-  line(160, 90, i, 180)
-end
-
-for i = 179, 0, -s do
-  fgcolor(i % 16)
-  line(160, 90, 0, i)
+function _step()
+  y = y - 1
+  c = c + 7
+  while x + y ~= 0 do
+    x = x + dx
+    y = y + dy
+    c = c + 1
+    fgcolor(c % 16)
+    line(160, 90, x, y)
+    if x > 319 then
+      x = x - 1
+      dx = 0
+      dy = 1
+    end
+    if y > 179 then
+      y = y - 1
+      dx = -1
+      dy = 0
+    end
+    if x < 0 then
+      x = x + 1
+      dx = 0
+      dy = -1
+    end
+    if y < 0 then
+      y = y + 1
+      dx = 1
+      dy = 0
+    end
+  end
 end
