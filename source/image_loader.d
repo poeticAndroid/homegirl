@@ -32,6 +32,7 @@ Pixmap loadImage(string filename)
     colorBits++;
   }
   Pixmap pixmap = new Pixmap(width, height, colorBits);
+  pixmap.bgColor = cast(ubyte) FreeImage_GetTransparentIndex(img);
   RGBQUAD* palette = FreeImage_GetPalette(img);
   for (c = 0; c <= maxindex; c++)
     pixmap.setColor(c, palette[c].rgbRed / 16, palette[c].rgbGreen / 16, palette[c].rgbBlue / 16);
@@ -39,7 +40,7 @@ Pixmap loadImage(string filename)
   {
     for (uint x = 0; x < width; x++)
     {
-      FreeImage_GetPixelIndex(img, x, height - y, &c);
+      FreeImage_GetPixelIndex(img, x, height - y - 1, &c);
       pixmap.pset(x, y, c);
     }
   }

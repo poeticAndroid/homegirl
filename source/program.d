@@ -125,7 +125,7 @@ class Program
   {
     Viewport parent;
     if (parentId == 0)
-      parent = this.machine.screens[0];
+      parent = this.machine.mainScreen;
     else
       parent = this.viewports[parentId];
     Viewport vp = parent.createViewport(left, top, width, height);

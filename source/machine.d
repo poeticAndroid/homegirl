@@ -19,6 +19,8 @@ class Machine
   bool running = true; /// is the machine running?
   bool fullscreen = false; /// is the machine running in full screen?
   Screen[] screens; /// all the screens
+  Screen mainScreen; /// the first screen ever created
+  Viewport focusedViewport; /// the viewport that has focus
   Program[] programs; /// all the programs currently running on the machine
 
   /**
@@ -27,7 +29,6 @@ class Machine
   this()
   {
     this.init_window();
-    // this.screens ~= new Screen(3, 5);
   }
 
   /**
@@ -35,6 +36,9 @@ class Machine
   */
   void step()
   {
+    // track mouse position
+    this.trackMouse();
+
     // Event loop
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -72,7 +76,7 @@ class Machine
       }
     }
 
-    this.draw_screens();
+    this.drawScreens();
     if (runningPrograms == 0)
       this.running = false;
   }
@@ -119,6 +123,8 @@ class Machine
   {
     Screen screen = new Screen(mode, colorBits);
     this.screens ~= screen;
+    if (!this.mainScreen)
+      this.mainScreen = screen;
     return screen;
   }
 
@@ -128,12 +134,20 @@ class Machine
   void removeScreen(Viewport screen)
   {
     auto i = countUntil(this.screens, screen);
-    if (i > 0)
+    if (screen != this.mainScreen)
     {
       this.screens = this.screens.remove(i);
       screen.pixmap.destroyTexture();
       screen.detach();
     }
+  }
+
+  /**
+    make a viewport focused
+  */
+  void focusViewport(Viewport vp)
+  {
+    this.focusedViewport = vp;
   }
 
   /**
@@ -156,6 +170,7 @@ class Machine
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
   private auto rect2 = new SDL_Rect();
+  private uint lastmb = 0;
 
   private void init_window()
   {
@@ -188,7 +203,7 @@ class Machine
     }
   }
 
-  private void draw_screens()
+  private void trackMouse()
   {
     const width = 640;
     const height = 360;
@@ -206,7 +221,59 @@ class Machine
       SDL_SetWindowSize(this.win, dx, dy);
     }
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
+    dx = (dx - width * scale) / 2;
+    dy = (dy - height * scale) / 2;
+    int mx;
+    int my;
+    uint mb = SDL_GetMouseState(&mx, &my);
+    if (mx > dx)
+      mx = (mx - dx) / scale;
+    else
+      mx = ((dx - mx) / scale) * -1;
+    if (my > dy)
+      my = (my - dy) / scale;
+    else
+      my = ((dy - my) / scale) * -1;
 
+    Viewport vp;
+    for (uint i = 0; i < this.screens.length; i++)
+    {
+      auto screen = this.screens[i];
+      screen.mouseBtn = 0;
+      Viewport _vp = screen.setMouseXY(mx / screen.pixelWidth, (my - screen.top) / screen
+          .pixelHeight);
+      if (_vp)
+        vp = _vp;
+    }
+    if (mb > this.lastmb)
+      this.focusViewport(vp);
+    if (this.focusedViewport)
+      this.focusedViewport.setMouseBtn(mb);
+    this.lastmb = mb;
+  }
+
+  private void drawScreens()
+  {
+    const width = 640;
+    const height = 360;
+    int dx;
+    int dy;
+    SDL_GetWindowSize(this.win, &dx, &dy);
+    if (dx < width)
+    {
+      dx = width;
+      SDL_SetWindowSize(this.win, dx, dy);
+    }
+    if (dy < height)
+    {
+      dy = height;
+      SDL_SetWindowSize(this.win, dx, dy);
+    }
+    uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
+    dx = (dx - width * scale) / 2;
+    dy = (dy - height * scale) / 2;
+
+    bool first = true;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
@@ -220,19 +287,17 @@ class Machine
         nextPos = this.screens[i + 1].top;
       if (screen.top >= nextPos)
         continue;
-      dx = (dx - pixmap.width * screen.pixelWidth * scale) / 2;
-      dy = (dy - pixmap.height * screen.pixelHeight * scale) / 2;
-      dy += screen.top * scale;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
-      if (screen.top <= 0)
+      if (first)
       {
         SDL_RenderClear(ren);
+        first = false;
       }
       else
       {
         this.rect.x = 0;
-        this.rect.y = dy - scale * 3;
+        this.rect.y = dy + screen.top * scale - scale * 3;
         SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }
@@ -241,7 +306,7 @@ class Machine
       rect.w = pixmap.width;
       rect.h = pixmap.height - screen.top / screen.pixelHeight;
       rect2.x = dx;
-      rect2.y = dy;
+      rect2.y = dy + screen.top * scale;
       rect2.w = rect.w * screen.pixelWidth * scale;
       rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();

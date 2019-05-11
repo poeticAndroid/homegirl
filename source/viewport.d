@@ -15,6 +15,9 @@ class Viewport
   int top; /// position of top of viewport relative to parent
   bool visible = true; /// whether this viewport will be rendered or not
   Program program; /// the program that owns this viewport
+  int mouseX; /// X position of the mouse relative to this viewport
+  int mouseY; /// Y position of the mouse relative to this viewport
+  uint mouseBtn; /// Mouse button state if this viewport has focus
 
   /**
     create a new Viewport
@@ -125,13 +128,47 @@ class Viewport
   }
 
   /**
+    set mouse position and return which viewport is pointed on
+  */
+  Viewport setMouseXY(int x, int y)
+  {
+    this.mouseX = x;
+    this.mouseY = y;
+    this.mouseBtn = 0;
+    Viewport vp = this;
+    foreach (viewport; this.children)
+    {
+      if (viewport && viewport.visible)
+      {
+        Viewport _vp = viewport.setMouseXY(x - viewport.left, y - viewport.top);
+        if (_vp)
+          vp = _vp;
+      }
+    }
+    if (x >= 0 && x < this.pixmap.width && y >= 0 && y < this.pixmap.height)
+      return vp;
+    else
+      return null;
+  }
+
+  /**
+    set mouse button for this and all parent viewports
+  */
+  void setMouseBtn(uint btn)
+  {
+    this.mouseBtn = btn;
+    if (this.parent)
+      this.parent.setMouseBtn(btn);
+  }
+
+  /**
     Render any children onto this viewport
   */
   void render()
   {
     foreach (viewport; this.children)
     {
-      if (viewport.visible)
+      if (viewport && viewport.visible)
       {
         viewport.render();
         this.pixmap.copyFrom(viewport.pixmap, 0, 0, viewport.left,
