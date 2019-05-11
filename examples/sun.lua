@@ -6,7 +6,7 @@ dx = 1
 dy = 0
 c = 0
 
-function _step()
+function _init()
   y = y - 1
   c = c + 7
   while x + y ~= 0 do
@@ -35,5 +35,12 @@ function _step()
       dx = 1
       dy = 0
     end
+  end
+end
+
+function _step()
+  c = c + 1
+  for i = 1, 15 do
+    setcolor(i, i + c, i + c, i + c)
   end
 end

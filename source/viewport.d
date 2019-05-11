@@ -99,6 +99,32 @@ class Viewport
   }
 
   /**
+    move this viewport
+  */
+  void move(int left, int top)
+  {
+    this.left = left;
+    this.top = top;
+  }
+
+  /**
+    resize this viewport
+  */
+  void resize(uint width, uint height)
+  {
+    this.pixmap.destroyTexture();
+    this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+  }
+
+  /**
+    change screen mode
+  */
+  void changeMode(ubyte mode, ubyte colorBits)
+  {
+    this.parent.changeMode(mode, colorBits);
+  }
+
+  /**
     Render any children onto this viewport
   */
   void render()

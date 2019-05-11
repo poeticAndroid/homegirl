@@ -45,7 +45,6 @@ class Machine
         running = false;
         break;
       case SDL_KEYDOWN:
-        this.screens[0].top = 0;
         switch (event.key.keysym.sym)
         {
         case SDLK_F11:

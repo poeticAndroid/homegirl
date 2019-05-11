@@ -6,6 +6,7 @@ import riverd.lua;
 import riverd.lua.types;
 
 import program;
+import viewport;
 
 /**
   register some functions for a lua program
@@ -65,6 +66,31 @@ void registerFunctions(Program program)
 
   lua_register(lua, "createscreen", &createscreen);
 
+  /// changescreenmode(screenID, mode, colorbits)
+  extern (C) int changescreenmode(lua_State* L) @trusted
+  {
+    const screenId = lua_tointeger(L, -3);
+    const mode = lua_tointeger(L, -2);
+    const colorBits = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    Viewport vp = prog.machine.screens[0];
+    if (screenId > 0)
+    {
+      vp = prog.viewports[cast(uint) screenId];
+    }
+    if (!vp)
+    {
+      lua_pushstring(L, "Invalid viewport!");
+      lua_error(L);
+      return 0;
+    }
+    vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
+    return 0;
+  }
+
+  lua_register(lua, "changescreenmode", &changescreenmode);
+
   /// createviewport(parent, left, top, width, height): id
   extern (C) int createviewport(lua_State* L) @trusted
   {
@@ -81,6 +107,116 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "createviewport", &createviewport);
+
+  /// moveviewport(vpID, left, top)
+  extern (C) int moveviewport(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -3);
+    const left = lua_tonumber(L, -2);
+    const top = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    auto vp = prog.viewports[cast(uint) vpId];
+    if (!vp)
+    {
+      lua_pushstring(L, "Invalid viewport!");
+      lua_error(L);
+      return 0;
+    }
+    vp.move(cast(int) left, cast(int) top);
+    return 0;
+  }
+
+  lua_register(lua, "moveviewport", &moveviewport);
+
+  /// resizeviewport(vpID, left, top)
+  extern (C) int resizeviewport(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    auto vp = prog.viewports[cast(uint) vpId];
+    if (!vp)
+    {
+      lua_pushstring(L, "Invalid viewport!");
+      lua_error(L);
+      return 0;
+    }
+    vp.resize(cast(uint) width, cast(uint) height);
+    return 0;
+  }
+
+  lua_register(lua, "resizeviewport", &resizeviewport);
+
+  /// showviewport(vpID, visible)
+  extern (C) int showviewport(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -2);
+    const visible = lua_toboolean(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    auto vp = prog.viewports[cast(uint) vpId];
+    if (!vp)
+    {
+      lua_pushstring(L, "Invalid viewport!");
+      lua_error(L);
+      return 0;
+    }
+    vp.visible = cast(bool) visible;
+    return 0;
+  }
+
+  lua_register(lua, "showviewport", &showviewport);
+
+  /// viewportleft(vpID): left
+  extern (C) int viewportleft(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.viewports[cast(uint) vpId].left);
+    return 1;
+  }
+
+  lua_register(lua, "viewportleft", &viewportleft);
+
+  /// viewporttop(vpID): top
+  extern (C) int viewporttop(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.viewports[cast(uint) vpId].top);
+    return 1;
+  }
+
+  lua_register(lua, "viewporttop", &viewporttop);
+
+  /// viewportwidth(vpID): width
+  extern (C) int viewportwidth(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.viewports[cast(uint) vpId].pixmap.width);
+    return 1;
+  }
+
+  lua_register(lua, "viewportwidth", &viewportwidth);
+
+  /// viewportheight(vpID): height
+  extern (C) int viewportheight(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.viewports[cast(uint) vpId].pixmap.height);
+    return 1;
+  }
+
+  lua_register(lua, "viewportheight", &viewportheight);
 
   /// removeviewport(vpID)
   extern (C) int removeviewport(lua_State* L) @trusted
@@ -145,18 +281,6 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "imageheight", &imageheight);
-
-  /// forgetimage(imgID)
-  extern (C) int forgetimage(lua_State* L) @trusted
-  {
-    const imgId = lua_tointeger(L, -1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removePixmap(cast(uint) imgId);
-    return 0;
-  }
-
-  lua_register(lua, "forgetimage", &forgetimage);
 
   /// copyimage(imgID, x, y, imgx, imgy, width, height)
   extern (C) int copyimage(lua_State* L) @trusted
@@ -269,6 +393,18 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "usepalette", &usepalette);
+
+  /// forgetimage(imgID)
+  extern (C) int forgetimage(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.removePixmap(cast(uint) imgId);
+    return 0;
+  }
+
+  lua_register(lua, "forgetimage", &forgetimage);
 
   /// setcolor(color, red, green, blue)
   extern (C) int setcolor(lua_State* L) @trusted

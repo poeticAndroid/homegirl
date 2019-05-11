@@ -173,7 +173,7 @@ class Program
   }
 
   /**
-    create pixmap
+    load pixmap from file
   */
   uint loadPixmap(string filename)
   {
