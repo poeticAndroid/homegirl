@@ -12,9 +12,12 @@
     /// viewporttop(vpID): top
     /// viewportwidth(vpID): width
     /// viewportheight(vpID): height
+    /// viewportfocused(vpID): focused
+    /// focusviewport(vpID)
     /// removeviewport(vpID)
     /// mousex(): x
     /// mousey(): y
+    /// mousebtn(): btn
     /// createimage(width, height, colorbits): id
     /// loadimage(filename): id
     /// imagewidth(imgID): width

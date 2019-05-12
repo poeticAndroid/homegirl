@@ -297,7 +297,7 @@ class Machine
       else
       {
         this.rect.x = 0;
-        this.rect.y = dy + screen.top * scale - scale * 3;
+        this.rect.y = dy + screen.top * scale - 4 * scale;
         SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }

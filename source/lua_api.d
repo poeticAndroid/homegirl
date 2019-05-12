@@ -249,6 +249,31 @@ void registerFunctions(Program program)
 
   lua_register(lua, "viewportheight", &viewportheight);
 
+  /// viewportfocused(vpID): focused
+  extern (C) int viewportfocused(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushboolean(L,
+        prog.viewports[cast(uint) vpId].containsViewport(prog.machine.focusedViewport));
+    return 1;
+  }
+
+  lua_register(lua, "viewportfocused", &viewportfocused);
+
+  /// focusviewport(vpID)
+  extern (C) int focusviewport(lua_State* L) @trusted
+  {
+    const vpId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.focusViewport(prog.viewports[cast(uint) vpId]);
+    return 1;
+  }
+
+  lua_register(lua, "focusviewport", &focusviewport);
+
   /// removeviewport(vpID)
   extern (C) int removeviewport(lua_State* L) @trusted
   {
