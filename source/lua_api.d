@@ -365,6 +365,24 @@ void registerFunctions(Program program)
 
   lua_register(lua, "loadimage", &loadimage);
 
+  /// loadanimation(filename): id
+  extern (C) int loadanimation(lua_State* L) @trusted
+  {
+    auto filename = fromStringz(lua_tostring(L, -1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    uint[] anim = prog.loadAnimation(cast(string) filename);
+    lua_createtable(L, cast(uint) anim.length, 0);
+    for (uint i = 0; i < anim.length; i++)
+    {
+      lua_pushinteger(L, anim[i]);
+      lua_rawseti(L, -2, i + 1);
+    }
+    return 1;
+  }
+
+  lua_register(lua, "loadanimation", &loadanimation);
+
   /// imagewidth(imgID): width
   extern (C) int imagewidth(lua_State* L) @trusted
   {
@@ -388,6 +406,18 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "imageheight", &imageheight);
+
+  /// imageduration(imgID): height
+  extern (C) int imageduration(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].duration);
+    return 1;
+  }
+
+  lua_register(lua, "imageduration", &imageduration);
 
   /// copyimage(imgID, x, y, imgx, imgy, width, height)
   extern (C) int copyimage(lua_State* L) @trusted
@@ -439,7 +469,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    if (!prog.pixmaps[cast(uint) imgID])
+    if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
     {
       lua_pushstring(L, "Invalid image!");
       lua_error(L);

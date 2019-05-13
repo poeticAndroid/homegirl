@@ -164,12 +164,20 @@ class Program
   }
 
   /**
+    add pixmap
+  */
+  uint addPixmap(Pixmap pixmap)
+  {
+    this.pixmaps ~= pixmap;
+    return cast(uint) this.pixmaps.length - 1;
+  }
+
+  /**
     create pixmap
   */
   uint createPixmap(uint width, uint height, ubyte colorBits)
   {
-    this.pixmaps ~= new Pixmap(width, height, colorBits);
-    return cast(uint) this.pixmaps.length - 1;
+    return this.addPixmap(new Pixmap(width, height, colorBits));
   }
 
   /**
@@ -177,12 +185,25 @@ class Program
   */
   uint loadPixmap(string filename)
   {
-    this.pixmaps ~= loadImage(filename);
-    return cast(uint) this.pixmaps.length - 1;
+    return this.addPixmap(loadImage(filename));
   }
 
   /**
-    remove a viewport
+    load animation from file
+  */
+  uint[] loadAnimation(string filename)
+  {
+    Pixmap[] frames = image_loader.loadAnimation(filename);
+    uint[] anim;
+    foreach (frame; frames)
+    {
+      anim ~= this.addPixmap(frame);
+    }
+    return anim;
+  }
+
+  /**
+    remove a pixmap
   */
   void removePixmap(uint pmid)
   {

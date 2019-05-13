@@ -1,7 +1,6 @@
 scrn = createscreen(0, 5)
 moveviewport(scrn, 0, 0)
 pointer = loadimage("./examples/images/pointer.gif")
-print("attempting to show an image!")
 
 img = loadimage("./examples/images/Pharao.gif")
 width = imagewidth(img)

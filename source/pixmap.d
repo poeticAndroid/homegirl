@@ -15,6 +15,7 @@ class Pixmap
   ubyte bgColor = 255; /// index of background/transparent color
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
+  uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
   SDL_Texture* texture; /// texture representation of pixmap
 
   /**
@@ -177,6 +178,22 @@ class Pixmap
     uint c = cast(uint) src.palette.length / 3;
     while (c--)
       this.setColor(c, src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]);
+  }
+
+  /**
+    create a clone of this pixmap
+  */
+  Pixmap clone()
+  {
+    Pixmap pixmap = new Pixmap(this.width, this.height, this.colorBits);
+    pixmap.fgColor = this.bgColor;
+    pixmap.bar(0, 0, pixmap.width, pixmap.height);
+    pixmap.copyPaletteFrom(this);
+    pixmap.copyFrom(this, 0, 0, 0, 0, pixmap.width, pixmap.height);
+    pixmap.fgColor = this.fgColor;
+    pixmap.bgColor = this.bgColor;
+    pixmap.duration = this.duration;
+    return pixmap;
   }
 
 }

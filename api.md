@@ -20,8 +20,10 @@
     /// mousebtn(): btn
     /// createimage(width, height, colorbits): id
     /// loadimage(filename): id
+    /// loadanimation(filename): id
     /// imagewidth(imgID): width
     /// imageheight(imgID): height
+    /// imageduration(imgID): height
     /// copyimage(imgID, x, y, imgx, imgy, width, height)
     /// drawimage(imgID, x, y, imgx, imgy, width, height)
     /// copypalette(imgID)
