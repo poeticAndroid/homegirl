@@ -3,6 +3,8 @@ scrn = createscreen(0, 5)
 anim = loadanimation("./examples/images/juggler32.gif")
 frame = 0
 nextFrame = 0
+mx = 0
+my = 0
 
 function _init()
   usepalette(anim[1])
@@ -21,5 +23,11 @@ function _step(t)
   end
   bar(0, 0, 320, 180)
   drawimage(anim[frame], 0, 0, 0, 0, 320, 180)
+  if mousebtn() > 0 then
+    line(mx, my, mousex(), mousey())
+    copyimage(anim[frame], 0, 0, 0, 0, 320, 180)
+  end
+  mx = mousex()
+  my = mousey()
   nextFrame = nextFrame + imageduration(anim[frame])
 end

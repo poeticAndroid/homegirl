@@ -16,6 +16,7 @@ class Pixmap
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
   uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
+  CopyMode copymode = CopyMode.matte; /// the mode by which to copy other pixmaps onto this one
   SDL_Texture* texture; /// texture representation of pixmap
 
   /**
@@ -164,8 +165,21 @@ class Pixmap
       for (uint x = 0; x < w; x++)
       {
         const c = src.pget(sx + x, sy + y);
-        if (c != src.bgColor)
+        switch (this.copymode)
+        {
+        case CopyMode.matte:
+          if (c != src.bgColor)
+            this.pset(dx + x, dy + y, c);
+          break;
+        case CopyMode.color:
+          if (c != src.bgColor)
+            this.pset(dx + x, dy + y, this.fgColor);
+          break;
+        case CopyMode.replace:
           this.pset(dx + x, dy + y, c);
+          break;
+        default:
+        }
       }
     }
   }
@@ -196,4 +210,11 @@ class Pixmap
     return pixmap;
   }
 
+}
+
+enum CopyMode
+{
+  matte,
+  color,
+  replace
 }
