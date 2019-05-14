@@ -7,6 +7,7 @@ import riverd.lua.types;
 
 import program;
 import viewport;
+import pixmap;
 
 /**
   register some functions for a lua program
@@ -451,6 +452,24 @@ void registerFunctions(Program program)
 
   lua_register(lua, "copyimage", &copyimage);
 
+  /// copymode(mode)
+  extern (C) int copymode(lua_State* L) @trusted
+  {
+    const mode = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.pixmap.copymode = cast(CopyMode) mode;
+    return 0;
+  }
+
+  lua_register(lua, "copymode", &copymode);
+
   /// drawimage(imgID, x, y, imgx, imgy, width, height)
   extern (C) int drawimage(lua_State* L) @trusted
   {
@@ -706,4 +725,56 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "line", &line);
+
+  /// loadfont(filename): id
+  extern (C) int loadfont(lua_State* L) @trusted
+  {
+    auto filename = fromStringz(lua_tostring(L, -1));
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.loadFont(cast(string) filename));
+    return 1;
+  }
+
+  lua_register(lua, "loadfont", &loadfont);
+
+  /// forgetfont(imgID)
+  extern (C) int forgetfont(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.removeFont(cast(uint) imgId);
+    return 0;
+  }
+
+  lua_register(lua, "forgetfont", &forgetfont);
+
+  /// text(text, font, x, y): width
+  extern (C) int text(lua_State* L) @trusted
+  {
+    const text = lua_tostring(L, -4);
+    const font = lua_tointeger(L, -3);
+    const x = lua_tonumber(L, -2);
+    const y = lua_tonumber(L, -1);
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+    }
+    if (!prog.fonts[cast(uint) font])
+    {
+      lua_pushstring(L, "Invalid font!");
+      lua_error(L);
+    }
+    prog.activeViewport.pixmap.text(cast(string) fromStringz(text),
+        prog.fonts[cast(uint) font], cast(int) x, cast(int) y);
+    return 0;
+  }
+
+  lua_register(lua, "text", &text);
 }

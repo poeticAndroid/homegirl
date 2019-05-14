@@ -1,5 +1,6 @@
 scrn = createscreen(0, 5)
 
+font = loadfont("./examples/fonts/test.8.gif")
 anim = loadanimation("./examples/images/juggler32.gif")
 frame = 0
 nextFrame = 0
@@ -22,6 +23,7 @@ function _step(t)
     frame = 1
   end
   bar(0, 0, 320, 180)
+  copymode(0)
   drawimage(anim[frame], 0, 0, 0, 0, 320, 180)
   if mousebtn() > 0 then
     line(mx, my, mousex(), mousey())
@@ -29,5 +31,7 @@ function _step(t)
   end
   mx = mousex()
   my = mousey()
+  copymode(1)
+  text("FRAME "..frame,font,0,0)
   nextFrame = nextFrame + imageduration(anim[frame])
 end

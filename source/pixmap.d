@@ -195,6 +195,28 @@ class Pixmap
   }
 
   /**
+    draw text on the pixmap
+  */
+  uint text(string text, Pixmap[] font, int x, int y)
+  {
+    int margin = x;
+    int width = 0;
+    uint code;
+    Pixmap glyph;
+    for (uint i = 0; i < text.length; i++)
+    {
+      code = cast(uint) text[i];
+      if (code >= 32)
+      {
+        glyph = font[code - 32];
+        this.copyFrom(glyph, 0, 0, x, y, glyph.width, glyph.height);
+        x += glyph.duration / 10;
+      }
+    }
+    return width;
+  }
+
+  /**
     create a clone of this pixmap
   */
   Pixmap clone()
@@ -212,6 +234,9 @@ class Pixmap
 
 }
 
+/**
+  copy modes for the .copyFrom method
+*/
 enum CopyMode
 {
   matte,

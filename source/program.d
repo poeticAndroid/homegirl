@@ -26,6 +26,7 @@ class Program
   Viewport activeViewport; /// viewport currently active for graphics operations
 
   Pixmap[] pixmaps; /// pixmap images created or loaded by this program
+  Pixmap[][] fonts; /// fonts loaded by this program
 
   /** 
     Initiate a new program!
@@ -212,6 +213,31 @@ class Program
       this.pixmaps[pmid].destroyTexture();
       this.pixmaps[pmid] = null;
     }
+  }
+
+  /**
+    add font
+  */
+  uint addFont(Pixmap[] font)
+  {
+    this.fonts ~= font;
+    return cast(uint) this.fonts.length - 1;
+  }
+
+  /**
+    load pixmap from file
+  */
+  uint loadFont(string filename)
+  {
+    return this.addFont(image_loader.loadAnimation(filename));
+  }
+
+  /**
+    remove a pixmap
+  */
+  void removeFont(uint pmid)
+  {
+    this.fonts[pmid] = null;
   }
 
   // === _privates === //
