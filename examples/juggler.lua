@@ -1,6 +1,6 @@
 scrn = createscreen(0, 5)
 
-font = loadfont("./examples/fonts/test.8.gif")
+font = loadfont("./examples/fonts/Victoria.8b.gif")
 anim = loadanimation("./examples/images/juggler32.gif")
 frame = 0
 nextFrame = 0
@@ -31,7 +31,7 @@ function _step(t)
   end
   mx = mousex()
   my = mousey()
-  copymode(1)
-  text("FRAME "..frame,font,0,0)
+  copymode(2)
+  text("Frame\t" .. frame .. "\nSmå søde jordbær!🍓\nSMÅ SOØ0DE JORDBÆR!!", font, 0, 0)
   nextFrame = nextFrame + imageduration(anim[frame])
 end

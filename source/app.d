@@ -38,8 +38,11 @@ int main(string[] args)
       if ("width" in config["window"] && "height" in config["window"])
         SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
             cast(int) config["window"].object["height"].integer,);
-      if ("maximize" in config["window"] && config["window"].object["maximized"].boolean)
+      if ("maximized" in config["window"] && config["window"].object["maximized"].boolean)
+      {
+        writeln("maximizing!");
         SDL_MaximizeWindow(machine.win);
+      }
       if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
         machine.toggleFullscren();
     }

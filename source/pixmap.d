@@ -1,5 +1,6 @@
 module pixmap;
 
+import std.utf;
 import std.math;
 import bindbc.sdl;
 
@@ -197,8 +198,9 @@ class Pixmap
   /**
     draw text on the pixmap
   */
-  uint text(string text, Pixmap[] font, int x, int y)
+  uint text(string _text, Pixmap[] font, int x, int y)
   {
+    dstring text = toUTF32(_text);
     int margin = x;
     int width = 0;
     uint code;
@@ -206,12 +208,34 @@ class Pixmap
     for (uint i = 0; i < text.length; i++)
     {
       code = cast(uint) text[i];
-      if (code >= 32)
+      if (code == 9)
       {
-        glyph = font[code - 32];
+        x -= margin;
+        x = x / 64 * 64 + 64;
+        x += margin;
+      }
+      else if (code == 10)
+      {
+        x = margin;
+        y += font[0].height;
+      }
+      else if (code >= 32)
+      {
+        if ((code - 32) < font.length)
+          glyph = font[code - 32];
+        else
+          code = 128;
+        if (glyph && glyph.duration < 10)
+          code = 128;
+        if ((code - 32) < font.length)
+          glyph = font[code - 32];
+        else
+          glyph = font[font.length - 1];
         this.copyFrom(glyph, 0, 0, x, y, glyph.width, glyph.height);
         x += glyph.duration / 10;
       }
+      if ((x - margin) > width)
+        width = x - margin;
     }
     return width;
   }
@@ -239,7 +263,7 @@ class Pixmap
 */
 enum CopyMode
 {
+  replace,
   matte,
-  color,
-  replace
+  color
 }
