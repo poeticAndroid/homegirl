@@ -34,15 +34,11 @@ class Pixmap
       colors *= 2;
     this.palette.length = colors * 3;
     for (ubyte i = 0; i < colors; i++)
-    {
       this.setColor(i, i, i, i);
-    }
 
     this.pixels.length = this.width * this.height;
     for (uint i = 0; i < this.pixels.length; i++)
-    {
       this.pixels[i] = 0;
-    }
   }
 
   /**
@@ -85,6 +81,15 @@ class Pixmap
       SDL_DestroyTexture(this.texture);
       this.texture = null;
     }
+  }
+
+  /**
+    clear the pixmap with background color
+  */
+  void cls()
+  {
+    for (uint i = 0; i < this.pixels.length; i++)
+      this.pixels[i] = this.bgColor;
   }
 
   /**

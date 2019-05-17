@@ -1,5 +1,7 @@
 module machine;
 
+import std.stdio;
+import std.string;
 import std.format;
 import std.math;
 import std.algorithm.searching;
@@ -9,6 +11,7 @@ import bindbc.sdl;
 import viewport;
 import screen;
 import program;
+import texteditor;
 
 /**
   Class representing "the machine"!
@@ -48,7 +51,13 @@ class Machine
       case SDL_QUIT:
         running = false;
         break;
+      case SDL_TEXTINPUT:
+        if (this.focusedViewport)
+          this.focusedViewport.textinput.insertText(
+              cast(string) fromStringz(cast(char*)(event.text.text)));
+        break;
       case SDL_KEYDOWN:
+        this.handleTextEdit(event.key.keysym.sym);
         switch (event.key.keysym.sym)
         {
         case SDLK_F11:
@@ -201,6 +210,7 @@ class Machine
       SDL_Quit();
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
+    SDL_StartTextInput();
   }
 
   private void trackMouse()
@@ -316,6 +326,71 @@ class Machine
       SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
     }
     SDL_RenderPresent(this.ren);
+  }
+
+  private void handleTextEdit(SDL_Keycode key)
+  {
+    if (!this.focusedViewport)
+      return;
+    TextEditor te = this.focusedViewport.textinput;
+    if (SDL_GetModState() & KMOD_CTRL)
+    {
+      switch (key)
+      {
+      case SDLK_a:
+        te.selectAll();
+        break;
+      case SDLK_z:
+        te.undo();
+        break;
+      case SDLK_x:
+        SDL_SetClipboardText(toStringz(te.getSelectedText()));
+        te.insertText("");
+        break;
+      case SDLK_c:
+        SDL_SetClipboardText(toStringz(te.getSelectedText()));
+        break;
+      case SDLK_v:
+        te.insertText(cast(string) fromStringz(cast(char*)(SDL_GetClipboardText())));
+        break;
+      default:
+      }
+    }
+    switch (key)
+    {
+    case SDLK_TAB:
+      te.insertText("\t");
+      break;
+    case SDLK_RETURN:
+    case SDLK_KP_ENTER:
+      te.insertText("\n");
+      break;
+    case SDLK_BACKSPACE:
+      te.backSpace();
+      break;
+    case SDLK_DELETE:
+      te.deleteChar();
+      break;
+    case SDLK_RIGHT:
+      te.right(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_LEFT:
+      te.left(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_DOWN:
+      te.down(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_UP:
+      te.up(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_HOME:
+      te.home(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_END:
+      te.end(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    default:
+    }
   }
 
 }

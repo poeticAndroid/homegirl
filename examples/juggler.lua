@@ -23,7 +23,6 @@ function _step(t)
     frame = 1
   end
   bar(0, 0, 320, 180)
-  copymode(0)
   drawimage(anim[frame], 0, 0, 0, 0, 320, 180)
   if mousebtn() > 0 then
     line(mx, my, mousex(), mousey())
@@ -31,7 +30,5 @@ function _step(t)
   end
   mx = mousex()
   my = mousey()
-  copymode(2)
-  text("Frame\t" .. frame .. "\nSmå søde jordbær!🍓\nSMÅ SOØ0DE JORDBÆR!!", font, 0, 0)
   nextFrame = nextFrame + imageduration(anim[frame])
 end

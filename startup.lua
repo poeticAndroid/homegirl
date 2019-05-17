@@ -1,5 +1,6 @@
-exec("./examples/fps.lua")
+-- exec("./examples/fps.lua")
 -- exec("./examples/static.lua")
-exec("./examples/juggler.lua")
+-- exec("./examples/juggler.lua")
 -- exec("./examples/sun.lua")
 -- exec("./examples/showimage.lua")
+exec("./examples/typist.lua")

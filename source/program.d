@@ -116,6 +116,7 @@ class Program
     screen.program = this;
     this.viewports ~= screen;
     this.activeViewport = screen;
+    this.machine.focusViewport(screen);
     return cast(uint) this.viewports.length - 1;
   }
 
@@ -133,6 +134,7 @@ class Program
     vp.program = this;
     this.viewports ~= vp;
     this.activeViewport = vp;
+    this.machine.focusViewport(vp);
     return cast(uint) this.viewports.length - 1;
   }
 

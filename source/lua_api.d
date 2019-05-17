@@ -287,6 +287,75 @@ void registerFunctions(Program program)
 
   lua_register(lua, "removeviewport", &removeviewport);
 
+  /// getinputtext(): text
+  extern (C) int getinputtext(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    lua_pushstring(L, toStringz(prog.activeViewport.textinput.getText()));
+    return 1;
+  }
+
+  lua_register(lua, "getinputtext", &getinputtext);
+
+  /// getinputpos(): position
+  extern (C) int getinputpos(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    lua_pushinteger(L, prog.activeViewport.textinput.posBytes);
+    return 1;
+  }
+
+  lua_register(lua, "getinputpos", &getinputpos);
+
+  /// getinputselected(): selection
+  extern (C) int getinputselected(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    lua_pushinteger(L, prog.activeViewport.textinput.selectedBytes);
+    return 1;
+  }
+
+  lua_register(lua, "getinputselected", &getinputselected);
+
+  /// setinputtext(text)
+  extern (C) int setinputtext(lua_State* L) @trusted
+  {
+    const text = lua_tostring(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.textinput.setText(cast(string) fromStringz(text));
+    return 0;
+  }
+
+  lua_register(lua, "setinputtext", &setinputtext);
+
   /// mousex(): x
   extern (C) int mousex(lua_State* L) @trusted
   {
@@ -420,38 +489,6 @@ void registerFunctions(Program program)
 
   lua_register(lua, "imageduration", &imageduration);
 
-  /// copyimage(imgID, x, y, imgx, imgy, width, height)
-  extern (C) int copyimage(lua_State* L) @trusted
-  {
-    const imgID = lua_tonumber(L, -7);
-    const x = lua_tonumber(L, -6);
-    const y = lua_tonumber(L, -5);
-    const imgx = lua_tonumber(L, -4);
-    const imgy = lua_tonumber(L, -3);
-    const width = lua_tonumber(L, -2);
-    const height = lua_tonumber(L, -1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
-    {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
-      return 0;
-    }
-    if (!prog.pixmaps[cast(uint) imgID])
-    {
-      lua_pushstring(L, "Invalid image!");
-      lua_error(L);
-      return 0;
-    }
-    prog.pixmaps[cast(uint) imgID].copyFrom(prog.activeViewport.pixmap,
-        cast(int) x, cast(int) y, cast(int) imgx, cast(int) imgy,
-        cast(uint) width, cast(uint) height);
-    return 0;
-  }
-
-  lua_register(lua, "copyimage", &copyimage);
-
   /// copymode(mode)
   extern (C) int copymode(lua_State* L) @trusted
   {
@@ -501,6 +538,38 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "drawimage", &drawimage);
+
+  /// copyimage(imgID, x, y, imgx, imgy, width, height)
+  extern (C) int copyimage(lua_State* L) @trusted
+  {
+    const imgID = lua_tonumber(L, -7);
+    const x = lua_tonumber(L, -6);
+    const y = lua_tonumber(L, -5);
+    const imgx = lua_tonumber(L, -4);
+    const imgy = lua_tonumber(L, -3);
+    const width = lua_tonumber(L, -2);
+    const height = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    if (!prog.pixmaps[cast(uint) imgID])
+    {
+      lua_pushstring(L, "Invalid image!");
+      lua_error(L);
+      return 0;
+    }
+    prog.pixmaps[cast(uint) imgID].copyFrom(prog.activeViewport.pixmap,
+        cast(int) x, cast(int) y, cast(int) imgx, cast(int) imgy,
+        cast(uint) width, cast(uint) height);
+    return 0;
+  }
+
+  lua_register(lua, "copyimage", &copyimage);
 
   /// copypalette(imgID)
   extern (C) int copypalette(lua_State* L) @trusted
@@ -561,6 +630,23 @@ void registerFunctions(Program program)
   }
 
   lua_register(lua, "forgetimage", &forgetimage);
+
+  /// cls()
+  extern (C) int cls(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.pixmap.cls();
+    return 0;
+  }
+
+  lua_register(lua, "cls", &cls);
 
   /// setcolor(color, red, green, blue)
   extern (C) int setcolor(lua_State* L) @trusted

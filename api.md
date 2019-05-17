@@ -15,6 +15,10 @@
     /// viewportfocused(vpID): focused
     /// focusviewport(vpID)
     /// removeviewport(vpID)
+    /// getinputtext(): text
+    /// getinputpos(): position
+    /// getinputselected(): selection
+    /// setinputtext(text)
     /// mousex(): x
     /// mousey(): y
     /// mousebtn(): btn
@@ -24,11 +28,13 @@
     /// imagewidth(imgID): width
     /// imageheight(imgID): height
     /// imageduration(imgID): height
-    /// copyimage(imgID, x, y, imgx, imgy, width, height)
+    /// copymode(mode)
     /// drawimage(imgID, x, y, imgx, imgy, width, height)
+    /// copyimage(imgID, x, y, imgx, imgy, width, height)
     /// copypalette(imgID)
     /// usepalette(imgID)
     /// forgetimage(imgID)
+    /// cls()
     /// setcolor(color, red, green, blue)
     /// getcolor(color, channel): value
     /// fgcolor(index)
@@ -37,3 +43,6 @@
     /// plot(x, y)
     /// bar(x, y, width, height)
     /// line(x1, y1, x2, y2)
+    /// loadfont(filename): id
+    /// forgetfont(imgID)
+    /// text(text, font, x, y): width

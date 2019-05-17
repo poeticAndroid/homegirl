@@ -4,6 +4,7 @@ import std.algorithm.searching;
 import std.algorithm.mutation;
 import pixmap;
 import program;
+import texteditor;
 
 /**
   Class representing a viewport
@@ -18,6 +19,7 @@ class Viewport
   int mouseX; /// X position of the mouse relative to this viewport
   int mouseY; /// Y position of the mouse relative to this viewport
   uint mouseBtn; /// Mouse button state if this viewport has focus
+  TextEditor textinput = new TextEditor(); ///text editor
 
   /**
     create a new Viewport
