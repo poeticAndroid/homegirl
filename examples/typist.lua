@@ -19,6 +19,16 @@ Og jeg har masser af tid til min børne-krydsogtværs
 Imens det siger "blip-båt", og gud, hvor går det godt
 Vi har, hva' vi ska' ha' af både stort og småt
 Ja, blip-båt, og gud, hvor går det godt
+Vi har, hva' vi ska' ha' af både stort og småt
+
+Muzakken, som de spiller, synes jeg, er skide go'
+Når jeg stamper med på rytmen, så knirker mine sko
+Og nede for enden af den lange lyse hal
+Ka' jeg se det store ur med de magiske tal
+
+Det siger "blip-båt", og gud, hvor går det godt
+Vi har, hva' vi ska' ha' af både stort og småt
+Blip-båt, og gud, hvor går det godt
 Vi har, hva' vi ska' ha' af både stort og småt]]
   )
 end

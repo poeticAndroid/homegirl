@@ -1,7 +1,11 @@
 module texteditor;
 
+import std.array;
 import std.utf;
 
+/**
+  headless text editor
+*/
 class TextEditor
 {
   dstring text = ""; /// text content of the editor
@@ -69,13 +73,6 @@ class TextEditor
   */
   void insertText(string _text)
   {
-    dstring text = toUTF32(_text);
-    this.text = this.text[0 .. this.pos] ~ text
-      ~ this.text[this.pos + this.selected .. this.text.length];
-    this.pos += text.length;
-    this.selected = 0;
-    this.recalculate();
-
     this.textHist ~= this.getText();
     this.posHist ~= this.pos;
     if (this.textHist.length > 256)
@@ -83,6 +80,13 @@ class TextEditor
       this.textHist = this.textHist[1 .. this.textHist.length];
       this.posHist = this.posHist[1 .. this.posHist.length];
     }
+
+    const text = toUTF32(replace(_text, "\r", ""));
+    this.text = this.text[0 .. this.pos] ~ text
+      ~ this.text[this.pos + this.selected .. this.text.length];
+    this.pos += text.length;
+    this.selected = 0;
+    this.recalculate();
   }
 
   /**

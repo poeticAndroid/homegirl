@@ -1,5 +1,6 @@
 module viewport;
 
+import std.stdio;
 import std.algorithm.searching;
 import std.algorithm.mutation;
 import pixmap;
@@ -19,6 +20,7 @@ class Viewport
   int mouseX; /// X position of the mouse relative to this viewport
   int mouseY; /// Y position of the mouse relative to this viewport
   uint mouseBtn; /// Mouse button state if this viewport has focus
+  char hotkey; /// hotkey just pressed if this viewport has focus
   TextEditor textinput = new TextEditor(); ///text editor
 
   /**
@@ -137,6 +139,7 @@ class Viewport
     this.mouseX = x;
     this.mouseY = y;
     this.mouseBtn = 0;
+    this.hotkey = 0;
     Viewport vp = this;
     foreach (viewport; this.children)
     {
@@ -161,6 +164,18 @@ class Viewport
     this.mouseBtn = btn;
     if (this.parent)
       this.parent.setMouseBtn(btn);
+  }
+
+  /**
+    set hotkey for this and all parent viewports
+  */
+  void setHotkey(char key)
+  {
+    this.hotkey = key;
+    if (this.parent)
+      this.parent.setHotkey(key);
+    else
+      writeln(this.hotkey, "\t", cast(uint) this.hotkey);
   }
 
   /**

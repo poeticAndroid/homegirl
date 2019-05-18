@@ -57,6 +57,13 @@ class Machine
               cast(string) fromStringz(cast(char*)(event.text.text)));
         break;
       case SDL_KEYDOWN:
+        if (this.focusedViewport)
+        {
+          if ((SDL_GetModState() & KMOD_CTRL && event.key.keysym.sym < 128)
+              || event.key.keysym.sym == 9 || event.key.keysym.sym == 27)
+            this.focusedViewport.setHotkey(cast(char) event.key.keysym.sym);
+        }
+
         this.handleTextEdit(event.key.keysym.sym);
         switch (event.key.keysym.sym)
         {
