@@ -353,6 +353,7 @@ void registerFunctions(Program program)
     prog.activeViewport.textinput.setText(cast(string) fromStringz(text));
     return 0;
   }
+
   lua_register(lua, "setinputtext", &setinputtext);
 
   /// setinputpos(pos)
@@ -367,9 +368,10 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.textinput.pos=cast(uint) pos;
+    prog.activeViewport.textinput.setPosBytes(cast(uint) pos);
     return 0;
   }
+
   lua_register(lua, "setinputpos", &setinputpos);
 
   /// setinputselected(selected)
@@ -384,9 +386,10 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.textinput.selected=cast(uint) selected;
+    prog.activeViewport.textinput.setSelectedBytes(cast(uint) selected);
     return 0;
   }
+
   lua_register(lua, "setinputselected", &setinputselected);
 
   /// hotkey(): hotkey
@@ -400,9 +403,10 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    lua_pushstring(L, toStringz(""~ prog.activeViewport.hotkey));
+    lua_pushstring(L, toStringz("" ~ prog.activeViewport.hotkey));
     return 1;
   }
+
   lua_register(lua, "hotkey", &hotkey);
 
   /// mousex(): x

@@ -31,6 +31,8 @@ Vi har, hva' vi ska' ha' af både stort og småt
 Blip-båt, og gud, hvor går det godt
 Vi har, hva' vi ska' ha' af både stort og småt]]
   )
+  setinputpos(0)
+  setinputselected(3)
 end
 
 function _step(t)

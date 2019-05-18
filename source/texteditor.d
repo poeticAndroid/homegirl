@@ -29,6 +29,24 @@ class TextEditor
   }
 
   /**
+    set cursor position in bytes
+  */
+  void setPosBytes(uint pos)
+  {
+    this.pos = cast(uint) toUTF32(this.getText()[0 .. pos]).length;
+    this.recalculate();
+  }
+
+  /**
+    set selection length in bytes
+  */
+  void setSelectedBytes(uint sel)
+  {
+    this.selected = cast(uint) toUTF32(this.getText()[this.posBytes .. sel]).length;
+    this.recalculate();
+  }
+
+  /**
     get text content of editor
   */
   string getText()
