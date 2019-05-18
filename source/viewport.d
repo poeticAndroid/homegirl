@@ -1,6 +1,5 @@
 module viewport;
 
-import std.stdio;
 import std.algorithm.searching;
 import std.algorithm.mutation;
 import pixmap;
@@ -174,8 +173,6 @@ class Viewport
     this.hotkey = key;
     if (this.parent)
       this.parent.setHotkey(key);
-    else
-      writeln(this.hotkey, "\t", cast(uint) this.hotkey);
   }
 
   /**

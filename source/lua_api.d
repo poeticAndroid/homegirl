@@ -353,8 +353,57 @@ void registerFunctions(Program program)
     prog.activeViewport.textinput.setText(cast(string) fromStringz(text));
     return 0;
   }
-
   lua_register(lua, "setinputtext", &setinputtext);
+
+  /// setinputpos(pos)
+  extern (C) int setinputpos(lua_State* L) @trusted
+  {
+    const pos = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.textinput.pos=cast(uint) pos;
+    return 0;
+  }
+  lua_register(lua, "setinputpos", &setinputpos);
+
+  /// setinputselected(selected)
+  extern (C) int setinputselected(lua_State* L) @trusted
+  {
+    const selected = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    prog.activeViewport.textinput.selected=cast(uint) selected;
+    return 0;
+  }
+  lua_register(lua, "setinputselected", &setinputselected);
+
+  /// hotkey(): hotkey
+  extern (C) int hotkey(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    lua_pushstring(L, toStringz(""~ prog.activeViewport.hotkey));
+    return 1;
+  }
+  lua_register(lua, "hotkey", &hotkey);
 
   /// mousex(): x
   extern (C) int mousex(lua_State* L) @trusted

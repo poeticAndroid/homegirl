@@ -19,6 +19,9 @@
     /// getinputpos(): position
     /// getinputselected(): selection
     /// setinputtext(text)
+    /// setinputpos(pos)
+    /// setinputselected(selected)
+    /// hotkey(): hotkey
     /// mousex(): x
     /// mousey(): y
     /// mousebtn(): btn
