@@ -9,7 +9,7 @@
     "riverd-loader": "~>1.0.2"
   },
   "description": "A fantasy console.",
-  "license": "proprietary",
+  "license": "MIT",
   "name": "homegirl",
   "subConfigurations": {
     "riverd-lua": "dynamic"
