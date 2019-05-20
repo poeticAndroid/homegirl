@@ -1,8 +1,6 @@
 Homegirl
 ========
-Hey!
-
-I thought I might let you know, I'm working on a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
+It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
 It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It will eventually have 4 channel (8-bit?) stereo sound, MIDI support perhaps and ability to mount web-servers as drives..
 
@@ -17,9 +15,9 @@ Specs
  - **Programming language:** Lua ([See API](./api.md))
  - **Screen resolutions:** 320x180, 640x180, 320x360 or 640x360
  - **Number of colors:** 2, 4, 8, 16 or 32 colors from a palette of 4096 colors
- - **Audio:** _4 8-bit PCM channels spread out 2 speakers*_
- - **Input:** Text, mouse _and game input.. Perhaps MIDI..?*_
- - **Filesystem:** _Local system folder and ability to mount Webservers as drives*_
- - **Supported filetypes:** GIF images and animations, _WAV files*_
+ - **Audio:** (4 8-bit PCM channels spread out 2 speakers)*
+ - **Input:** Text, mouse (and game input.. Perhaps MIDI..?)*
+ - **Filesystem:** (Local system folder and ability to mount Webservers as drives)*
+ - **Supported filetypes:** GIF images and animations, (WAV files)*
 
-_*To do!_
+_*Work in progress_
