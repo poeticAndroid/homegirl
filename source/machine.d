@@ -44,8 +44,6 @@ class Machine
   {
     // track mouse position
     this.trackMouse();
-    // read game controller
-    this.handleGameCtrl();
 
     // Event loop
     SDL_Event event;
@@ -54,21 +52,6 @@ class Machine
       // writeln(event.type);
       switch (event.type)
       {
-      case SDL_JOYAXISMOTION:
-      case SDL_JOYBALLMOTION:
-      case SDL_JOYHATMOTION:
-      case SDL_JOYBUTTONDOWN:
-      case SDL_JOYBUTTONUP:
-      case SDL_JOYDEVICEADDED:
-      case SDL_JOYDEVICEREMOVED:
-      case SDL_CONTROLLERAXISMOTION:
-      case SDL_CONTROLLERBUTTONDOWN:
-      case SDL_CONTROLLERBUTTONUP:
-      case SDL_CONTROLLERDEVICEADDED:
-      case SDL_CONTROLLERDEVICEREMOVED:
-      case SDL_CONTROLLERDEVICEREMAPPED:
-        writeln("Gamepad added?");
-        break;
       case SDL_QUIT:
         running = false;
         break;
@@ -97,6 +80,8 @@ class Machine
       default:
       }
     }
+    // read game controller
+    this.handleGameCtrl();
 
     // advance the programs
     uint runningPrograms = 0;
@@ -260,7 +245,7 @@ class Machine
       throw new Exception("SDL not work! :(");
     }
 
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
     {
       throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
     }
@@ -282,8 +267,6 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
-    SDL_JoystickEventState(SDL_ENABLE);
-    SDL_GameControllerEventState(SDL_ENABLE);
   }
 
   private void trackMouse()
@@ -484,17 +467,45 @@ class Machine
         gameBtns[i - 1] = 0;
       }
 
-    SDL_GameControllerUpdate();
     for (int i = 0; i < SDL_NumJoysticks(); i++)
     {
-      writeln(i, "\t", fromStringz(SDL_GameControllerNameForIndex(i)));
       auto gamepad = SDL_GameControllerOpen(i);
       if (gamepad)
       {
+        if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_A))
+          this.hasGamepad = true;
         gameBtns[i % gameBtns.length] |= GameBtns.right * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        gameBtns[i % gameBtns.length] |= GameBtns.left * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+        gameBtns[i % gameBtns.length] |= GameBtns.up * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_DPAD_UP);
+        gameBtns[i % gameBtns.length] |= GameBtns.down * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+
         gameBtns[i % gameBtns.length] |= GameBtns.a * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_A);
+        gameBtns[i % gameBtns.length] |= GameBtns.b * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_B);
+        gameBtns[i % gameBtns.length] |= GameBtns.x * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_X);
+        gameBtns[i % gameBtns.length] |= GameBtns.y * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_Y);
+
+        short lx = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_LEFTX);
+        short ly = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_LEFTY);
+        short rx = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
+        short ry = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
+
+        gameBtns[i % gameBtns.length] |= GameBtns.right * (lx > 16384);
+        gameBtns[i % gameBtns.length] |= GameBtns.left * (lx < -16383);
+        gameBtns[i % gameBtns.length] |= GameBtns.up * (ly < -16383);
+        gameBtns[i % gameBtns.length] |= GameBtns.down * (ly > 16384);
+
+        gameBtns[i % gameBtns.length] |= GameBtns.a * (rx > 16384);
+        gameBtns[i % gameBtns.length] |= GameBtns.b * (ry < -16383);
+        gameBtns[i % gameBtns.length] |= GameBtns.x * (rx < -16383);
+        gameBtns[i % gameBtns.length] |= GameBtns.y * (ry > 16384);
       }
       SDL_GameControllerClose(gamepad);
     }
