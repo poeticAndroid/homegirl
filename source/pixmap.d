@@ -205,6 +205,8 @@ class Pixmap
   */
   uint text(string _text, Pixmap[] font, int x, int y)
   {
+    if (font.length == 0)
+      return 0;
     dstring text = toUTF32(_text);
     int margin = x;
     int width = 0;

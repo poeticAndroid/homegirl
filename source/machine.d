@@ -25,6 +25,8 @@ class Machine
   Screen mainScreen; /// the first screen ever created
   Viewport focusedViewport; /// the viewport that has focus
   Program[] programs; /// all the programs currently running on the machine
+  ubyte[uint][2] gameBindings; /// keyboard bindings to game input
+  bool hasGamepad = false; /// has a gamepad been used?
 
   /**
     Create a new machine
@@ -32,6 +34,7 @@ class Machine
   this()
   {
     this.init_window();
+    this.setDefaultGameBindings();
   }
 
   /**
@@ -41,13 +44,31 @@ class Machine
   {
     // track mouse position
     this.trackMouse();
+    // read game controller
+    this.handleGameCtrl();
 
     // Event loop
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
+      // writeln(event.type);
       switch (event.type)
       {
+      case SDL_JOYAXISMOTION:
+      case SDL_JOYBALLMOTION:
+      case SDL_JOYHATMOTION:
+      case SDL_JOYBUTTONDOWN:
+      case SDL_JOYBUTTONUP:
+      case SDL_JOYDEVICEADDED:
+      case SDL_JOYDEVICEREMOVED:
+      case SDL_CONTROLLERAXISMOTION:
+      case SDL_CONTROLLERBUTTONDOWN:
+      case SDL_CONTROLLERBUTTONUP:
+      case SDL_CONTROLLERDEVICEADDED:
+      case SDL_CONTROLLERDEVICEREMOVED:
+      case SDL_CONTROLLERDEVICEREMAPPED:
+        writeln("Gamepad added?");
+        break;
       case SDL_QUIT:
         running = false;
         break;
@@ -182,6 +203,49 @@ class Machine
     }
   }
 
+  /**
+    bind key to game input
+  */
+  void bindGameBtn(uint player, uint scancode, ubyte btn)
+  {
+    this.gameBindings[player][scancode] = btn;
+  }
+
+  /**
+    set default game bindings
+  */
+  void setDefaultGameBindings()
+  {
+    this.bindGameBtn(0, SDL_SCANCODE_G, GameBtns.right);
+    this.bindGameBtn(0, SDL_SCANCODE_D, GameBtns.left);
+    this.bindGameBtn(0, SDL_SCANCODE_R, GameBtns.up);
+    this.bindGameBtn(0, SDL_SCANCODE_F, GameBtns.down);
+    this.bindGameBtn(0, SDL_SCANCODE_A, GameBtns.a);
+    this.bindGameBtn(0, SDL_SCANCODE_S, GameBtns.b);
+    this.bindGameBtn(0, SDL_SCANCODE_X, GameBtns.x);
+    this.bindGameBtn(0, SDL_SCANCODE_Z, GameBtns.y);
+    this.bindGameBtn(0, SDL_SCANCODE_C, GameBtns.y);
+    this.bindGameBtn(0, SDL_SCANCODE_Y, GameBtns.y);
+    this.bindGameBtn(0, SDL_SCANCODE_V, GameBtns.a);
+    this.bindGameBtn(0, SDL_SCANCODE_B, GameBtns.b);
+    this.bindGameBtn(0, SDL_SCANCODE_LCTRL, GameBtns.a);
+    this.bindGameBtn(0, SDL_SCANCODE_SPACE, GameBtns.b);
+
+    this.bindGameBtn(1, SDL_SCANCODE_RIGHT, GameBtns.right);
+    this.bindGameBtn(1, SDL_SCANCODE_LEFT, GameBtns.left);
+    this.bindGameBtn(1, SDL_SCANCODE_UP, GameBtns.up);
+    this.bindGameBtn(1, SDL_SCANCODE_DOWN, GameBtns.down);
+    this.bindGameBtn(1, SDL_SCANCODE_I, GameBtns.a);
+    this.bindGameBtn(1, SDL_SCANCODE_P, GameBtns.a);
+    this.bindGameBtn(1, SDL_SCANCODE_RETURN, GameBtns.a);
+    this.bindGameBtn(1, SDL_SCANCODE_RCTRL, GameBtns.a);
+    this.bindGameBtn(1, SDL_SCANCODE_O, GameBtns.b);
+    this.bindGameBtn(1, SDL_SCANCODE_L, GameBtns.x);
+    this.bindGameBtn(1, SDL_SCANCODE_BACKSPACE, GameBtns.x);
+    this.bindGameBtn(1, SDL_SCANCODE_K, GameBtns.y);
+    this.bindGameBtn(1, SDL_SCANCODE_SPACE, GameBtns.b);
+  }
+
   // === _privates === //
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
@@ -218,6 +282,8 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
+    SDL_JoystickEventState(SDL_ENABLE);
+    SDL_GameControllerEventState(SDL_ENABLE);
   }
 
   private void trackMouse()
@@ -242,7 +308,7 @@ class Machine
     dy = (dy - height * scale) / 2;
     int mx;
     int my;
-    uint mb = SDL_GetMouseState(&mx, &my);
+    ubyte mb = cast(ubyte) SDL_GetMouseState(&mx, &my);
     if (mx > dx)
       mx = (mx - dx) / scale;
     else
@@ -400,4 +466,53 @@ class Machine
     }
   }
 
+  private void handleGameCtrl()
+  {
+    if (!this.focusedViewport)
+      return;
+    ubyte[] gameBtns = this.focusedViewport.gameBtn;
+    ubyte* kbdState = SDL_GetKeyboardState(null);
+    for (uint i = 0; i < this.gameBindings.length; i++)
+      foreach (scancode, btn; this.gameBindings[i])
+        if (kbdState[scancode])
+          gameBtns[i] |= btn;
+
+    if (this.hasGamepad)
+      for (uint i = 1; i < gameBtns.length; i++)
+      {
+        gameBtns[i] |= gameBtns[i - 1];
+        gameBtns[i - 1] = 0;
+      }
+
+    SDL_GameControllerUpdate();
+    for (int i = 0; i < SDL_NumJoysticks(); i++)
+    {
+      writeln(i, "\t", fromStringz(SDL_GameControllerNameForIndex(i)));
+      auto gamepad = SDL_GameControllerOpen(i);
+      if (gamepad)
+      {
+        gameBtns[i % gameBtns.length] |= GameBtns.right * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        gameBtns[i % gameBtns.length] |= GameBtns.a * SDL_GameControllerGetButton(gamepad,
+            SDL_CONTROLLER_BUTTON_A);
+      }
+      SDL_GameControllerClose(gamepad);
+    }
+
+    for (uint i = 0; i < gameBtns.length; i++)
+      this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
+  }
+
+}
+
+enum GameBtns
+{
+  right = 1,
+  left = 2,
+  up = 4,
+  down = 8,
+  a = 16,
+  b = 32,
+  x = 64,
+  y = 128
 }

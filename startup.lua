@@ -3,4 +3,5 @@
 -- exec("./examples/juggler.lua")
 -- exec("./examples/sun.lua")
 -- exec("./examples/showimage.lua")
-exec("./examples/typist.lua")
+-- exec("./examples/typist.lua")
+exec("./examples/game_input.lua")

@@ -25,6 +25,7 @@
     /// mousex(): x
     /// mousey(): y
     /// mousebtn(): btn
+    /// gamebtn(player): btn
     /// createimage(width, height, colorbits): id
     /// loadimage(filename): id
     /// loadanimation(filename): id

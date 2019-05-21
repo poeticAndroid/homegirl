@@ -84,7 +84,7 @@ int main(string[] args)
     config["window"].object["height"] = JSONValue(y);
   }
   auto configFile = File("./config.json", "w");
-  configFile.write(toJSON(config));
+  configFile.write(toJSON(config, true));
   configFile.close();
 
   //shutdown machine

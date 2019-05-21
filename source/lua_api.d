@@ -460,6 +460,24 @@ void registerFunctions(Program program)
 
   lua_register(lua, "mousebtn", &mousebtn);
 
+  /// gamebtn(player): btn
+  extern (C) int gamebtn(lua_State* L) @trusted
+  {
+    const player = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    lua_pushinteger(L, prog.activeViewport.getGameBtn(cast(ubyte) player));
+    return 1;
+  }
+
+  lua_register(lua, "gamebtn", &gamebtn);
+
   /// createimage(width, height, colorbits): id
   extern (C) int createimage(lua_State* L) @trusted
   {

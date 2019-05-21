@@ -18,8 +18,9 @@ class Viewport
   Program program; /// the program that owns this viewport
   int mouseX; /// X position of the mouse relative to this viewport
   int mouseY; /// Y position of the mouse relative to this viewport
-  uint mouseBtn; /// Mouse button state if this viewport has focus
+  ubyte mouseBtn; /// Mouse button state if this viewport has focus
   char hotkey; /// hotkey just pressed if this viewport has focus
+  ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
   TextEditor textinput = new TextEditor(); ///text editor
 
   /**
@@ -139,6 +140,8 @@ class Viewport
     this.mouseY = y;
     this.mouseBtn = 0;
     this.hotkey = 0;
+    for (ubyte i = 0; i < this.gameBtn.length; i++)
+      this.gameBtn[i] = 0;
     Viewport vp = this;
     foreach (viewport; this.children)
     {
@@ -158,7 +161,7 @@ class Viewport
   /**
     set mouse button for this and all parent viewports
   */
-  void setMouseBtn(uint btn)
+  void setMouseBtn(ubyte btn)
   {
     this.mouseBtn = btn;
     if (this.parent)
@@ -176,7 +179,35 @@ class Viewport
   }
 
   /**
-    Render any children onto this viewport
+    set game state for this and all parent viewports
+  */
+  void setGameBtn(ubyte state, ubyte player)
+  {
+    if (!player)
+      return;
+    this.gameBtn[player - 1] = state;
+    if (this.parent)
+      this.parent.setGameBtn(state, player);
+  }
+
+  /**
+    get game state for this viewport
+  */
+  ubyte getGameBtn(ubyte player)
+  {
+    if (player)
+      return this.gameBtn[player - 1];
+    else
+    {
+      ubyte btn = 0;
+      for (uint i = 0; i < this.gameBtn.length; i++)
+        btn |= this.gameBtn[i];
+      return btn;
+    }
+  }
+
+  /**
+    Render any visible children onto this viewport
   */
   void render()
   {
