@@ -497,15 +497,15 @@ class Machine
         short rx = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
         short ry = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
 
-        gameBtns[i % gameBtns.length] |= GameBtns.right * (lx > 16384);
-        gameBtns[i % gameBtns.length] |= GameBtns.left * (lx < -16383);
-        gameBtns[i % gameBtns.length] |= GameBtns.up * (ly < -16383);
-        gameBtns[i % gameBtns.length] |= GameBtns.down * (ly > 16384);
+        gameBtns[i % gameBtns.length] |= GameBtns.right * (lx > short.max / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.left * (lx < short.min / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.up * (ly < short.min / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.down * (ly > short.max / 2);
 
-        gameBtns[i % gameBtns.length] |= GameBtns.a * (rx > 16384);
-        gameBtns[i % gameBtns.length] |= GameBtns.b * (ry < -16383);
-        gameBtns[i % gameBtns.length] |= GameBtns.x * (rx < -16383);
-        gameBtns[i % gameBtns.length] |= GameBtns.y * (ry > 16384);
+        gameBtns[i % gameBtns.length] |= GameBtns.a * (rx > short.max / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.b * (ry < short.min / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.x * (rx < short.min / 2);
+        gameBtns[i % gameBtns.length] |= GameBtns.y * (ry > short.max / 2);
       }
       SDL_GameControllerClose(gamepad);
     }

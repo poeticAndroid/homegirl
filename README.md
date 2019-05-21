@@ -16,7 +16,7 @@ Specs
  - **Screen resolutions:** 320x180, 640x180, 320x360 or 640x360
  - **Number of colors:** 2, 4, 8, 16 or 32 colors from a palette of 4096 colors
  - **Audio:** (4 8-bit PCM channels spread out 2 speakers)*
- - **Input:** Text, mouse (and game input.. Perhaps MIDI..?)*
+ - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** (Local system folder and ability to mount Webservers as drives)*
  - **Supported filetypes:** GIF images and animations, (WAV files)*
 
