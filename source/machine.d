@@ -348,7 +348,7 @@ class Machine
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
-    bool first = true;
+    int highest = 1024;
 
     for (uint i = 0; i < this.screens.length; i++)
     {
@@ -365,15 +365,15 @@ class Machine
         continue;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
-      if (screen.top == 0 || first)
+      if (screen.top <= highest)
       {
         SDL_RenderClear(ren);
-        first = false;
+        highest = screen.top;
       }
       else
       {
         this.rect.x = 0;
-        this.rect.y = dy + screen.top * scale - 4 * scale;
+        this.rect.y = dy + screen.top * scale - 8 * scale;
         SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }
