@@ -1,3 +1,5 @@
+dofile("./examples/screendrag.lua")
+
 createscreen(3, 5)
 
 function _step(t)
@@ -7,4 +9,5 @@ function _step(t)
       plot(x, y)
     end
   end
+  dragscreen(scrn)
 end

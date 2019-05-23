@@ -1,3 +1,5 @@
+dofile("./examples/screendrag.lua")
+
 scrn = createscreen(0, 4)
 moveviewport(scrn, 0, 0)
 
@@ -39,10 +41,8 @@ function _step()
       dy = 0
     end
   end
-  if mousebtn() > 0 then
-    moveviewport(scrn, 0, viewporttop(scrn) + mousey())
-  end
   _cycle()
+  dragscreen(scrn)
 end
 
 function _cycle()

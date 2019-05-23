@@ -1,3 +1,5 @@
+dofile("./examples/screendrag.lua")
+
 scrn = createscreen(1, 2)
 
 font = loadfont("./examples/fonts/Victoria.8b.gif")
@@ -53,4 +55,5 @@ function _step(t)
   text(string.sub(txt, 0, pos + 1), font, 0, 0)
   fgcolor(1)
   text(string.sub(txt, 0, pos), font, 0, 0)
+  dragscreen(scrn)
 end

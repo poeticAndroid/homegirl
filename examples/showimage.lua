@@ -1,3 +1,5 @@
+dofile("./examples/screendrag.lua")
+
 scrn = createscreen(0, 5)
 moveviewport(scrn, 0, 0)
 pointer = loadimage("./examples/images/pointer.gif")
@@ -19,7 +21,5 @@ function _step()
     x = -100
     y = -170
   end
-  if mousebtn() > 0 then
-    moveviewport(scrn, 0, viewporttop(scrn) + mousey())
-  end
+  dragscreen(scrn)
 end

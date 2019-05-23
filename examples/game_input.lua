@@ -1,4 +1,6 @@
-createscreen(0, 3)
+dofile("./examples/screendrag.lua")
+
+scrn = createscreen(0, 3)
 bgcolor(0)
 setcolor(1, 15, 15, 15)
 
@@ -33,4 +35,5 @@ function _step()
     setcolor(1, 15, 15, 0)
   end
   bar(px, py, 16, 16)
+  dragscreen(scrn)
 end

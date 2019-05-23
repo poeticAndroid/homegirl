@@ -1,3 +1,5 @@
+dofile("./examples/screendrag.lua")
+
 scrn = createscreen(0, 5)
 
 font = loadfont("./examples/fonts/Victoria.8b.gif")
@@ -31,4 +33,5 @@ function _step(t)
   mx = mousex()
   my = mousey()
   nextFrame = nextFrame + imageduration(anim[frame])
+  dragscreen(scrn)
 end
