@@ -27,6 +27,7 @@ class Machine
   Program[] programs; /// all the programs currently running on the machine
   ubyte[uint][2] gameBindings; /// keyboard bindings to game input
   bool hasGamepad = false; /// has a gamepad been used?
+  uint cursorBlank = 0; /// when to hide the cursor if idle
 
   /**
     Create a new machine
@@ -54,6 +55,10 @@ class Machine
       {
       case SDL_QUIT:
         running = false;
+        break;
+      case SDL_MOUSEMOTION:
+        this.cursorBlank = SDL_GetTicks() + 8192;
+        SDL_ShowCursor(SDL_ENABLE);
         break;
       case SDL_TEXTINPUT:
         if (this.focusedViewport)
@@ -271,6 +276,11 @@ class Machine
 
   private void trackMouse()
   {
+    if (SDL_GetTicks() > this.cursorBlank)
+    {
+      SDL_ShowCursor(SDL_DISABLE);
+      this.cursorBlank += 1024;
+    }
     const width = 640;
     const height = 360;
     int dx;
@@ -311,7 +321,7 @@ class Machine
       if (_vp)
         vp = _vp;
     }
-    if (mb > this.lastmb)
+    if (this.lastmb == 0 && mb == 1)
       this.focusViewport(vp);
     if (this.focusedViewport)
       this.focusedViewport.setMouseBtn(mb);
@@ -339,7 +349,6 @@ class Machine
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
 
-    bool first = true;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
@@ -355,10 +364,9 @@ class Machine
         continue;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
-      if (first)
+      if (screen.top == 0)
       {
         SDL_RenderClear(ren);
-        first = false;
       }
       else
       {
