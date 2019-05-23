@@ -348,6 +348,7 @@ class Machine
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
+    bool first = true;
 
     for (uint i = 0; i < this.screens.length; i++)
     {
@@ -364,9 +365,10 @@ class Machine
         continue;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
-      if (screen.top == 0)
+      if (screen.top == 0 || first)
       {
         SDL_RenderClear(ren);
+        first = false;
       }
       else
       {
@@ -395,6 +397,8 @@ class Machine
   private void handleTextEdit(SDL_Keycode key)
   {
     if (!this.focusedViewport)
+      return;
+    if (!this.focusedViewport.textinput)
       return;
     TextEditor te = this.focusedViewport.textinput;
     if (SDL_GetModState() & KMOD_CTRL)
@@ -524,6 +528,9 @@ class Machine
 
 }
 
+/**
+  all the game buttons
+*/
 enum GameBtns
 {
   right = 1,

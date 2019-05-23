@@ -21,7 +21,7 @@ class Viewport
   ubyte mouseBtn; /// Mouse button state if this viewport has focus
   char hotkey; /// hotkey just pressed if this viewport has focus
   ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
-  TextEditor textinput = new TextEditor(); ///text editor
+  TextEditor textinput; ///text editor
 
   /**
     create a new Viewport
@@ -32,6 +32,7 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
+    // this.textinput = new TextEditor();
   }
 
   Viewport getParent()
@@ -204,6 +205,16 @@ class Viewport
         btn |= this.gameBtn[i];
       return btn;
     }
+  }
+
+  /**
+    get text input for this viewport
+  */
+  TextEditor getTextinput()
+  {
+    if (!this.textinput)
+      this.textinput = new TextEditor();
+    return this.textinput;
   }
 
   /**

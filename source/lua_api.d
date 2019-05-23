@@ -298,7 +298,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    lua_pushstring(L, toStringz(prog.activeViewport.textinput.getText()));
+    lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
     return 1;
   }
 
@@ -315,7 +315,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    lua_pushinteger(L, prog.activeViewport.textinput.posBytes);
+    lua_pushinteger(L, prog.activeViewport.getTextinput().posBytes);
     return 1;
   }
 
@@ -332,7 +332,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    lua_pushinteger(L, prog.activeViewport.textinput.selectedBytes);
+    lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
     return 1;
   }
 
@@ -350,7 +350,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.textinput.setText(cast(string) fromStringz(text));
+    prog.activeViewport.getTextinput().setText(cast(string) fromStringz(text));
     return 0;
   }
 
@@ -368,7 +368,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.textinput.setPosBytes(cast(uint) pos);
+    prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
     return 0;
   }
 
@@ -386,7 +386,7 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.textinput.setSelectedBytes(cast(uint) selected);
+    prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) selected);
     return 0;
   }
 
