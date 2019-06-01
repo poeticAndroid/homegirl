@@ -61,7 +61,7 @@ class Machine
         SDL_ShowCursor(SDL_ENABLE);
         break;
       case SDL_TEXTINPUT:
-        if (this.focusedViewport)
+        if (this.focusedViewport && this.focusedViewport.textinput)
           this.focusedViewport.textinput.insertText(
               cast(string) fromStringz(cast(char*)(event.text.text)));
         break;

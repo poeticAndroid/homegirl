@@ -15,7 +15,7 @@
     "riverd-lua": "dynamic"
   },
   "versions": [
-    "SDL_209",
+    "SDL_208",
     "FI_318"
   ]
 }
