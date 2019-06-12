@@ -1,24 +1,28 @@
 dofile("./examples/screendrag.lua")
-
-font = loadfont("./examples/fonts/Victoria.8b.gif")
-scrn = createscreen(0, 2)
-bgcolor(0)
-copymode(2)
-
 players = {
   {
     x = 160,
-    y = 90
+    y = 32
   },
   {
     x = 80,
-    y = 90
+    y = 32
   },
   {
     x = 240,
-    y = 90
+    y = 32
   }
 }
+
+function _init()
+  font = loadfont("./examples/fonts/Victoria.8b.gif")
+  scrn = createscreen(0, 2)
+  bgcolor(0)
+  copymode(2)
+  setcolor(1, 0, 7, 15)
+  setcolor(2, 0, 7, 15)
+  setcolor(3, 0, 7, 15)
+end
 
 function _step()
   cls()
