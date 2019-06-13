@@ -12,6 +12,7 @@ import viewport;
 import screen;
 import program;
 import texteditor;
+import soundchip;
 
 /**
   Class representing "the machine"!
@@ -28,13 +29,20 @@ class Machine
   ubyte[uint][2] gameBindings; /// keyboard bindings to game input
   bool hasGamepad = false; /// has a gamepad been used?
   uint cursorBlank = 0; /// when to hide the cursor if idle
+  SoundChip audio; /// audio device
 
   /**
     Create a new machine
   */
   this()
   {
+    if (loadSDL() != sdlSupport)
+      throw new Exception("SDL not work! :(");
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
+      throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
+
     this.init_window();
+    this.audio = new SoundChip();
     this.setDefaultGameBindings();
   }
 
@@ -244,17 +252,6 @@ class Machine
 
   private void init_window()
   {
-    const SDLSupport ret = loadSDL();
-    if (ret != sdlSupport)
-    {
-      throw new Exception("SDL not work! :(");
-    }
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
-    {
-      throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
-    }
-
     // Create a window
     this.win = SDL_CreateWindow("Homegirl", SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED, 640 + 48, 360 + 48, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
