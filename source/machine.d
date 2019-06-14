@@ -29,7 +29,7 @@ class Machine
   ubyte[uint][2] gameBindings; /// keyboard bindings to game input
   bool hasGamepad = false; /// has a gamepad been used?
   uint cursorBlank = 0; /// when to hide the cursor if idle
-  SoundChip audio; /// audio device
+  SoundChip audio; /// audio output
 
   /**
     Create a new machine
@@ -112,6 +112,7 @@ class Machine
     }
 
     this.drawScreens();
+    this.audio.step(SDL_GetTicks());
     if (runningPrograms == 0)
       this.running = false;
   }
