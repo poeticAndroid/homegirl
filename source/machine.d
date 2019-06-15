@@ -140,6 +140,7 @@ class Machine
   void startProgram(string filename)
   {
     this.programs ~= new Program(this, filename);
+    this.audio.sync();
   }
 
   /**
@@ -152,6 +153,7 @@ class Machine
       program.shutdown();
     program.shutdown();
     this.programs[i] = null;
+    this.audio.sync();
   }
 
   /**

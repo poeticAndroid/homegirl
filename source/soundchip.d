@@ -35,21 +35,13 @@ class SoundChip
   void step(uint t)
   {
     t *= this.spec.freq / 1000;
-    ubyte inUse = 0;
-    for (uint i = 0; i < this.src.length; i++)
-      if (this.rate[i])
-        inUse++;
-    if (inUse == 0 || !this.lastTick)
-    {
+    if (this.lastTick > t || this.lastTick == 0)
       this.lastTick = t;
-      return;
-    }
     if (t - this.lastTick > this.buffer_len)
       this.resizeBuffer(t - this.lastTick);
     uint p = 0;
     while (this.lastTick < t)
     {
-      inUse = 0;
       for (uint i = 0; i < this.src.length; i++)
       {
         this.value[i] = 0;
@@ -65,7 +57,7 @@ class SoundChip
             this.value[i] = 1.0 * this.src[i].data[pos] / 128 * this.volume[i];
           else
             this.rate[i] = 0;
-          inUse++;
+          this.padding = 0;
         }
         else
           this.rate[i] = 0;
@@ -73,8 +65,6 @@ class SoundChip
       this.buffer[p++] = this.value[0] + this.value[1] - this.value[0] * this.value[1];
       this.buffer[p++] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
       this.lastTick++;
-      if (inUse == 0)
-        this.lastTick = t;
     }
     SDL_QueueAudio(this.dev, this.buffer, cast(uint)(p * float.sizeof));
     SDL_PauseAudioDevice(this.dev, 0);
@@ -139,16 +129,24 @@ class SoundChip
     this.lastTick = 0;
   }
 
+  void sync()
+  {
+    SDL_ClearQueuedAudio(this.dev);
+    this.buffer_len = 0;
+    this.lastTick = 0;
+  }
+
   // --- _privates --- //
   private SDL_AudioSpec* spec = new SDL_AudioSpec();
   private SDL_AudioDeviceID dev;
   private float* buffer;
   private uint buffer_len;
   private float[4] value;
+  private uint padding;
 
   private void initDevice()
   {
-    this.spec.freq = 44_000;
+    this.spec.freq = 44_100;
     this.spec.format = AUDIO_F32SYS;
     this.spec.channels = 2;
     this.dev = SDL_OpenAudioDevice(null, 0, this.spec, null, 0);

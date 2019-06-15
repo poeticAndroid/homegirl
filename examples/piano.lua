@@ -17,5 +17,5 @@ function _init()
 end
 
 function _step(t)
-  setsamplerate(0, t)
+  setsamplerate(0, t % 44100)
 end
