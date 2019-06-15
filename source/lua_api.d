@@ -478,6 +478,163 @@ void registerFunctions(Program program)
 
   lua_register(lua, "gamebtn", &gamebtn);
 
+  /// createsample(): id
+  extern (C) int createsample(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.createSample());
+    return 1;
+  }
+
+  lua_register(lua, "createsample", &createsample);
+
+  /// loadsample(filename): id
+  extern (C) int loadsample(lua_State* L) @trusted
+  {
+    auto filename = fromStringz(lua_tostring(L, -1));
+    //Get the pointer
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.loadSample(cast(string) filename));
+    return 1;
+  }
+
+  lua_register(lua, "loadsample", &loadsample);
+
+  /// playsample(channel, smplID)
+  extern (C) int playsample(lua_State* L) @trusted
+  {
+    const channel = lua_tointeger(L, -2);
+    const smplID = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    {
+      lua_pushstring(L, "Invalid sample!");
+      lua_error(L);
+      return 0;
+    }
+    prog.machine.audio.play(cast(uint) channel, prog.samples[cast(uint) smplID]);
+    return 0;
+  }
+
+  lua_register(lua, "playsample", &playsample);
+
+  /// setsamplerate(channel, samplerate)
+  extern (C) int setsamplerate(lua_State* L) @trusted
+  {
+    const channel = lua_tointeger(L, -2);
+    const samplerate = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.audio.setFreq(cast(uint) channel, cast(int) samplerate);
+    return 0;
+  }
+
+  lua_register(lua, "setsamplerate", &setsamplerate);
+
+  /// setvolume(channel, volume)
+  extern (C) int setvolume(lua_State* L) @trusted
+  {
+    const channel = lua_tointeger(L, -2);
+    const volume = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.audio.setVolume(cast(uint) channel, cast(ubyte) volume);
+    return 0;
+  }
+
+  lua_register(lua, "setvolume", &setvolume);
+
+  /// setsampleloop(channel, start, end)
+  extern (C) int setsampleloop(lua_State* L) @trusted
+  {
+    const channel = lua_tointeger(L, -3);
+    const start = lua_tonumber(L, -2);
+    const end = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.audio.setLoop(cast(uint) channel, cast(uint) start, cast(uint) end);
+    return 0;
+  }
+
+  lua_register(lua, "setsampleloop", &setsampleloop);
+
+  /// editsample(smplID, pos, value)
+  extern (C) int editsample(lua_State* L) @trusted
+  {
+    const smplID = lua_tointeger(L, -3);
+    const pos = lua_tonumber(L, -2);
+    const value = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    {
+      lua_pushstring(L, "Invalid sample!");
+      lua_error(L);
+      return 0;
+    }
+    if (prog.samples[cast(uint) smplID].data.length <= pos)
+      prog.samples[cast(uint) smplID].data.length = cast(uint) pos + 1;
+    prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
+    return 0;
+  }
+
+  lua_register(lua, "editsample", &editsample);
+
+  /// editsamplerate(smplID, samplerate)
+  extern (C) int editsamplerate(lua_State* L) @trusted
+  {
+    const smplID = lua_tointeger(L, -2);
+    const samplerate = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    {
+      lua_pushstring(L, "Invalid sample!");
+      lua_error(L);
+      return 0;
+    }
+    prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
+    return 0;
+  }
+
+  lua_register(lua, "editsamplerate", &editsamplerate);
+
+  /// editsampleloop(smplID, start, end)
+  extern (C) int editsampleloop(lua_State* L) @trusted
+  {
+    const smplID = lua_tointeger(L, -3);
+    const start = lua_tonumber(L, -2);
+    const end = lua_tonumber(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    {
+      lua_pushstring(L, "Invalid sample!");
+      lua_error(L);
+      return 0;
+    }
+    prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
+    prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
+    return 0;
+  }
+
+  lua_register(lua, "editsampleloop", &editsampleloop);
+
+  /// forgetsample(smplID)
+  extern (C) int forgetsample(lua_State* L) @trusted
+  {
+    const smplID = lua_tointeger(L, -1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.removeSample(cast(uint) smplID);
+    return 0;
+  }
+
+  lua_register(lua, "forgetsample", &forgetsample);
+
   /// createimage(width, height, colorbits): id
   extern (C) int createimage(lua_State* L) @trusted
   {

@@ -27,8 +27,6 @@ class SoundChip
   {
     this.initDevice();
     this.clear();
-    this.play(0, new Sample("./examples/sounds/COMP2_10.WAV"));
-    this.play(3, this.src[0]);
   }
 
   /**
@@ -41,7 +39,7 @@ class SoundChip
     for (uint i = 0; i < this.src.length; i++)
       if (this.rate[i])
         inUse++;
-    if (inUse == 0)
+    if (inUse == 0 || !this.lastTick)
     {
       this.lastTick = t;
       return;
@@ -51,6 +49,7 @@ class SoundChip
     uint p = 0;
     while (this.lastTick < t)
     {
+      inUse = 0;
       for (uint i = 0; i < this.src.length; i++)
       {
         this.value[i] = 0;
@@ -66,6 +65,7 @@ class SoundChip
             this.value[i] = 1.0 * this.src[i].data[pos] / 128 * this.volume[i];
           else
             this.rate[i] = 0;
+          inUse++;
         }
         else
           this.rate[i] = 0;
@@ -73,6 +73,8 @@ class SoundChip
       this.buffer[p++] = this.value[0] + this.value[1] - this.value[0] * this.value[1];
       this.buffer[p++] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
       this.lastTick++;
+      if (inUse == 0)
+        this.lastTick = t;
     }
     SDL_QueueAudio(this.dev, this.buffer, cast(uint)(p * float.sizeof));
     SDL_PauseAudioDevice(this.dev, 0);
@@ -86,10 +88,9 @@ class SoundChip
     channel = channel % this.src.length;
     this.src[channel] = sample;
     this.head[channel] = 0;
-    this.loopStart[channel] = 0;
-    this.loopEnd[channel] = 0;
+    this.setLoop(channel, this.src[channel].loopStart, this.src[channel].loopEnd);
     this.setFreq(channel, sample.freq);
-    this.volume[channel] = 1.0;
+    this.setVolume(channel, 63);
   }
 
   /**
@@ -99,6 +100,25 @@ class SoundChip
   {
     channel = channel % this.src.length;
     this.rate[channel] = 1.0 * freq / this.spec.freq;
+  }
+
+  /**
+    set volume on channel
+  */
+  void setVolume(uint channel, ubyte vol)
+  {
+    channel = channel % this.src.length;
+    this.volume[channel] = 1.0 * (vol % 64) / 64;
+  }
+
+  /**
+    set loop on channel
+  */
+  void setLoop(uint channel, uint start, uint end)
+  {
+    channel = channel % this.src.length;
+    this.loopStart[channel] = start;
+    this.loopEnd[channel] = end;
   }
 
   /**
@@ -112,10 +132,11 @@ class SoundChip
       this.head[i] = 0;
       this.loopStart[i] = 0;
       this.loopEnd[i] = 0;
-      this.rate[i] = 1;
+      this.rate[i] = 0;
       this.volume[i] = 1;
     }
     this.buffer_len = 0;
+    this.lastTick = 0;
   }
 
   // --- _privates --- //

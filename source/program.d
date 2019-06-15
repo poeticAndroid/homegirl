@@ -12,6 +12,7 @@ import viewport;
 import lua_api;
 import pixmap;
 import image_loader;
+import sample;
 
 /**
   a program that the machine can run
@@ -27,6 +28,8 @@ class Program
 
   Pixmap[] pixmaps; /// pixmap images created or loaded by this program
   Pixmap[][] fonts; /// fonts loaded by this program
+
+  Sample[] samples; /// samples created or loaded by this program
 
   /** 
     Initiate a new program!
@@ -104,6 +107,15 @@ class Program
       auto i = this.viewports.length;
       while (i)
         this.removeViewport(cast(uint)--i);
+      i = this.pixmaps.length;
+      while (i)
+        this.removePixmap(cast(uint)--i);
+      i = this.fonts.length;
+      while (i)
+        this.removeFont(cast(uint)--i);
+      i = this.samples.length;
+      while (i)
+        this.removeSample(cast(uint)--i);
     }
   }
 
@@ -214,6 +226,45 @@ class Program
     {
       this.pixmaps[pmid].destroyTexture();
       this.pixmaps[pmid] = null;
+    }
+  }
+
+  /**
+    add sample
+  */
+  uint addSample(Sample sample)
+  {
+    this.samples ~= sample;
+    return cast(uint) this.samples.length - 1;
+  }
+
+  /**
+    create sample
+  */
+  uint createSample()
+  {
+    return this.addSample(new Sample(null));
+  }
+
+  /**
+    load sample from file
+  */
+  uint loadSample(string filename)
+  {
+    return this.addSample(new Sample(filename));
+  }
+
+  /**
+    remove a sample
+  */
+  void removeSample(uint pmid)
+  {
+    if (this.samples[pmid])
+    {
+      for (uint i = 0; i < this.machine.audio.src.length; i++)
+        if (this.machine.audio.src[i] == this.samples[pmid])
+          this.machine.audio.src[i] = null;
+      this.samples[pmid] = null;
     }
   }
 

@@ -26,6 +26,16 @@
     /// mousey(): y
     /// mousebtn(): btn
     /// gamebtn(player): btn
+    /// createsample(): id
+    /// loadsample(filename): id
+    /// playsample(channel, smplID)
+    /// setsamplerate(channel, samplerate)
+    /// setvolume(channel, volume)
+    /// setsampleloop(channel, start, end)
+    /// editsample(smplID, pos, value)
+    /// editsamplerate(smplID, samplerate)
+    /// editsampleloop(smplID, start, end)
+    /// forgetsample(smplID)
     /// createimage(width, height, colorbits): id
     /// loadimage(filename): id
     /// loadanimation(filename): id

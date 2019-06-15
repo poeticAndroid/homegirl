@@ -148,6 +148,8 @@ class Machine
   void shutdownProgram(Program program)
   {
     auto i = countUntil(this.programs, program);
+    if (program.running)
+      program.shutdown();
     program.shutdown();
     this.programs[i] = null;
   }

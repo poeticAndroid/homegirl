@@ -11,6 +11,8 @@ class Sample
 {
   byte[] data; /// sample data
   int freq = 16000; /// samplerate
+  uint loopStart = 0; /// start of loop
+  uint loopEnd = 0; /// end of loop
 
   /**
     create sound sample
