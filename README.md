@@ -18,6 +18,6 @@ Specs
  - **Audio:** 4 8-bit PCM channels in stereo
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** (Local system folder and ability to mount Webservers as drives)*
- - **Supported filetypes:** GIF images and animations, (WAV files)*
+ - **Supported filetypes:** GIF images and animations, WAV files
 
 _*Work in progress_
