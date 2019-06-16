@@ -10,7 +10,7 @@ import bindbc.sdl;
 class Sample
 {
   byte[] data; /// sample data
-  int freq = 16000; /// samplerate
+  int freq = 11_025; /// samplerate
   uint loopStart = 0; /// start of loop
   uint loopEnd = 0; /// end of loop
 
@@ -33,7 +33,7 @@ class Sample
     uint wav_len;
     SDL_LoadWAV(toStringz(filename), wav_spec, &wav_buffer, &wav_len);
     this.freq = wav_spec.freq;
-    while (this.freq > 24000)
+    while (this.freq > 28_867)
       this.freq /= 2;
 
     SDL_BuildAudioCVT(this.cvt, wav_spec.format, wav_spec.channels,

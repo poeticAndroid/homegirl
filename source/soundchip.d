@@ -47,17 +47,16 @@ class SoundChip
         this.value[i] = 0;
         if (this.rate[i])
         {
-          this.head[i] += this.rate[i];
-          if (this.rate[i] > 0 && this.head[i] >= this.loopEnd[i])
-            this.head[i] -= this.loopEnd[i] - this.loopStart[i];
-          if (this.rate[i] < 0 && this.head[i] < this.loopStart[i])
-            this.head[i] += this.loopEnd[i] - this.loopStart[i];
           uint pos = cast(int) trunc(this.head[i]);
           if (this.src[i] && pos < this.src[i].data.length)
             this.value[i] = 1.0 * this.src[i].data[pos] / 128 * this.volume[i];
           else
             this.rate[i] = 0;
-          this.padding = 0;
+          this.head[i] += this.rate[i];
+          if (this.rate[i] > 0 && this.head[i] >= this.loopEnd[i])
+            this.head[i] -= this.loopEnd[i] - this.loopStart[i];
+          if (this.rate[i] < 0 && this.head[i] < this.loopStart[i])
+            this.head[i] += this.loopEnd[i] - this.loopStart[i];
         }
         else
           this.rate[i] = 0;
@@ -89,6 +88,9 @@ class SoundChip
   void setFreq(uint channel, int freq)
   {
     channel = channel % this.src.length;
+    while (freq > 28_867)
+      freq /= 2;
+
     this.rate[channel] = 1.0 * freq / this.spec.freq;
   }
 
@@ -98,7 +100,9 @@ class SoundChip
   void setVolume(uint channel, ubyte vol)
   {
     channel = channel % this.src.length;
-    this.volume[channel] = 1.0 * (vol % 64) / 64;
+    if (vol > 63)
+      vol = 63;
+    this.volume[channel] = 1.0 * vol / 63;
   }
 
   /**
@@ -125,10 +129,12 @@ class SoundChip
       this.rate[i] = 0;
       this.volume[i] = 1;
     }
-    this.buffer_len = 0;
-    this.lastTick = 0;
+    this.sync();
   }
 
+  /**
+    reset audio buffer
+  */
   void sync()
   {
     SDL_ClearQueuedAudio(this.dev);
@@ -142,11 +148,10 @@ class SoundChip
   private float* buffer;
   private uint buffer_len;
   private float[4] value;
-  private uint padding;
 
   private void initDevice()
   {
-    this.spec.freq = 44_100;
+    this.spec.freq = 48_000;
     this.spec.format = AUDIO_F32SYS;
     this.spec.channels = 2;
     this.dev = SDL_OpenAudioDevice(null, 0, this.spec, null, 0);

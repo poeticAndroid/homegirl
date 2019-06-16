@@ -84,13 +84,30 @@ class Machine
         this.handleTextEdit(event.key.keysym.sym);
         switch (event.key.keysym.sym)
         {
+        case SDLK_F7:
+          SDL_SetWindowSize(this.win, (640 + 32) * scale, (360 + 18) * scale);
+          break;
+        case SDLK_F8:
+          this.audio.sync();
+          break;
         case SDLK_F11:
           this.toggleFullscren();
           break;
         default:
         }
         break;
+      case SDL_WINDOWEVENT:
+        switch (event.window.event)
+        {
+        case SDL_WINDOWEVENT_ENTER:
+        case SDL_WINDOWEVENT_LEAVE:
+          break;
+        default:
+          this.audio.sync();
+        }
+        break;
       default:
+        // writeln("event ", event.type);
       }
     }
     // read game controller
@@ -254,6 +271,7 @@ class Machine
   private auto rect = new SDL_Rect();
   private auto rect2 = new SDL_Rect();
   private uint lastmb = 0;
+  private uint scale;
 
   private void init_window()
   {
@@ -347,7 +365,7 @@ class Machine
       dy = height;
       SDL_SetWindowSize(this.win, dx, dy);
     }
-    uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
+    scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
     int highest = 1024;

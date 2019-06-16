@@ -2,7 +2,7 @@ Homegirl
 ========
 It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
-It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It will eventually have 4 channel (8-bit?) stereo sound, MIDI support perhaps and ability to mount web-servers as drives..
+It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It has 4 channel (8-bit?) stereo sound and eventually ability to mount web-servers as drives..
 
 The software for it, will be based on Lua, which is a pretty simple and fast scripting language..
 
@@ -18,6 +18,6 @@ Specs
  - **Audio:** 4 8-bit PCM channels in stereo
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** (Local system folder and ability to mount Webservers as drives)*
- - **Supported filetypes:** GIF images and animations, WAV files
+ - **Native filetypes:** GIF for images and animations, WAV for sound samples (currently only for loading)*
 
 _*Work in progress_
