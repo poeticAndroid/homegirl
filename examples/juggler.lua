@@ -25,11 +25,11 @@ function _step(t)
   if frame > #anim then
     frame = 1
     if viewporttop(scrn) < 256 then
-      playsample(0, ding)
-      playsample(3, ding)
-      for c = 0, 3 do
-        setvolume(c, 63 - viewporttop(scrn) / 4)
-      end
+    -- playsample(0, ding)
+    -- playsample(3, ding)
+    -- for c = 0, 3 do
+    --   setvolume(c, 63 - viewporttop(scrn) / 4)
+    -- end
     end
   end
   bar(0, 0, 320, 180)

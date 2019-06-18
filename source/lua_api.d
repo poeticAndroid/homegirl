@@ -21,12 +21,23 @@ void registerFunctions(Program program)
   auto prog = cast(Program*) lua_newuserdata(lua, Program.sizeof);
   *prog = program;
   lua_setglobal(lua, "__program");
+  luaL_dostring(lua, q"{
+    meh = {}
+
+    function _init()
+    end
+    function _step()
+      exit(0)
+    end
+    function _shutdown()
+    end
+  }");
 
   extern (C) int panic(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.shutdown();
+    prog.shutdown(-1);
     writeln("Shit hit the fan!");
     return 0;
   }
@@ -39,7 +50,7 @@ void registerFunctions(Program program)
     const code = lua_tointeger(L, -1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.shutdown();
+    prog.shutdown(cast(int) code);
     return 0;
   }
 
@@ -57,7 +68,7 @@ void registerFunctions(Program program)
 
   lua_register(lua, "exec", &exec);
 
-  /// print(message)
+  /// meh.print(message)
   extern (C) int print(lua_State* L) @trusted
   {
     const msg = lua_tostring(L, -1);
@@ -67,7 +78,8 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "print", &print);
+  lua_register(lua, "_", &print);
+  luaL_dostring(lua, "meh.print = _");
 
   /// createscreen(mode, colorbits): id
   extern (C) int createscreen(lua_State* L) @trusted

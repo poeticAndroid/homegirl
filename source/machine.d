@@ -154,10 +154,12 @@ class Machine
   /**
     start a program
   */
-  void startProgram(string filename)
+  Program startProgram(string filename)
   {
-    this.programs ~= new Program(this, filename);
+    Program program = new Program(this, filename);
+    this.programs ~= program;
     this.audio.sync();
+    return program;
   }
 
   /**
@@ -167,8 +169,8 @@ class Machine
   {
     auto i = countUntil(this.programs, program);
     if (program.running)
-      program.shutdown();
-    program.shutdown();
+      program.shutdown(-1);
+    program.shutdown(-1);
     this.programs[i] = null;
     this.audio.sync();
   }

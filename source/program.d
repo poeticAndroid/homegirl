@@ -23,6 +23,7 @@ import sample;
 class Program
 {
   bool running = true; /// is the program running?
+  int exitcode = 0; /// exit code
   string filename; /// filename of the Lua script currently running
   Machine machine; /// the machine that this program runs on
   lua_State* lua; /// Lua state
@@ -38,7 +39,7 @@ class Program
   /** 
     Initiate a new program!
   */
-  this(Machine machine, string filename)
+  this(Machine machine, string filename, string[] args = [])
   {
     this.filename = filename;
     this.machine = machine;
@@ -49,15 +50,7 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = replace(q"{
-      function _init()
-      end
-      function _step()
-        exit(0)
-      end
-      function _shutdown()
-      end
-    }", "\n", " ") ~ readText(this.filename);
+    string luacode = readText(this.filename);
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length,
         toStringz(baseName(this.filename))))
       this.croak();
@@ -79,10 +72,14 @@ class Program
   /**
     end the program properly
   */
-  void shutdown()
+  void shutdown(int code)
   {
     if (this.running)
+    {
+      this.running = false;
+      this.exitcode = code;
       this.call("_shutdown");
+    }
     else
     {
       lua_close(this.lua);
@@ -99,7 +96,6 @@ class Program
       while (i)
         this.removeSample(cast(uint)--i);
     }
-    this.running = false;
   }
 
   /**
