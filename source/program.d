@@ -2,7 +2,10 @@ module program;
 
 import std.stdio;
 import std.string;
+import std.path;
+import std.array;
 import std.file;
+import std.algorithm;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -20,6 +23,7 @@ import sample;
 class Program
 {
   bool running = true; /// is the program running?
+  string filename; /// filename of the Lua script currently running
   Machine machine; /// the machine that this program runs on
   lua_State* lua; /// Lua state
 
@@ -36,6 +40,7 @@ class Program
   */
   this(Machine machine, string filename)
   {
+    this.filename = filename;
     this.machine = machine;
     this.viewports ~= null;
 
@@ -44,7 +49,7 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = q"{
+    string luacode = replace(q"{
       function _init()
       end
       function _step()
@@ -52,23 +57,14 @@ class Program
       end
       function _shutdown()
       end
-    }" ~ readText(filename);
-    if (luaL_dostring(this.lua, toStringz(luacode)))
-    {
-      auto err = lua_tostring(this.lua, -1);
-      writeln("Lua err: " ~ fromStringz(err));
-      this.running = false;
-    }
+    }", "\n", " ") ~ readText(this.filename);
+    if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length,
+        toStringz(baseName(this.filename))))
+      this.croak();
+    else if (lua_pcall(this.lua, 0, LUA_MULTRET, 0))
+      this.croak();
     if (this.running)
-    {
-      lua_getglobal(this.lua, "_init");
-      if (lua_pcall(this.lua, 0, 0, 0))
-      {
-        auto err = lua_tostring(this.lua, -1);
-        writeln("Lua error: " ~ fromStringz(err));
-        this.running = false;
-      }
-    }
+      this.call("_init");
   }
 
   /**
@@ -76,14 +72,8 @@ class Program
   */
   void step(uint timestamp)
   {
-    lua_getglobal(this.lua, "_step");
-    lua_pushinteger(this.lua, cast(long) timestamp);
-    if (lua_pcall(this.lua, 1, 0, 0))
-    {
-      auto err = lua_tostring(this.lua, -1);
-      writeln("Lua error: " ~ fromStringz(err));
-      this.running = false;
-    }
+    if (this.running)
+      this.call("_step", timestamp);
   }
 
   /**
@@ -92,15 +82,7 @@ class Program
   void shutdown()
   {
     if (this.running)
-    {
-      lua_getglobal(this.lua, "_shutdown");
-      if (lua_pcall(this.lua, 0, 0, 0))
-      {
-        auto err = lua_tostring(this.lua, -1);
-        writeln("Lua error: " ~ fromStringz(err));
-      }
-      this.running = false;
-    }
+      this.call("_shutdown");
     else
     {
       lua_close(this.lua);
@@ -117,6 +99,7 @@ class Program
       while (i)
         this.removeSample(cast(uint)--i);
     }
+    this.running = false;
   }
 
   /**
@@ -294,4 +277,27 @@ class Program
   }
 
   // === _privates === //
+
+  private void call(string funcname, uint timestamp = 0)
+  {
+    lua_getglobal(this.lua, toStringz(funcname));
+    uint args = 0;
+    switch (funcname)
+    {
+    case "_step":
+      lua_pushinteger(this.lua, cast(long) timestamp);
+      args++;
+      break;
+    default:
+    }
+    if (lua_pcall(this.lua, args, 0, 0))
+      this.croak();
+  }
+
+  private void croak()
+  {
+    auto err = fromStringz(lua_tostring(this.lua, -1));
+    writeln("Lua err: " ~ err);
+    this.running = false;
+  }
 }

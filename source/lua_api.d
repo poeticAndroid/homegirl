@@ -2,6 +2,7 @@ module lua_api;
 
 import std.stdio;
 import std.string;
+import std.path;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -60,7 +61,9 @@ void registerFunctions(Program program)
   extern (C) int print(lua_State* L) @trusted
   {
     const msg = lua_tostring(L, -1);
-    writeln("Program says: " ~ fromStringz(msg));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    writeln(baseName(prog.filename) ~ ": " ~ fromStringz(msg));
     return 0;
   }
 
