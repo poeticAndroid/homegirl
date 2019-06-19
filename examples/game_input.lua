@@ -16,7 +16,7 @@ players = {
 
 function _init()
   font = text.loadfont("./examples/fonts/Victoria.8b.gif")
-  scrn = view.createscreen(0, 2)
+  scrn = view.newscreen(0, 2)
   gfx.bgcolor(0)
   image.copymode(2)
   gfx.setcolor(1, 0, 7, 15)

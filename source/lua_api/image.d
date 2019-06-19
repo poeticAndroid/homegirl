@@ -15,8 +15,8 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "image = {}");
 
-  /// image.createimage(width, height, colorbits): id
-  extern (C) int image_createimage(lua_State* L) @trusted
+  /// image.new(width, height, colorbits): id
+  extern (C) int image_create(lua_State* L) @trusted
   {
     const width = lua_tonumber(L, -3);
     const height = lua_tonumber(L, -2);
@@ -28,11 +28,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &image_createimage);
-  luaL_dostring(lua, "image.createimage = _");
+  lua_register(lua, "_", &image_create);
+  luaL_dostring(lua, "image.new = _");
 
-  /// image.loadimage(filename): id
-  extern (C) int image_loadimage(lua_State* L) @trusted
+  /// image.load(filename): id
+  extern (C) int image_load(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, -1));
     //Get the pointer
@@ -42,8 +42,8 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &image_loadimage);
-  luaL_dostring(lua, "image.loadimage = _");
+  lua_register(lua, "_", &image_load);
+  luaL_dostring(lua, "image.load = _");
 
   /// image.loadanimation(filename): id
   extern (C) int image_loadanimation(lua_State* L) @trusted
@@ -122,8 +122,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_copymode);
   luaL_dostring(lua, "image.copymode = _");
 
-  /// image.drawimage(imgID, x, y, imgx, imgy, width, height)
-  extern (C) int image_drawimage(lua_State* L) @trusted
+  /// image.draw(imgID, x, y, imgx, imgy, width, height)
+  extern (C) int image_draw(lua_State* L) @trusted
   {
     const imgID = lua_tointeger(L, -7);
     const x = lua_tonumber(L, -6);
@@ -152,11 +152,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &image_drawimage);
-  luaL_dostring(lua, "image.drawimage = _");
+  lua_register(lua, "_", &image_draw);
+  luaL_dostring(lua, "image.draw = _");
 
-  /// image.copyimage(imgID, x, y, imgx, imgy, width, height)
-  extern (C) int image_copyimage(lua_State* L) @trusted
+  /// image.copy(imgID, x, y, imgx, imgy, width, height)
+  extern (C) int image_copy(lua_State* L) @trusted
   {
     const imgID = lua_tonumber(L, -7);
     const x = lua_tonumber(L, -6);
@@ -185,8 +185,8 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &image_copyimage);
-  luaL_dostring(lua, "image.copyimage = _");
+  lua_register(lua, "_", &image_copy);
+  luaL_dostring(lua, "image.copy = _");
 
   /// image.copypalette(imgID)
   extern (C) int image_copypalette(lua_State* L) @trusted
@@ -238,8 +238,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_usepalette);
   luaL_dostring(lua, "image.usepalette = _");
 
-  /// image.forgetimage(imgID)
-  extern (C) int image_forgetimage(lua_State* L) @trusted
+  /// image.forget(imgID)
+  extern (C) int image_forget(lua_State* L) @trusted
   {
     const imgId = lua_tointeger(L, -1);
     lua_getglobal(L, "__program");
@@ -248,6 +248,6 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &image_forgetimage);
-  luaL_dostring(lua, "image.forgetimage = _");
+  lua_register(lua, "_", &image_forget);
+  luaL_dostring(lua, "image.forget = _");
 }

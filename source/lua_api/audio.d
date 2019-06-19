@@ -14,8 +14,8 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "audio = {}");
 
-  /// audio.createsample(): id
-  extern (C) int audio_createsample(lua_State* L) @trusted
+  /// audio.new(): id
+  extern (C) int audio_create(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -23,11 +23,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &audio_createsample);
-  luaL_dostring(lua, "audio.createsample = _");
+  lua_register(lua, "_", &audio_create);
+  luaL_dostring(lua, "audio.new = _");
 
-  /// audio.loadsample(filename): id
-  extern (C) int audio_loadsample(lua_State* L) @trusted
+  /// audio.load(filename): id
+  extern (C) int audio_load(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, -1));
     //Get the pointer
@@ -37,11 +37,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &audio_loadsample);
-  luaL_dostring(lua, "audio.loadsample = _");
+  lua_register(lua, "_", &audio_load);
+  luaL_dostring(lua, "audio.load = _");
 
-  /// audio.playsample(channel, smplID)
-  extern (C) int audio_playsample(lua_State* L) @trusted
+  /// audio.play(channel, smplID)
+  extern (C) int audio_play(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, -2);
     const smplID = lua_tointeger(L, -1);
@@ -57,11 +57,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_playsample);
-  luaL_dostring(lua, "audio.playsample = _");
+  lua_register(lua, "_", &audio_play);
+  luaL_dostring(lua, "audio.play = _");
 
-  /// audio.setsamplerate(channel, samplerate)
-  extern (C) int audio_setsamplerate(lua_State* L) @trusted
+  /// audio.setrate(channel, samplerate)
+  extern (C) int audio_setrate(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, -2);
     const samplerate = lua_tonumber(L, -1);
@@ -71,8 +71,8 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_setsamplerate);
-  luaL_dostring(lua, "audio.setsamplerate = _");
+  lua_register(lua, "_", &audio_setrate);
+  luaL_dostring(lua, "audio.setrate = _");
 
   /// audio.setvolume(channel, volume)
   extern (C) int audio_setvolume(lua_State* L) @trusted
@@ -88,8 +88,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_setvolume);
   luaL_dostring(lua, "audio.setvolume = _");
 
-  /// audio.setsampleloop(channel, start, end)
-  extern (C) int audio_setsampleloop(lua_State* L) @trusted
+  /// audio.setloop(channel, start, end)
+  extern (C) int audio_setloop(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, -3);
     const start = lua_tonumber(L, -2);
@@ -100,11 +100,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_setsampleloop);
-  luaL_dostring(lua, "audio.setsampleloop = _");
+  lua_register(lua, "_", &audio_setloop);
+  luaL_dostring(lua, "audio.setloop = _");
 
-  /// audio.editsample(smplID, pos, value)
-  extern (C) int audio_editsample(lua_State* L) @trusted
+  /// audio.edit(smplID, pos, value)
+  extern (C) int audio_edit(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, -3);
     const pos = lua_tonumber(L, -2);
@@ -123,11 +123,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_editsample);
-  luaL_dostring(lua, "audio.editsample = _");
+  lua_register(lua, "_", &audio_edit);
+  luaL_dostring(lua, "audio.edit = _");
 
-  /// audio.editsamplerate(smplID, samplerate)
-  extern (C) int audio_editsamplerate(lua_State* L) @trusted
+  /// audio.editrate(smplID, samplerate)
+  extern (C) int audio_editrate(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, -2);
     const samplerate = lua_tonumber(L, -1);
@@ -143,11 +143,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_editsamplerate);
-  luaL_dostring(lua, "audio.editsamplerate = _");
+  lua_register(lua, "_", &audio_editrate);
+  luaL_dostring(lua, "audio.editrate = _");
 
-  /// audio.editsampleloop(smplID, start, end)
-  extern (C) int audio_editsampleloop(lua_State* L) @trusted
+  /// audio.editloop(smplID, start, end)
+  extern (C) int audio_editloop(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, -3);
     const start = lua_tonumber(L, -2);
@@ -165,11 +165,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_editsampleloop);
-  luaL_dostring(lua, "audio.editsampleloop = _");
+  lua_register(lua, "_", &audio_editloop);
+  luaL_dostring(lua, "audio.editloop = _");
 
-  /// audio.forgetsample(smplID)
-  extern (C) int audio_forgetsample(lua_State* L) @trusted
+  /// audio.forget(smplID)
+  extern (C) int audio_forget(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, -1);
     lua_getglobal(L, "__program");
@@ -178,6 +178,6 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &audio_forgetsample);
-  luaL_dostring(lua, "audio.forgetsample = _");
+  lua_register(lua, "_", &audio_forget);
+  luaL_dostring(lua, "audio.forget = _");
 }

@@ -13,6 +13,6 @@ function dragscreen(scrn)
       end
     end
   elseif _screendragstate > 0 then
-    view.moveviewport(scrn, 0, view.viewporttop(scrn) + input.mousey())
+    view.move(scrn, 0, view.top(scrn) + input.mousey())
   end
 end

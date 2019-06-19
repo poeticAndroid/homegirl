@@ -1,7 +1,7 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.createscreen(0, 4)
-view.moveviewport(scrn, 0, 0)
+scrn = view.newscreen(0, 4)
+view.move(scrn, 0, 0)
 
 x = 0
 y = 0

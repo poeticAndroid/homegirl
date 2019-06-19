@@ -1,4 +1,4 @@
-module lua_api.all;
+module lua_api._;
 
 import std.stdio;
 import std.string;

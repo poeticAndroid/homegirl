@@ -1,6 +1,6 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.createscreen(3, 5)
+scrn = view.newscreen(3, 5)
 
 function _step(t)
   for y = 0, 360 do

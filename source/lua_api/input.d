@@ -14,8 +14,8 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "input = {}");
 
-  /// input.getinputtext(): text
-  extern (C) int input_getinputtext(lua_State* L) @trusted
+  /// input.gettext(): text
+  extern (C) int input_gettext(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -29,11 +29,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &input_getinputtext);
-  luaL_dostring(lua, "input.getinputtext = _");
+  lua_register(lua, "_", &input_gettext);
+  luaL_dostring(lua, "input.gettext = _");
 
-  /// input.getinputpos(): position
-  extern (C) int input_getinputpos(lua_State* L) @trusted
+  /// input.getpos(): position
+  extern (C) int input_getpos(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -47,11 +47,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &input_getinputpos);
-  luaL_dostring(lua, "input.getinputpos = _");
+  lua_register(lua, "_", &input_getpos);
+  luaL_dostring(lua, "input.getpos = _");
 
-  /// input.getinputselected(): selection
-  extern (C) int input_getinputselected(lua_State* L) @trusted
+  /// input.getselected(): selection
+  extern (C) int input_getselected(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -65,11 +65,11 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &input_getinputselected);
-  luaL_dostring(lua, "input.getinputselected = _");
+  lua_register(lua, "_", &input_getselected);
+  luaL_dostring(lua, "input.getselected = _");
 
-  /// input.setinputtext(text)
-  extern (C) int input_setinputtext(lua_State* L) @trusted
+  /// input.settext(text)
+  extern (C) int input_settext(lua_State* L) @trusted
   {
     const text = lua_tostring(L, -1);
     lua_getglobal(L, "__program");
@@ -84,11 +84,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &input_setinputtext);
-  luaL_dostring(lua, "input.setinputtext = _");
+  lua_register(lua, "_", &input_settext);
+  luaL_dostring(lua, "input.settext = _");
 
-  /// input.setinputpos(pos)
-  extern (C) int input_setinputpos(lua_State* L) @trusted
+  /// input.setpos(pos)
+  extern (C) int input_setpos(lua_State* L) @trusted
   {
     const pos = lua_tointeger(L, -1);
     lua_getglobal(L, "__program");
@@ -103,11 +103,11 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &input_setinputpos);
-  luaL_dostring(lua, "input.setinputpos = _");
+  lua_register(lua, "_", &input_setpos);
+  luaL_dostring(lua, "input.setpos = _");
 
-  /// input.setinputselected(selected)
-  extern (C) int input_setinputselected(lua_State* L) @trusted
+  /// input.setselected(selected)
+  extern (C) int input_setselected(lua_State* L) @trusted
   {
     const selected = lua_tointeger(L, -1);
     lua_getglobal(L, "__program");
@@ -122,8 +122,8 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &input_setinputselected);
-  luaL_dostring(lua, "input.setinputselected = _");
+  lua_register(lua, "_", &input_setselected);
+  luaL_dostring(lua, "input.setselected = _");
 
   /// input.hotkey(): hotkey
   extern (C) int input_hotkey(lua_State* L) @trusted
