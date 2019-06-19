@@ -12,7 +12,7 @@ import riverd.lua.types;
 import machine;
 import screen;
 import viewport;
-import lua_api;
+import lua_api.all;
 import pixmap;
 import image_loader;
 import sample;

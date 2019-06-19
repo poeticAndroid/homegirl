@@ -1,18 +1,18 @@
 dofile("./examples/screendrag.lua")
 
-scrn = createscreen(1, 2)
+scrn = view.createscreen(1, 2)
 
-font = loadfont("./examples/fonts/Victoria.8b.gif")
+font = text.loadfont("./examples/fonts/Victoria.8b.gif")
 
 function _init()
-  setcolor(0, 0, 5, 10)
-  setcolor(1, 15, 15, 15)
-  setcolor(2, 0, 0, 2)
-  setcolor(3, 15, 8, 0)
-  bgcolor(0)
-  fgcolor(1)
-  copymode(2)
-  setinputtext(
+  gfx.setcolor(0, 0, 5, 10)
+  gfx.setcolor(1, 15, 15, 15)
+  gfx.setcolor(2, 0, 0, 2)
+  gfx.setcolor(3, 15, 8, 0)
+  gfx.bgcolor(0)
+  gfx.fgcolor(1)
+  image.copymode(2)
+  input.setinputtext(
     [[Når jeg står ved min maskine på min dejlige fabrik
 Så er jeg glad for at leve, det' da klart - er det ikk'?
 Mine hænder er bløde som en anden funktionærs
@@ -33,27 +33,27 @@ Vi har, hva' vi ska' ha' af både stort og småt
 Blip-båt, og gud, hvor går det godt
 Vi har, hva' vi ska' ha' af både stort og småt]]
   )
-  setinputpos(0)
-  setinputselected(3)
+  input.setinputpos(0)
+  input.setinputselected(3)
 end
 
 function _step(t)
-  local txt = getinputtext()
-  local pos = getinputpos()
-  local sel = getinputselected()
-  cls()
-  fgcolor(1)
-  text(txt, font, 0, 0)
-  fgcolor(3)
-  text(string.sub(txt, 0, pos) .. "\x7f", font, 0, 0)
-  text(string.sub(txt, 0, pos + sel), font, 0, 0)
+  local txt = input.getinputtext()
+  local pos = input.getinputpos()
+  local sel = input.getinputselected()
+  gfx.cls()
+  gfx.fgcolor(1)
+  text.text(txt, font, 0, 0)
+  gfx.fgcolor(3)
+  text.text(string.sub(txt, 0, pos) .. "\x7f", font, 0, 0)
+  text.text(string.sub(txt, 0, pos + sel), font, 0, 0)
   if sel == 0 then
-    fgcolor(2)
+    gfx.fgcolor(2)
   else
-    fgcolor(1)
+    gfx.fgcolor(1)
   end
-  text(string.sub(txt, 0, pos + 1), font, 0, 0)
-  fgcolor(1)
-  text(string.sub(txt, 0, pos), font, 0, 0)
+  text.text(string.sub(txt, 0, pos + 1), font, 0, 0)
+  gfx.fgcolor(1)
+  text.text(string.sub(txt, 0, pos), font, 0, 0)
   dragscreen(scrn)
 end
