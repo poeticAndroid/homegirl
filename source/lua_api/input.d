@@ -71,7 +71,7 @@ void registerFunctions(Program program)
   /// input.settext(text)
   extern (C) int input_settext(lua_State* L) @trusted
   {
-    const text = lua_tostring(L, -1);
+    const text = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -90,7 +90,7 @@ void registerFunctions(Program program)
   /// input.setpos(pos)
   extern (C) int input_setpos(lua_State* L) @trusted
   {
-    const pos = lua_tointeger(L, -1);
+    const pos = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -109,7 +109,7 @@ void registerFunctions(Program program)
   /// input.setselected(selected)
   extern (C) int input_setselected(lua_State* L) @trusted
   {
-    const selected = lua_tointeger(L, -1);
+    const selected = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -200,7 +200,7 @@ void registerFunctions(Program program)
   /// input.gamebtn(player): btn
   extern (C) int input_gamebtn(lua_State* L) @trusted
   {
-    const player = lua_tointeger(L, -1);
+    const player = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)

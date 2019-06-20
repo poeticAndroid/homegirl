@@ -47,7 +47,7 @@ void registerFunctions(Program program)
   extern (C) int panic(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
+    auto prog = cast(Program*) lua_touserdata(L, 1);
     prog.shutdown(-1);
     writeln("Shit hit the fan!");
     return 0;
@@ -55,20 +55,20 @@ void registerFunctions(Program program)
 
   lua_atpanic(lua, &panic);
 
-  /// dofile(filename)
+  /// dofile(filename) -- not yet implemented
   extern (C) int dofile(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, -1);
+    const filename = lua_tostring(L, 1);
     writeln("dofile not yet implemented!");
     return 0;
   }
 
   // lua_register(lua, "dofile", &dofile);
 
-  /// loadfile(filename)
+  /// loadfile(filename) -- not yet implemented
   extern (C) int loadfile(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, -1);
+    const filename = lua_tostring(L, 1);
     writeln("loadfile not yet implemented!");
     return 0;
   }
@@ -78,7 +78,7 @@ void registerFunctions(Program program)
   /// print(message)
   extern (C) int print(lua_State* L) @trusted
   {
-    const msg = lua_tostring(L, -1);
+    const msg = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     writeln(baseName(prog.filename) ~ ": " ~ fromStringz(msg));
@@ -87,10 +87,10 @@ void registerFunctions(Program program)
 
   lua_register(lua, "print", &print);
 
-  /// require(filename)
+  /// require(filename) -- not yet implemented
   extern (C) int require(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, -1);
+    const filename = lua_tostring(L, 1);
     writeln("require not yet implemented!");
     return 0;
   }

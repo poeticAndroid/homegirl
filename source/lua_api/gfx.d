@@ -35,10 +35,10 @@ void registerFunctions(Program program)
   /// gfx.setcolor(color, red, green, blue)
   extern (C) int gfx_setcolor(lua_State* L) @trusted
   {
-    const c = lua_tointeger(L, -4);
-    const r = lua_tonumber(L, -3);
-    const g = lua_tonumber(L, -2);
-    const b = lua_tonumber(L, -1);
+    const c = lua_tointeger(L, 1);
+    const r = lua_tonumber(L, 2);
+    const g = lua_tonumber(L, 3);
+    const b = lua_tonumber(L, 4);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -57,8 +57,8 @@ void registerFunctions(Program program)
   /// gfx.getcolor(color, channel): value
   extern (C) int gfx_getcolor(lua_State* L) @trusted
   {
-    const col = lua_tointeger(L, -2);
-    const chan = lua_tonumber(L, -1);
+    const col = lua_tointeger(L, 1);
+    const chan = lua_tonumber(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -78,7 +78,7 @@ void registerFunctions(Program program)
   /// gfx.fgcolor(index)
   extern (C) int gfx_fgcolor(lua_State* L) @trusted
   {
-    const cindex = lua_tonumber(L, -1);
+    const cindex = lua_tonumber(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (prog.activeViewport)
@@ -99,7 +99,7 @@ void registerFunctions(Program program)
   /// gfx.bgcolor(index)
   extern (C) int gfx_bgcolor(lua_State* L) @trusted
   {
-    const cindex = lua_tonumber(L, -1);
+    const cindex = lua_tonumber(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (prog.activeViewport)
@@ -120,8 +120,8 @@ void registerFunctions(Program program)
   /// gfx.pget(x, y): color
   extern (C) int gfx_pget(lua_State* L) @trusted
   {
-    const x = lua_tonumber(L, -2);
-    const y = lua_tonumber(L, -1);
+    const x = lua_tonumber(L, 1);
+    const y = lua_tonumber(L, 2);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -140,8 +140,8 @@ void registerFunctions(Program program)
   /// gfx.plot(x, y)
   extern (C) int gfx_plot(lua_State* L) @trusted
   {
-    const x = lua_tonumber(L, -2);
-    const y = lua_tonumber(L, -1);
+    const x = lua_tonumber(L, 1);
+    const y = lua_tonumber(L, 2);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -163,10 +163,10 @@ void registerFunctions(Program program)
   /// gfx.bar(x, y, width, height)
   extern (C) int gfx_bar(lua_State* L) @trusted
   {
-    const x = lua_tonumber(L, -4);
-    const y = lua_tonumber(L, -3);
-    const width = lua_tonumber(L, -2);
-    const height = lua_tonumber(L, -1);
+    const x = lua_tonumber(L, 1);
+    const y = lua_tonumber(L, 2);
+    const width = lua_tonumber(L, 3);
+    const height = lua_tonumber(L, 4);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -185,10 +185,10 @@ void registerFunctions(Program program)
   /// gfx.line(x1, y1, x2, y2)
   extern (C) int gfx_line(lua_State* L) @trusted
   {
-    const x1 = lua_tonumber(L, -4);
-    const y1 = lua_tonumber(L, -3);
-    const x2 = lua_tonumber(L, -2);
-    const y2 = lua_tonumber(L, -1);
+    const x1 = lua_tonumber(L, 1);
+    const y1 = lua_tonumber(L, 2);
+    const x2 = lua_tonumber(L, 3);
+    const y2 = lua_tonumber(L, 4);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

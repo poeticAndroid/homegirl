@@ -17,7 +17,7 @@ void registerFunctions(Program program)
   /// text.loadfont(filename): id
   extern (C) int text_loadfont(lua_State* L) @trusted
   {
-    auto filename = fromStringz(lua_tostring(L, -1));
+    auto filename = fromStringz(lua_tostring(L, 1));
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -31,7 +31,7 @@ void registerFunctions(Program program)
   /// text.forgetfont(imgID)
   extern (C) int text_forgetfont(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, -1);
+    const imgId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.removeFont(cast(uint) imgId);
@@ -44,10 +44,10 @@ void registerFunctions(Program program)
   /// text.text(text, font, x, y): width
   extern (C) int text_text(lua_State* L) @trusted
   {
-    const text = lua_tostring(L, -4);
-    const font = lua_tointeger(L, -3);
-    const x = lua_tonumber(L, -2);
-    const y = lua_tonumber(L, -1);
+    const text = lua_tostring(L, 1);
+    const font = lua_tointeger(L, 2);
+    const x = lua_tonumber(L, 3);
+    const y = lua_tonumber(L, 4);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

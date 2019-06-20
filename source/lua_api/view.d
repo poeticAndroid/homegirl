@@ -16,25 +16,25 @@ void registerFunctions(Program program)
   luaL_dostring(lua, "view = {}");
 
   /// view.newscreen(mode, colorbits): id
-  extern (C) int view_createscreen(lua_State* L) @trusted
+  extern (C) int view_newscreen(lua_State* L) @trusted
   {
-    const mode = lua_tointeger(L, -2);
-    const colorBits = lua_tointeger(L, -1);
+    const mode = lua_tointeger(L, 1);
+    const colorBits = lua_tointeger(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.createScreen(cast(ubyte) mode, cast(ubyte) colorBits));
     return 1;
   }
 
-  lua_register(lua, "_", &view_createscreen);
+  lua_register(lua, "_", &view_newscreen);
   luaL_dostring(lua, "view.newscreen = _");
 
   /// view.screenmode(screenID, mode, colorbits)
   extern (C) int view_screenmode(lua_State* L) @trusted
   {
-    const screenId = lua_tointeger(L, -3);
-    const mode = lua_tointeger(L, -2);
-    const colorBits = lua_tointeger(L, -1);
+    const screenId = lua_tointeger(L, 1);
+    const mode = lua_tointeger(L, 2);
+    const colorBits = lua_tointeger(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     Viewport vp = prog.machine.mainScreen;
@@ -56,13 +56,13 @@ void registerFunctions(Program program)
   luaL_dostring(lua, "view.screenmode = _");
 
   /// view.new(parent, left, top, width, height): id
-  extern (C) int view_create(lua_State* L) @trusted
+  extern (C) int view_new(lua_State* L) @trusted
   {
-    const parentId = lua_tointeger(L, -5);
-    const left = lua_tonumber(L, -4);
-    const top = lua_tonumber(L, -3);
-    const width = lua_tonumber(L, -2);
-    const height = lua_tonumber(L, -1);
+    const parentId = lua_tointeger(L, 1);
+    const left = lua_tonumber(L, 2);
+    const top = lua_tonumber(L, 3);
+    const width = lua_tonumber(L, 4);
+    const height = lua_tonumber(L, 5);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
@@ -70,13 +70,13 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &view_create);
+  lua_register(lua, "_", &view_new);
   luaL_dostring(lua, "view.new = _");
 
   /// view.active(vpID)
   extern (C) int view_active(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     auto vp = prog.viewports[cast(uint) vpId];
@@ -96,9 +96,9 @@ void registerFunctions(Program program)
   /// view.move(vpID, left, top)
   extern (C) int view_move(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -3);
-    const left = lua_tonumber(L, -2);
-    const top = lua_tonumber(L, -1);
+    const vpId = lua_tointeger(L, 1);
+    const left = lua_tonumber(L, 2);
+    const top = lua_tonumber(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     auto vp = prog.viewports[cast(uint) vpId];
@@ -118,9 +118,9 @@ void registerFunctions(Program program)
   /// view.resize(vpID, left, top)
   extern (C) int view_resize(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -3);
-    const width = lua_tonumber(L, -2);
-    const height = lua_tonumber(L, -1);
+    const vpId = lua_tointeger(L, 1);
+    const width = lua_tonumber(L, 2);
+    const height = lua_tonumber(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     auto vp = prog.viewports[cast(uint) vpId];
@@ -140,8 +140,8 @@ void registerFunctions(Program program)
   /// view.show(vpID, visible)
   extern (C) int view_show(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -2);
-    const visible = lua_toboolean(L, -1);
+    const vpId = lua_tointeger(L, 1);
+    const visible = lua_toboolean(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     auto vp = prog.viewports[cast(uint) vpId];
@@ -161,7 +161,7 @@ void registerFunctions(Program program)
   /// view.left(vpID): left
   extern (C) int view_left(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.viewports[cast(uint) vpId].left);
@@ -174,7 +174,7 @@ void registerFunctions(Program program)
   /// view.top(vpID): top
   extern (C) int view_top(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.viewports[cast(uint) vpId].top);
@@ -187,7 +187,7 @@ void registerFunctions(Program program)
   /// view.width(vpID): width
   extern (C) int view_width(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.viewports[cast(uint) vpId].pixmap.width);
@@ -200,7 +200,7 @@ void registerFunctions(Program program)
   /// view.height(vpID): height
   extern (C) int view_height(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushinteger(L, prog.viewports[cast(uint) vpId].pixmap.height);
@@ -213,7 +213,7 @@ void registerFunctions(Program program)
   /// view.isfocused(vpID): focused
   extern (C) int view_isfocused(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     lua_pushboolean(L,
@@ -227,7 +227,7 @@ void registerFunctions(Program program)
   /// view.focus(vpID)
   extern (C) int view_focus(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.machine.focusViewport(prog.viewports[cast(uint) vpId]);
@@ -240,7 +240,7 @@ void registerFunctions(Program program)
   /// view.remove(vpID)
   extern (C) int view_remove(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, -1);
+    const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.removeViewport(cast(uint) vpId);

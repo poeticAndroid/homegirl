@@ -12,5 +12,6 @@ import program;
 void registerFunctions(Program program)
 {
   auto lua = program.lua;
+  /// -- not yet implemented
   luaL_dostring(lua, "fs = {}");
 }

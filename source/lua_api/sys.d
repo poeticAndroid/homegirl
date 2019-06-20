@@ -17,7 +17,7 @@ void registerFunctions(Program program)
   /// sys.exit(code)
   extern (C) int sys_exit(lua_State* L) @trusted
   {
-    const code = lua_tointeger(L, -1);
+    const code = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.shutdown(cast(int) code);
@@ -30,7 +30,7 @@ void registerFunctions(Program program)
   /// sys.exec(filename)
   extern (C) int sys_exec(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, -1);
+    const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.machine.startProgram(cast(string) fromStringz(filename));

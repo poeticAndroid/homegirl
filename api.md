@@ -1,9 +1,9 @@
 # Lua API overview
 ##  _
-    dofile(filename)
-    loadfile(filename)
+    dofile(filename) -- not yet implemented
+    loadfile(filename) -- not yet implemented
     print(message)
-    require(filename)
+    require(filename) -- not yet implemented
 ##  audio
     audio.new(): id
     audio.load(filename): id
@@ -16,6 +16,7 @@
     audio.editloop(smplID, start, end)
     audio.forget(smplID)
 ##  fs
+    -- not yet implemented
 ##  gfx
     gfx.cls()
     gfx.setcolor(color, red, green, blue)
