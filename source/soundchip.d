@@ -116,6 +116,42 @@ class SoundChip
   }
 
   /**
+    get samplerate on channel
+  */
+  int getFreq(uint channel)
+  {
+    channel = channel % this.src.length;
+    return cast(int)(this.rate[channel] * this.spec.freq);
+  }
+
+  /**
+    get volume on channel
+  */
+  ubyte getVolume(uint channel)
+  {
+    channel = channel % this.src.length;
+    return cast(ubyte)(this.volume[channel] * 63);
+  }
+
+  /**
+    get loop start on channel
+  */
+  uint getLoopStart(uint channel)
+  {
+    channel = channel % this.src.length;
+    return cast(uint)(this.loopStart[channel]);
+  }
+
+  /**
+    get loop end on channel
+  */
+  uint getLoopEnd(uint channel)
+  {
+    channel = channel % this.src.length;
+    return cast(uint)(this.loopEnd[channel]);
+  }
+
+  /**
     reset all channels
   */
   void clear()

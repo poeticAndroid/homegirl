@@ -13,6 +13,7 @@ function dragscreen(scrn)
       end
     end
   elseif _screendragstate > 0 then
-    view.move(scrn, 0, view.top(scrn) + input.mousey())
+    local left, top = view.position(scrn)
+    view.position(scrn, 0, top + input.mousey())
   end
 end

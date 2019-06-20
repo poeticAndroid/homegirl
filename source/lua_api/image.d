@@ -16,7 +16,7 @@ void registerFunctions(Program program)
   luaL_dostring(lua, "image = {}");
 
   /// image.new(width, height, colorbits): id
-  extern (C) int image_create(lua_State* L) @trusted
+  extern (C) int image_new(lua_State* L) @trusted
   {
     const width = lua_tonumber(L, 1);
     const height = lua_tonumber(L, 2);
@@ -28,7 +28,7 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &image_create);
+  lua_register(lua, "_", &image_new);
   luaL_dostring(lua, "image.new = _");
 
   /// image.load(filename): id
@@ -103,10 +103,11 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_imageduration);
   luaL_dostring(lua, "image.imageduration = _");
 
-  /// image.copymode(mode)
+  /// image.copymode([mode]): mode
   extern (C) int image_copymode(lua_State* L) @trusted
   {
     const mode = lua_tointeger(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -115,8 +116,10 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.pixmap.copymode = cast(CopyMode) mode;
-    return 0;
+    if (set)
+      prog.activeViewport.pixmap.copymode = cast(CopyMode) mode;
+    lua_pushinteger(L, prog.activeViewport.pixmap.copymode);
+    return 1;
   }
 
   lua_register(lua, "_", &image_copymode);
@@ -125,13 +128,13 @@ void registerFunctions(Program program)
   /// image.draw(imgID, x, y, imgx, imgy, width, height)
   extern (C) int image_draw(lua_State* L) @trusted
   {
-    const imgID =   lua_tointeger(L, 1);
-    const x =       lua_tonumber (L, 2);
-    const y =       lua_tonumber (L, 3);
-    const imgx =    lua_tonumber (L, 4);
-    const imgy =    lua_tonumber (L, 5);
-    const width =   lua_tonumber (L, 6);
-    const height =  lua_tonumber (L, 7);
+    const imgID = lua_tointeger(L, 1);
+    const x = lua_tonumber(L, 2);
+    const y = lua_tonumber(L, 3);
+    const imgx = lua_tonumber(L, 4);
+    const imgy = lua_tonumber(L, 5);
+    const width = lua_tonumber(L, 6);
+    const height = lua_tonumber(L, 7);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -158,12 +161,12 @@ void registerFunctions(Program program)
   /// image.copy(imgID, x, y, imgx, imgy, width, height)
   extern (C) int image_copy(lua_State* L) @trusted
   {
-    const imgID = lua_tonumber(L,  1);
-    const x = lua_tonumber(L,      2);
-    const y = lua_tonumber(L,      3);
-    const imgx = lua_tonumber(L,   4);
-    const imgy = lua_tonumber(L,   5);
-    const width = lua_tonumber(L,  6);
+    const imgID = lua_tonumber(L, 1);
+    const x = lua_tonumber(L, 2);
+    const y = lua_tonumber(L, 3);
+    const imgx = lua_tonumber(L, 4);
+    const imgy = lua_tonumber(L, 5);
+    const width = lua_tonumber(L, 6);
     const height = lua_tonumber(L, 7);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -187,31 +190,6 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_copy);
   luaL_dostring(lua, "image.copy = _");
-
-  /// image.copypalette(imgID)
-  extern (C) int image_copypalette(lua_State* L) @trusted
-  {
-    const imgID = lua_tointeger(L, 1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
-    {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
-      return 0;
-    }
-    if (!prog.pixmaps[cast(uint) imgID])
-    {
-      lua_pushstring(L, "Invalid image!");
-      lua_error(L);
-      return 0;
-    }
-    prog.pixmaps[cast(uint) imgID].copyPaletteFrom(prog.activeViewport.pixmap);
-    return 0;
-  }
-
-  lua_register(lua, "_", &image_copypalette);
-  luaL_dostring(lua, "image.copypalette = _");
 
   /// image.usepalette(imgID)
   extern (C) int image_usepalette(lua_State* L) @trusted
@@ -237,6 +215,31 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_usepalette);
   luaL_dostring(lua, "image.usepalette = _");
+
+  /// image.copypalette(imgID)
+  extern (C) int image_copypalette(lua_State* L) @trusted
+  {
+    const imgID = lua_tointeger(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    if (!prog.pixmaps[cast(uint) imgID])
+    {
+      lua_pushstring(L, "Invalid image!");
+      lua_error(L);
+      return 0;
+    }
+    prog.pixmaps[cast(uint) imgID].copyPaletteFrom(prog.activeViewport.pixmap);
+    return 0;
+  }
+
+  lua_register(lua, "_", &image_copypalette);
+  luaL_dostring(lua, "image.copypalette = _");
 
   /// image.forget(imgID)
   extern (C) int image_forget(lua_State* L) @trusted

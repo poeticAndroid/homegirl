@@ -32,13 +32,14 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &gfx_cls);
   luaL_dostring(lua, "gfx.cls = _");
 
-  /// gfx.setcolor(color, red, green, blue)
-  extern (C) int gfx_setcolor(lua_State* L) @trusted
+  /// gfx.palette(color[, red, green, blue]): red, green, blue
+  extern (C) int gfx_palette(lua_State* L) @trusted
   {
     const c = lua_tointeger(L, 1);
     const r = lua_tonumber(L, 2);
     const g = lua_tonumber(L, 3);
     const b = lua_tonumber(L, 4);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (!prog.activeViewport)
@@ -47,81 +48,69 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
-    return 0;
+    if (set)
+      prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
+    uint i = cast(uint)((c * 3) % prog.activeViewport.pixmap.palette.length);
+    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+    return 3;
   }
 
-  lua_register(lua, "_", &gfx_setcolor);
-  luaL_dostring(lua, "gfx.setcolor = _");
+  lua_register(lua, "_", &gfx_palette);
+  luaL_dostring(lua, "gfx.palette = _");
 
-  /// gfx.getcolor(color, channel): value
-  extern (C) int gfx_getcolor(lua_State* L) @trusted
-  {
-    const col = lua_tointeger(L, 1);
-    const chan = lua_tonumber(L, 2);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
-    {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
-      return 0;
-    }
-    const i = cast(uint)((col * 3 + chan) % prog.activeViewport.pixmap.palette.length);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i] % 16);
-    return 1;
-  }
-
-  lua_register(lua, "_", &gfx_getcolor);
-  luaL_dostring(lua, "gfx.getcolor = _");
-
-  /// gfx.fgcolor(index)
+  /// gfx.fgcolor([index]): index
   extern (C) int gfx_fgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (prog.activeViewport)
-    {
-      prog.activeViewport.pixmap.fgColor = cast(ubyte) cindex;
-    }
-    else
+    if (!prog.activeViewport)
     {
       lua_pushstring(L, "No active viewport!");
       lua_error(L);
+      return 0;
     }
-    return 0;
+    if (set)
+      prog.activeViewport.pixmap.fgColor = cast(ubyte) cindex;
+    lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
+    return 1;
   }
 
   lua_register(lua, "_", &gfx_fgcolor);
   luaL_dostring(lua, "gfx.fgcolor = _");
 
-  /// gfx.bgcolor(index)
+  /// gfx.bgcolor([index]): index
   extern (C) int gfx_bgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (prog.activeViewport)
-    {
-      prog.activeViewport.pixmap.bgColor = cast(ubyte) cindex;
-    }
-    else
+    if (!prog.activeViewport)
     {
       lua_pushstring(L, "No active viewport!");
       lua_error(L);
+      return 0;
     }
-    return 0;
+    if (set)
+      prog.activeViewport.pixmap.bgColor = cast(ubyte) cindex;
+    lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
+    return 1;
   }
 
   lua_register(lua, "_", &gfx_bgcolor);
   luaL_dostring(lua, "gfx.bgcolor = _");
 
-  /// gfx.pget(x, y): color
-  extern (C) int gfx_pget(lua_State* L) @trusted
+  /// gfx.pixel(x, y[, color]): color
+  extern (C) int gfx_pixel(lua_State* L) @trusted
   {
     const x = lua_tonumber(L, 1);
     const y = lua_tonumber(L, 2);
+    const c = lua_tonumber(L, 3);
+    const set = 1 - lua_isnoneornil(L, 3);
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -130,14 +119,16 @@ void registerFunctions(Program program)
       lua_pushstring(L, "No active viewport!");
       lua_error(L);
     }
+    if (set)
+      prog.activeViewport.pixmap.pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
     lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
     return 1;
   }
 
-  lua_register(lua, "_", &gfx_pget);
-  luaL_dostring(lua, "gfx.pget = _");
+  lua_register(lua, "_", &gfx_pixel);
+  luaL_dostring(lua, "gfx.pixel = _");
 
-  /// gfx.plot(x, y)
+  /// gfx.plot(x, y): color
   extern (C) int gfx_plot(lua_State* L) @trusted
   {
     const x = lua_tonumber(L, 1);
@@ -145,16 +136,14 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (prog.activeViewport)
-    {
-      prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
-    }
-    else
+    if (!prog.activeViewport)
     {
       lua_pushstring(L, "No active viewport!");
       lua_error(L);
     }
-    return 0;
+    prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
+    lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
+    return 1;
   }
 
   lua_register(lua, "_", &gfx_plot);

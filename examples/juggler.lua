@@ -15,6 +15,7 @@ function _init()
 end
 
 function _step(t)
+  local left, top = view.position(scrn)
   if t - nextFrame > 100 then
     nextFrame = t
   end
@@ -24,11 +25,11 @@ function _step(t)
   frame = frame + 1
   if frame > #anim then
     frame = 1
-    if view.top(scrn) < 256 then
+    if top < 256 then
       audio.play(0, ding)
       audio.play(3, ding)
       for c = 0, 3 do
-        audio.setvolume(c, 63 - view.top(scrn) / 4)
+        audio.channelvolume(c, 63 - top / 4)
       end
     end
   end

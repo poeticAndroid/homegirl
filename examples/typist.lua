@@ -5,14 +5,14 @@ scrn = view.newscreen(1, 2)
 font = text.loadfont("./examples/fonts/Victoria.8b.gif")
 
 function _init()
-  gfx.setcolor(0, 0, 5, 10)
-  gfx.setcolor(1, 15, 15, 15)
-  gfx.setcolor(2, 0, 0, 2)
-  gfx.setcolor(3, 15, 8, 0)
+  gfx.palette(0, 0, 5, 10)
+  gfx.palette(1, 15, 15, 15)
+  gfx.palette(2, 0, 0, 2)
+  gfx.palette(3, 15, 8, 0)
   gfx.bgcolor(0)
   gfx.fgcolor(1)
   image.copymode(2)
-  input.settext(
+  input.text(
     [[Når jeg står ved min maskine på min dejlige fabrik
 Så er jeg glad for at leve, det' da klart - er det ikk'?
 Mine hænder er bløde som en anden funktionærs
@@ -33,14 +33,14 @@ Vi har, hva' vi ska' ha' af både stort og småt
 Blip-båt, og gud, hvor går det godt
 Vi har, hva' vi ska' ha' af både stort og småt]]
   )
-  input.setpos(0)
-  input.setselected(3)
+  input.cursor(0)
+  input.selected(3)
 end
 
 function _step(t)
-  local txt = input.gettext()
-  local pos = input.getpos()
-  local sel = input.getselected()
+  local txt = input.text()
+  local pos = input.cursor()
+  local sel = input.selected()
   gfx.cls()
   gfx.fgcolor(1)
   text.text(txt, font, 0, 0)

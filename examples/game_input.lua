@@ -19,9 +19,9 @@ function _init()
   scrn = view.newscreen(0, 2)
   gfx.bgcolor(0)
   image.copymode(2)
-  gfx.setcolor(1, 0, 7, 15)
-  gfx.setcolor(2, 0, 7, 15)
-  gfx.setcolor(3, 0, 7, 15)
+  gfx.palette(1, 0, 7, 15)
+  gfx.palette(2, 0, 7, 15)
+  gfx.palette(3, 0, 7, 15)
 end
 
 function _step()
@@ -46,19 +46,19 @@ function _step()
     gfx.bar(p.x, p.y, 16, 16)
     gfx.fgcolor(0)
     if btn & 16 > 0 then
-      gfx.setcolor(1 + pn, 0, 15, 0)
+      gfx.palette(1 + pn, 0, 15, 0)
       text.text("A", font, p.x, p.y)
     end
     if btn & 32 > 0 then
-      gfx.setcolor(1 + pn, 15, 0, 0)
+      gfx.palette(1 + pn, 15, 0, 0)
       text.text("B", font, p.x + 8, p.y)
     end
     if btn & 64 > 0 then
-      gfx.setcolor(1 + pn, 0, 0, 15)
+      gfx.palette(1 + pn, 0, 0, 15)
       text.text("X", font, p.x, p.y + 8)
     end
     if btn & 128 > 0 then
-      gfx.setcolor(1 + pn, 15, 15, 0)
+      gfx.palette(1 + pn, 15, 15, 0)
       text.text("Y", font, p.x + 8, p.y + 8)
     end
   end

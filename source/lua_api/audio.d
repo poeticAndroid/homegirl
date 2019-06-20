@@ -15,7 +15,7 @@ void registerFunctions(Program program)
   luaL_dostring(lua, "audio = {}");
 
   /// audio.new(): id
-  extern (C) int audio_create(lua_State* L) @trusted
+  extern (C) int audio_new(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -23,7 +23,7 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &audio_create);
+  lua_register(lua, "_", &audio_new);
   luaL_dostring(lua, "audio.new = _");
 
   /// audio.load(filename): id
@@ -60,55 +60,66 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_play);
   luaL_dostring(lua, "audio.play = _");
 
-  /// audio.setrate(channel, samplerate)
-  extern (C) int audio_setrate(lua_State* L) @trusted
+  /// audio.channelfreq(channel[, freq]): freq
+  extern (C) int audio_channelfreq(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, 1);
     const samplerate = lua_tonumber(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.audio.setFreq(cast(uint) channel, cast(int) samplerate);
-    return 0;
+    if (set)
+      prog.machine.audio.setFreq(cast(uint) channel, cast(int) samplerate);
+    lua_pushinteger(L, prog.machine.audio.getFreq(cast(uint) channel));
+    return 1;
   }
 
-  lua_register(lua, "_", &audio_setrate);
-  luaL_dostring(lua, "audio.setrate = _");
+  lua_register(lua, "_", &audio_channelfreq);
+  luaL_dostring(lua, "audio.channelfreq = _");
 
-  /// audio.setvolume(channel, volume)
-  extern (C) int audio_setvolume(lua_State* L) @trusted
+  /// audio.channelvolume(channel[, volume]): volume
+  extern (C) int audio_channelvolume(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, 1);
     const volume = lua_tonumber(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.audio.setVolume(cast(uint) channel, cast(ubyte) volume);
-    return 0;
+    if (set)
+      prog.machine.audio.setVolume(cast(uint) channel, cast(ubyte) volume);
+    lua_pushinteger(L, prog.machine.audio.getVolume(cast(uint) channel));
+    return 1;
   }
 
-  lua_register(lua, "_", &audio_setvolume);
-  luaL_dostring(lua, "audio.setvolume = _");
+  lua_register(lua, "_", &audio_channelvolume);
+  luaL_dostring(lua, "audio.channelvolume = _");
 
-  /// audio.setloop(channel, start, end)
-  extern (C) int audio_setloop(lua_State* L) @trusted
+  /// audio.channelloop(channel[, start, end]): start, end
+  extern (C) int audio_channelloop(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, 1);
     const start = lua_tonumber(L, 2);
     const end = lua_tonumber(L, 3);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.audio.setLoop(cast(uint) channel, cast(uint) start, cast(uint) end);
-    return 0;
+    if (set)
+      prog.machine.audio.setLoop(cast(uint) channel, cast(uint) start, cast(uint) end);
+    lua_pushinteger(L, prog.machine.audio.getLoopStart(cast(uint) channel));
+    lua_pushinteger(L, prog.machine.audio.getLoopEnd(cast(uint) channel));
+    return 2;
   }
 
-  lua_register(lua, "_", &audio_setloop);
-  luaL_dostring(lua, "audio.setloop = _");
+  lua_register(lua, "_", &audio_channelloop);
+  luaL_dostring(lua, "audio.channelloop = _");
 
-  /// audio.edit(smplID, pos, value)
-  extern (C) int audio_edit(lua_State* L) @trusted
+  /// audio.sample(smplID, pos[, value]): value
+  extern (C) int audio_sample(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
     const pos = lua_tonumber(L, 2);
     const value = lua_tonumber(L, 3);
+    const set = 1 - lua_isnoneornil(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
@@ -117,20 +128,25 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    if (prog.samples[cast(uint) smplID].data.length <= pos)
-      prog.samples[cast(uint) smplID].data.length = cast(uint) pos + 1;
-    prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
-    return 0;
+    if (set)
+    {
+      if (prog.samples[cast(uint) smplID].data.length <= pos)
+        prog.samples[cast(uint) smplID].data.length = cast(uint) pos + 1;
+      prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
+    }
+    lua_pushinteger(L, prog.samples[cast(uint) smplID].data[cast(uint) pos]);
+    return 1;
   }
 
-  lua_register(lua, "_", &audio_edit);
-  luaL_dostring(lua, "audio.edit = _");
+  lua_register(lua, "_", &audio_sample);
+  luaL_dostring(lua, "audio.sample = _");
 
-  /// audio.editrate(smplID, samplerate)
-  extern (C) int audio_editrate(lua_State* L) @trusted
+  /// audio.samplefreq(smplID[, freq]): freq
+  extern (C) int audio_samplefreq(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
     const samplerate = lua_tonumber(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
@@ -139,19 +155,22 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
-    return 0;
+    if (set)
+      prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
+    lua_pushinteger(L, prog.samples[cast(uint) smplID].freq);
+    return 1;
   }
 
-  lua_register(lua, "_", &audio_editrate);
-  luaL_dostring(lua, "audio.editrate = _");
+  lua_register(lua, "_", &audio_samplefreq);
+  luaL_dostring(lua, "audio.samplefreq = _");
 
-  /// audio.editloop(smplID, start, end)
-  extern (C) int audio_editloop(lua_State* L) @trusted
+  /// audio.sampleloop(smplID[, start, end]): start, end
+  extern (C) int audio_sampleloop(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
     const start = lua_tonumber(L, 2);
     const end = lua_tonumber(L, 3);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
@@ -160,13 +179,18 @@ void registerFunctions(Program program)
       lua_error(L);
       return 0;
     }
-    prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
-    prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
-    return 0;
+    if (set)
+    {
+      prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
+      prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
+    }
+    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopStart);
+    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopEnd);
+    return 2;
   }
 
-  lua_register(lua, "_", &audio_editloop);
-  luaL_dostring(lua, "audio.editloop = _");
+  lua_register(lua, "_", &audio_sampleloop);
+  luaL_dostring(lua, "audio.sampleloop = _");
 
   /// audio.forget(smplID)
   extern (C) int audio_forget(lua_State* L) @trusted

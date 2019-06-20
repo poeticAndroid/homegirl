@@ -8,17 +8,19 @@ function _init()
     if len < 16 then
       val = -127
     end
-    audio.edit(square, len, val)
+    audio.sample(square, len, val)
   end
-  audio.editloop(square, 0, 32)
-  audio.editrate(square, 44000)
+  audio.sampleloop(square, 0, 32)
+  start, endd = audio.sampleloop()
+  print("loop " .. start .. " " .. endd)
+  audio.samplefreq(square, 44000)
   audio.play(0, square)
   audio.play(3, square)
-  audio.setvolume(0, 2)
-  audio.setvolume(3, 2)
+  audio.channelvolume(0, 2)
+  audio.channelvolume(3, 2)
 end
 
 function _step(t)
-  audio.setrate(0, t)
-  audio.setrate(3, t + 100)
+  audio.channelfreq(0, t)
+  audio.channelfreq(3, t + 100)
 end

@@ -1,7 +1,6 @@
 dofile("./examples/screendrag.lua")
 
 scrn = view.newscreen(0, 4)
-view.move(scrn, 0, 0)
 
 x = 0
 y = 0
@@ -48,6 +47,6 @@ end
 function _cycle()
   c = c + 1
   for i = 0, 15 do
-    gfx.setcolor(i, i + c, i + c, i + c)
+    gfx.palette(i, i + c, i + c, i + c)
   end
 end
