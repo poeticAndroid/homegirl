@@ -1,6 +1,6 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.newscreen(0, 5)
+scrn = view.newscreen(10, 5)
 
 font = text.loadfont("./examples/fonts/Victoria.8b.gif")
 anim = image.loadanimation("./examples/images/juggler32.gif")

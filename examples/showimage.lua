@@ -1,6 +1,6 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.newscreen(0, 5)
+scrn = view.newscreen(10, 5)
 pointer = image.load("./examples/images/pointer.gif")
 
 img = image.load("./examples/images/Pharao.gif")

@@ -1,6 +1,6 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.newscreen(1, 2)
+scrn = view.newscreen(11, 2)
 
 font = text.loadfont("./examples/fonts/Victoria.8b.gif")
 

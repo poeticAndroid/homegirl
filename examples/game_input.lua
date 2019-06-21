@@ -1,16 +1,16 @@
 dofile("./examples/screendrag.lua")
 players = {
   {
-    x = 160,
-    y = 32
+    x = 32,
+    y = 16
   },
   {
-    x = 80,
-    y = 32
+    x = 8,
+    y = 16
   },
   {
-    x = 240,
-    y = 32
+    x = 56,
+    y = 16
   }
 }
 

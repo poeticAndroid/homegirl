@@ -1,6 +1,6 @@
 dofile("./examples/screendrag.lua")
 
-scrn = view.newscreen(0, 4)
+scrn = view.newscreen(10, 4)
 
 x = 0
 y = 0
