@@ -11,7 +11,6 @@ function _init()
   gfx.palette(3, 15, 8, 0)
   gfx.bgcolor(0)
   gfx.fgcolor(1)
-  image.copymode(2)
   input.text(
     [[Når jeg står ved min maskine på min dejlige fabrik
 Så er jeg glad for at leve, det' da klart - er det ikk'?
@@ -43,17 +42,17 @@ function _step(t)
   local sel = input.selected()
   gfx.cls()
   gfx.fgcolor(1)
-  text.text(txt, font, 0, 0)
+  text.draw(txt, font, 0, 0)
   gfx.fgcolor(3)
-  text.text(string.sub(txt, 0, pos) .. "\x7f", font, 0, 0)
-  text.text(string.sub(txt, 0, pos + sel), font, 0, 0)
+  text.draw(string.sub(txt, 0, pos) .. "\x7f", font, 0, 0)
+  text.draw(string.sub(txt, 0, pos + sel), font, 0, 0)
   if sel == 0 then
     gfx.fgcolor(2)
   else
     gfx.fgcolor(1)
   end
-  text.text(string.sub(txt, 0, pos + 1), font, 0, 0)
+  text.draw(string.sub(txt, 0, pos + 1), font, 0, 0)
   gfx.fgcolor(1)
-  text.text(string.sub(txt, 0, pos), font, 0, 0)
+  text.draw(string.sub(txt, 0, pos), font, 0, 0)
   dragscreen(scrn)
 end

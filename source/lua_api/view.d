@@ -15,7 +15,7 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "view = {}");
 
-  /// view.newscreen(mode, colorbits): id
+  /// view.newscreen(mode, colorbits): view
   extern (C) int view_newscreen(lua_State* L) @trusted
   {
     const mode = lua_tointeger(L, 1);
@@ -29,7 +29,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_newscreen);
   luaL_dostring(lua, "view.newscreen = _");
 
-  /// view.screenmode(screenID, mode, colorbits)
+  /// view.screenmode(view, mode, colorbits)
   extern (C) int view_screenmode(lua_State* L) @trusted
   {
     const screenId = lua_tointeger(L, 1);
@@ -55,7 +55,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_screenmode);
   luaL_dostring(lua, "view.screenmode = _");
 
-  /// view.new(parent, left, top, width, height): id
+  /// view.new(parentview, left, top, width, height): view
   extern (C) int view_new(lua_State* L) @trusted
   {
     const parentId = lua_tointeger(L, 1);
@@ -73,7 +73,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_new);
   luaL_dostring(lua, "view.new = _");
 
-  /// view.activate(vpID)
+  /// view.activate(view)
   extern (C) int view_activate(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);
@@ -93,7 +93,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_activate);
   luaL_dostring(lua, "view.activate = _");
 
-  /// view.position(vpID[, left, top]): left, top
+  /// view.position(view[, left, top]): left, top
   extern (C) int view_position(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);
@@ -119,7 +119,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_position);
   luaL_dostring(lua, "view.position = _");
 
-  /// view.size(vpID[, width, height]): width, height
+  /// view.size(view[, width, height]): width, height
   extern (C) int view_size(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);
@@ -145,7 +145,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_size);
   luaL_dostring(lua, "view.size = _");
 
-  /// view.visible(vpID[, visible]): visible
+  /// view.visible(view[, isvisible]): isvisible
   extern (C) int view_visible(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);
@@ -169,7 +169,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_visible);
   luaL_dostring(lua, "view.visible = _");
 
-  /// view.focused(vpID[, focused]): focused
+  /// view.focused(view[, isfocused]): isfocused
   extern (C) int view_focused(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);
@@ -193,7 +193,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_focused);
   luaL_dostring(lua, "view.focused = _");
 
-  /// view.remove(vpID)
+  /// view.remove(view)
   extern (C) int view_remove(lua_State* L) @trusted
   {
     const vpId = lua_tointeger(L, 1);

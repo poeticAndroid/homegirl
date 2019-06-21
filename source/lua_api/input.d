@@ -58,7 +58,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_cursor);
   luaL_dostring(lua, "input.cursor = _");
 
-  /// input.selected([selected]): selected
+  /// input.selected([bytes]): bytes
   extern (C) int input_selected(lua_State* L) @trusted
   {
     const selected = lua_tointeger(L, 1);

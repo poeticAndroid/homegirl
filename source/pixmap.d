@@ -18,6 +18,7 @@ class Pixmap
   ubyte[] palette; /// the color palette
   uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
   CopyMode copymode = CopyMode.matte; /// the mode by which to copy other pixmaps onto this one
+  CopyMode textCopymode = CopyMode.color; /// the mode by which to copy other pixmaps onto this one
   SDL_Texture* texture; /// texture representation of pixmap
 
   /**
@@ -207,6 +208,8 @@ class Pixmap
   {
     if (font.length == 0)
       return 0;
+    CopyMode oldmode = this.copymode;
+    this.copymode = this.textCopymode;
     dstring text = toUTF32(_text);
     int margin = x;
     int width = 0;
@@ -244,6 +247,7 @@ class Pixmap
       if ((x - margin) > width)
         width = x - margin;
     }
+    this.copymode = oldmode;
     return width;
   }
 

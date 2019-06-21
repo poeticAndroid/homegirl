@@ -14,7 +14,7 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "sys = {}");
 
-  /// sys.exit(code)
+  /// sys.exit([code])
   extern (C) int sys_exit(lua_State* L) @trusted
   {
     const code = lua_tointeger(L, 1);

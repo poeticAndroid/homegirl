@@ -60,7 +60,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &gfx_palette);
   luaL_dostring(lua, "gfx.palette = _");
 
-  /// gfx.fgcolor([index]): index
+  /// gfx.fgcolor([color]): color
   extern (C) int gfx_fgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, 1);
@@ -82,7 +82,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &gfx_fgcolor);
   luaL_dostring(lua, "gfx.fgcolor = _");
 
-  /// gfx.bgcolor([index]): index
+  /// gfx.bgcolor([color]): color
   extern (C) int gfx_bgcolor(lua_State* L) @trusted
   {
     const cindex = lua_tonumber(L, 1);

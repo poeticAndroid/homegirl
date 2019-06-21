@@ -14,7 +14,7 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "audio = {}");
 
-  /// audio.new(): id
+  /// audio.new(): sampl
   extern (C) int audio_new(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
@@ -26,7 +26,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_new);
   luaL_dostring(lua, "audio.new = _");
 
-  /// audio.load(filename): id
+  /// audio.load(filename): sampl
   extern (C) int audio_load(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
@@ -40,7 +40,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_load);
   luaL_dostring(lua, "audio.load = _");
 
-  /// audio.play(channel, smplID)
+  /// audio.play(channel, sampl)
   extern (C) int audio_play(lua_State* L) @trusted
   {
     const channel = lua_tointeger(L, 1);
@@ -113,7 +113,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_channelloop);
   luaL_dostring(lua, "audio.channelloop = _");
 
-  /// audio.sample(smplID, pos[, value]): value
+  /// audio.sample(sampl, pos[, value]): value
   extern (C) int audio_sample(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
@@ -141,7 +141,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_sample);
   luaL_dostring(lua, "audio.sample = _");
 
-  /// audio.samplefreq(smplID[, freq]): freq
+  /// audio.samplefreq(sampl[, freq]): freq
   extern (C) int audio_samplefreq(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
@@ -164,7 +164,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_samplefreq);
   luaL_dostring(lua, "audio.samplefreq = _");
 
-  /// audio.sampleloop(smplID[, start, end]): start, end
+  /// audio.sampleloop(sampl[, start, end]): start, end
   extern (C) int audio_sampleloop(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);
@@ -192,7 +192,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &audio_sampleloop);
   luaL_dostring(lua, "audio.sampleloop = _");
 
-  /// audio.forget(smplID)
+  /// audio.forget(sampl)
   extern (C) int audio_forget(lua_State* L) @trusted
   {
     const smplID = lua_tointeger(L, 1);

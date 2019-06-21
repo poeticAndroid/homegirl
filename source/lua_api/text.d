@@ -5,6 +5,7 @@ import riverd.lua;
 import riverd.lua.types;
 
 import program;
+import pixmap;
 
 /**
   register text functions for a lua program
@@ -14,7 +15,7 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "text = {}");
 
-  /// text.loadfont(filename): id
+  /// text.loadfont(filename): font
   extern (C) int text_loadfont(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
@@ -28,21 +29,30 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &text_loadfont);
   luaL_dostring(lua, "text.loadfont = _");
 
-  /// text.forgetfont(imgID)
-  extern (C) int text_forgetfont(lua_State* L) @trusted
+  /// text.copymode([mode]): mode
+  extern (C) int text_copymode(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, 1);
+    const mode = lua_tointeger(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removeFont(cast(uint) imgId);
-    return 0;
+    if (!prog.activeViewport)
+    {
+      lua_pushstring(L, "No active viewport!");
+      lua_error(L);
+      return 0;
+    }
+    if (set)
+      prog.activeViewport.pixmap.textCopymode = cast(CopyMode) mode;
+    lua_pushinteger(L, prog.activeViewport.pixmap.textCopymode);
+    return 1;
   }
 
-  lua_register(lua, "_", &text_forgetfont);
-  luaL_dostring(lua, "text.forgetfont = _");
+  lua_register(lua, "_", &text_copymode);
+  luaL_dostring(lua, "text.copymode = _");
 
-  /// text.text(text, font, x, y): width
-  extern (C) int text_text(lua_State* L) @trusted
+  /// text.draw(text, font, x, y): width
+  extern (C) int text_draw(lua_State* L) @trusted
   {
     const text = lua_tostring(L, 1);
     const font = lua_tointeger(L, 2);
@@ -55,17 +65,32 @@ void registerFunctions(Program program)
     {
       lua_pushstring(L, "No active viewport!");
       lua_error(L);
+      return 0;
     }
     if (!prog.fonts[cast(uint) font])
     {
       lua_pushstring(L, "Invalid font!");
       lua_error(L);
+      return 0;
     }
     prog.activeViewport.pixmap.text(cast(string) fromStringz(text),
         prog.fonts[cast(uint) font], cast(int) x, cast(int) y);
     return 0;
   }
 
-  lua_register(lua, "_", &text_text);
-  luaL_dostring(lua, "text.text = _");
+  lua_register(lua, "_", &text_draw);
+  luaL_dostring(lua, "text.draw = _");
+
+  /// text.forgetfont(font)
+  extern (C) int text_forgetfont(lua_State* L) @trusted
+  {
+    const imgId = lua_tointeger(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.removeFont(cast(uint) imgId);
+    return 0;
+  }
+
+  lua_register(lua, "_", &text_forgetfont);
+  luaL_dostring(lua, "text.forgetfont = _");
 }
