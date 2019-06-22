@@ -51,6 +51,15 @@ class Machine
   */
   void step()
   {
+    if (SDL_GetTicks() < 1024)
+    {
+      ubyte t = cast(ubyte)((SDL_GetTicks() / 256) * 85);
+      SDL_SetRenderDrawColor(this.ren, t, t, t, 255);
+      SDL_RenderClear(this.ren);
+      SDL_RenderPresent(this.ren);
+      return;
+    }
+
     // track mouse position
     this.trackMouse();
 
@@ -131,7 +140,12 @@ class Machine
     this.drawScreens();
     this.audio.step(SDL_GetTicks());
     if (runningPrograms == 0)
-      this.running = false;
+    {
+      if (SDL_GetTicks() < 4096)
+        this.startProgram("./startup.lua");
+      else
+        this.running = false;
+    }
   }
 
   /**

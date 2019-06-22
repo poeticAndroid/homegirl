@@ -53,7 +53,7 @@ int main(string[] args)
   }
 
   // run machine
-  machine.startProgram("startup.lua");
+  // machine.startProgram("startup.lua");
   while (machine.running)
   {
     machine.step();
