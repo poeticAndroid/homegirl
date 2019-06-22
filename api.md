@@ -44,10 +44,8 @@
     input.cursor([pos]): pos
     input.selected([bytes]): bytes
     input.hotkey(): hotkey
-    input.mousex(): x
-    input.mousey(): y
-    input.mousebtn(): btn
-    input.gamebtn([player]): btn
+    input.mouse(): x, y, btn
+    input.gamepad([player]): btn
 ##  sys
     sys.exit([code])
     sys.exec(filename)

@@ -98,8 +98,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_hotkey);
   luaL_dostring(lua, "input.hotkey = _");
 
-  /// input.mousex(): x
-  extern (C) int input_mousex(lua_State* L) @trusted
+  /// input.mouse(): x, y, btn
+  extern (C) int input_mouse(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -110,50 +110,16 @@ void registerFunctions(Program program)
       return 0;
     }
     lua_pushinteger(L, prog.activeViewport.mouseX);
-    return 1;
-  }
-
-  lua_register(lua, "_", &input_mousex);
-  luaL_dostring(lua, "input.mousex = _");
-
-  /// input.mousey(): y
-  extern (C) int input_mousey(lua_State* L) @trusted
-  {
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
-    {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
-      return 0;
-    }
     lua_pushinteger(L, prog.activeViewport.mouseY);
-    return 1;
-  }
-
-  lua_register(lua, "_", &input_mousey);
-  luaL_dostring(lua, "input.mousey = _");
-
-  /// input.mousebtn(): btn
-  extern (C) int input_mousebtn(lua_State* L) @trusted
-  {
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
-    {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
-      return 0;
-    }
     lua_pushinteger(L, prog.activeViewport.mouseBtn);
-    return 1;
+    return 3;
   }
 
-  lua_register(lua, "_", &input_mousebtn);
-  luaL_dostring(lua, "input.mousebtn = _");
+  lua_register(lua, "_", &input_mouse);
+  luaL_dostring(lua, "input.mouse = _");
 
-  /// input.gamebtn([player]): btn
-  extern (C) int input_gamebtn(lua_State* L) @trusted
+  /// input.gamepad([player]): btn
+  extern (C) int input_gamepad(lua_State* L) @trusted
   {
     const player = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
@@ -168,6 +134,6 @@ void registerFunctions(Program program)
     return 1;
   }
 
-  lua_register(lua, "_", &input_gamebtn);
-  luaL_dostring(lua, "input.gamebtn = _");
+  lua_register(lua, "_", &input_gamepad);
+  luaL_dostring(lua, "input.gamepad = _");
 }

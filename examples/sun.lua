@@ -9,8 +9,7 @@ dy = 0
 c = 0
 
 function _step()
-  mx = input.mousex()
-  my = input.mousey()
+  mx, my = input.mouse()
   y = y - 1
   local c = 0
   while x + y ~= 0 do

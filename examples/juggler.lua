@@ -7,8 +7,8 @@ anim = image.loadanimation("./examples/images/juggler32.gif")
 ding = audio.load("./examples/sounds/juggler.wav")
 frame = 0
 nextFrame = 0
-mx = 0
-my = 0
+_mx = 0
+_my = 0
 
 function _init()
   image.usepalette(anim[1])
@@ -16,6 +16,7 @@ end
 
 function _step(t)
   local left, top = view.position(scrn)
+  local mx, my, mbtn = input.mouse()
   if t - nextFrame > 100 then
     nextFrame = t
   end
@@ -35,12 +36,12 @@ function _step(t)
   end
   gfx.bar(0, 0, 320, 180)
   image.draw(anim[frame], 0, 0, 0, 0, 320, 180)
-  if input.mousebtn() > 0 then
-    gfx.line(mx, my, input.mousex(), input.mousey())
+  if mbtn > 0 then
+    gfx.line(_mx, _my, mx, my)
     image.copy(anim[frame], 0, 0, 0, 0, 320, 180)
   end
-  mx = input.mousex()
-  my = input.mousey()
+  _mx = mx
+  _my = my
   nextFrame = nextFrame + image.imageduration(anim[frame])
   dragscreen(scrn)
 end

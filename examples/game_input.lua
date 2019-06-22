@@ -1,16 +1,16 @@
 dofile("./examples/screendrag.lua")
 players = {
   {
-    x = 32,
-    y = 16
+    x = -8,
+    y = -12
   },
   {
-    x = 8,
-    y = 16
+    x = -32,
+    y = -12
   },
   {
-    x = 56,
-    y = 16
+    x = 16,
+    y = -12
   }
 }
 
@@ -21,13 +21,19 @@ function _init()
   gfx.palette(1, 0, 7, 15)
   gfx.palette(2, 0, 7, 15)
   gfx.palette(3, 0, 7, 15)
+  local w, h = view.size(scrn)
+  for pn = 0, 2, 1 do
+    p = players[1 + pn]
+    p.x = p.x + w / 2
+    p.y = p.y + h / 2
+  end
 end
 
 function _step()
   gfx.cls()
   for pn = 0, 2, 1 do
     p = players[1 + pn]
-    btn = input.gamebtn(pn)
+    btn = input.gamepad(pn)
     if btn & 1 > 0 then
       p.x = p.x + 1
     end
