@@ -1,6 +1,5 @@
 module image_loader;
 
-import std.stdio;
 import std.string;
 import bindbc.freeimage;
 
@@ -30,7 +29,6 @@ Pixmap[] loadAnimation(string filename)
   for (uint i = 0; i < count; i++)
   {
     FIBITMAP* img = FreeImage_LockPage(anim, i);
-    fibitmapToPixmap(img, canvas);
     frames ~= fibitmapToPixmap(img, canvas).clone();
     FreeImage_UnlockPage(anim, img, false);
   }
@@ -45,6 +43,7 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
 {
   const width = FreeImage_GetWidth(img);
   const height = FreeImage_GetHeight(img);
+  ushort color = 1;
   ubyte maxindex;
   ubyte c;
   for (uint y = 0; y < height; y++)
@@ -59,10 +58,9 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
   if (!pixmap)
   {
     ubyte colorBits = 0;
-    c = 1;
-    while (c < maxindex + 1)
+    while (color < maxindex + 1)
     {
-      c *= 2;
+      color *= 2;
       colorBits++;
     }
     pixmap = new Pixmap(width, height, colorBits);
@@ -84,15 +82,15 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
   if (tag)
     dispose = (cast(ubyte*) FreeImage_GetTagValue(tag))[0];
 
-  pixmap.fgColor = cast(ubyte) FreeImage_GetTransparentIndex(img);
+  pixmap.bgColor = cast(ubyte) FreeImage_GetTransparentIndex(img);
   if (dispose == 2)
-    pixmap.bar(0, 0, pixmap.width, pixmap.height);
-  pixmap.bgColor = pixmap.fgColor;
+    pixmap.cls();
 
   RGBQUAD* palette = FreeImage_GetPalette(img);
   if (palette)
-    for (c = 0; c <= maxindex; c++)
-      pixmap.setColor(c, palette[c].rgbRed / 16, palette[c].rgbGreen / 16, palette[c].rgbBlue / 16);
+    for (color = 0; color <= maxindex; color++)
+      pixmap.setColor(color, palette[color].rgbRed / 16,
+          palette[color].rgbGreen / 16, palette[color].rgbBlue / 16);
   for (uint y = 0; y < height; y++)
   {
     for (uint x = 0; x < width; x++)

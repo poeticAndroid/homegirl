@@ -34,8 +34,8 @@ class Pixmap
     for (ubyte i = 0; i < colorBits; i++)
       colors *= 2;
     this.palette.length = colors * 3;
-    for (ubyte i = 0; i < colors; i++)
-      this.setColor(i, i, i, i);
+    for (uint i = 0; i < colors; i++)
+      this.setColor(i, cast(ubyte) i, cast(ubyte) i, cast(ubyte) i);
 
     this.pixels.length = this.width * this.height;
     for (uint i = 0; i < this.pixels.length; i++)

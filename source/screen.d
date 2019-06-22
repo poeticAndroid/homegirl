@@ -30,7 +30,7 @@ class Screen : Viewport
       this.pixmap.destroyTexture();
       if (mode > 15)
         throw new Exception("Unsupported screen mode!");
-      if (colorBits > 5)
+      if (colorBits > 8)
         throw new Exception("Unsupported number of colorBits!");
       this.pixelWidth = 8;
       this.pixelHeight = 8;

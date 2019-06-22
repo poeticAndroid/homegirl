@@ -14,7 +14,7 @@ Specs
 -----
  - **Programming language:** Lua ([See API](./api.md))
  - **Screen resolutions:** 16 combinations of 80, 160, 320 or 640 pixels horizontally and 45, 90, 180 or 360 pixels vertically
- - **Number of colors:** 2, 4, 8, 16 or 32 colors from a palette of 4096 colors
+ - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** 4 8-bit PCM channels in stereo
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** (Local system folder and ability to mount Webservers as drives)*
