@@ -13,7 +13,7 @@ class Pixmap
   uint height; /// height of pixel map
   ubyte colorBits; /// bits per color
   ubyte fgColor = 1; /// index of foreground color
-  ubyte bgColor = 255; /// index of background/transparent color
+  ubyte bgColor = 0; /// index of background/transparent color
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
   uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
@@ -34,6 +34,7 @@ class Pixmap
     for (ubyte i = 0; i < colorBits; i++)
       colors *= 2;
     this.palette.length = colors * 3;
+    this.pixelMask = cast(ubyte)(colors - 1);
     for (uint i = 0; i < colors; i++)
       this.setColor(i, cast(ubyte) i, cast(ubyte) i, cast(ubyte) i);
 
@@ -90,7 +91,7 @@ class Pixmap
   void cls()
   {
     for (uint i = 0; i < this.pixels.length; i++)
-      this.pixels[i] = this.bgColor;
+      this.pixels[i] = this.bgColor & this.pixelMask;
   }
 
   /**
@@ -123,7 +124,7 @@ class Pixmap
     if (x >= this.width || y >= this.height)
       return;
     uint i = y * this.width + x;
-    this.pixels[i] = c;
+    this.pixels[i] = c & this.pixelMask;
   }
 
   /**
@@ -266,6 +267,9 @@ class Pixmap
     pixmap.duration = this.duration;
     return pixmap;
   }
+
+  // --- _privates --- //
+  private ubyte pixelMask;
 
 }
 

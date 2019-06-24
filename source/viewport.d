@@ -32,7 +32,6 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
-    // this.textinput = new TextEditor();
   }
 
   Viewport getParent()
@@ -63,7 +62,7 @@ class Viewport
   */
   Viewport createViewport(int left, int top, uint width, uint height)
   {
-    Viewport vp = new Viewport(this, left, top, width, height, 0);
+    Viewport vp = new Viewport(this, left, top, width, height, this.pixmap.colorBits);
     this.children ~= vp;
     return vp;
   }
@@ -226,6 +225,12 @@ class Viewport
     {
       if (viewport && viewport.visible)
       {
+        if (this.pixmap.colorBits != viewport.pixmap.colorBits)
+        {
+          viewport.pixmap.destroyTexture();
+          viewport.pixmap = new Pixmap(viewport.pixmap.width,
+              viewport.pixmap.height, this.pixmap.colorBits);
+        }
         viewport.render();
         this.pixmap.copyFrom(viewport.pixmap, 0, 0, viewport.left,
             viewport.top, viewport.pixmap.width, viewport.pixmap.height);

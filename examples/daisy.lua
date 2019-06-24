@@ -7,16 +7,16 @@ end
 
 square = audio.new()
 function _init()
-  len = 16
+  len = 8
   while len > 0 do
     len = len - 1
     val = 15
-    if len < 8 then
+    if len < 4 then
       val = -16
     end
     audio.sample(square, len, val)
   end
-  audio.sampleloop(square, 0, 16)
+  audio.sampleloop(square, 0, 8)
   start, endd = audio.sampleloop()
   audio.play(1, square)
   audio.play(2, square)
@@ -44,7 +44,7 @@ function _step(t)
     vol = 63
   end
   pos = pos + 1
-  nexttime = nexttime + 256
+  nexttime = nexttime + 200
 end
 
 song = {

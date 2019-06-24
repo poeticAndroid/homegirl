@@ -10,7 +10,7 @@ import pixmap;
 */
 Pixmap loadImage(string filename)
 {
-  FIBITMAP* img = FreeImage_Load(FIF_GIF, toStringz(filename), GIF_LOAD256);
+  FIBITMAP* img = FreeImage_Load(FIF_GIF, toStringz(filename));
   Pixmap pix = fibitmapToPixmap(img, null);
   FreeImage_Unload(img);
   return pix;
@@ -24,11 +24,11 @@ Pixmap[] loadAnimation(string filename)
   Pixmap[] frames;
   Pixmap canvas = loadImage(filename);
   FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename),
-      false, true, true, GIF_LOAD256);
+      false, true, true);
   const count = FreeImage_GetPageCount(anim);
-  for (uint i = 0; i < count; i++)
+  for (uint i = 0; i < count; i++) 
   {
-    FIBITMAP* img = FreeImage_LockPage(anim, i);
+    FIBITMAP* img = FreeImage_LockPage(anim, i); 
     frames ~= fibitmapToPixmap(img, canvas).clone();
     FreeImage_UnlockPage(anim, img, false);
   }
@@ -46,15 +46,7 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
   ushort color = 1;
   ubyte maxindex;
   ubyte c;
-  for (uint y = 0; y < height; y++)
-  {
-    for (uint x = 0; x < width; x++)
-    {
-      FreeImage_GetPixelIndex(img, x, y, &c);
-      if (c > maxindex)
-        maxindex = c;
-    }
-  }
+  maxindex = cast(ubyte)(FreeImage_GetColorsUsed(img) - 1);
   if (!pixmap)
   {
     ubyte colorBits = 0;

@@ -32,6 +32,7 @@ void registerFunctions(Program program)
   lua_setglobal(lua, "__program");
   luaL_dostring(lua, q"{
     io = NIL
+    file = NIL
     os = NIL
     package = NIL
 
