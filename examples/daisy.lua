@@ -10,9 +10,9 @@ function _init()
   len = 16
   while len > 0 do
     len = len - 1
-    val = 63
+    val = 15
     if len < 8 then
-      val = -64
+      val = -16
     end
     audio.sample(square, len, val)
   end
