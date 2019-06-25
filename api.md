@@ -23,7 +23,7 @@
     gfx.fgcolor([color]): color
     gfx.bgcolor([color]): color
     gfx.pixel(x, y[, color]): color
-    gfx.plot(x, y): color
+    gfx.plot(x, y)
     gfx.bar(x, y, width, height)
     gfx.line(x1, y1, x2, y2)
 ##  image

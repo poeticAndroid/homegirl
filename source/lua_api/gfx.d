@@ -74,7 +74,7 @@ void registerFunctions(Program program)
       return 0;
     }
     if (set)
-      prog.activeViewport.pixmap.fgColor = cast(ubyte) cindex;
+      prog.activeViewport.pixmap.setFGColor(cast(ubyte) cindex);
     lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
     return 1;
   }
@@ -96,7 +96,7 @@ void registerFunctions(Program program)
       return 0;
     }
     if (set)
-      prog.activeViewport.pixmap.bgColor = cast(ubyte) cindex;
+      prog.activeViewport.pixmap.setBGColor(cast(ubyte) cindex);
     lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
     return 1;
   }
@@ -128,7 +128,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &gfx_pixel);
   luaL_dostring(lua, "gfx.pixel = _");
 
-  /// gfx.plot(x, y): color
+  /// gfx.plot(x, y)
   extern (C) int gfx_plot(lua_State* L) @trusted
   {
     const x = lua_tonumber(L, 1);
@@ -142,8 +142,7 @@ void registerFunctions(Program program)
       lua_error(L);
     }
     prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
-    lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
-    return 1;
+    return 0;
   }
 
   lua_register(lua, "_", &gfx_plot);

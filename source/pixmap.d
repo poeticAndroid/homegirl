@@ -106,6 +106,22 @@ class Pixmap
   }
 
   /**
+    set the current foreground color
+  */
+  void setFGColor(ubyte index)
+  {
+    this.fgColor = index & this.pixelMask;
+  }
+
+  /**
+    set the current background color
+  */
+  void setBGColor(ubyte index)
+  {
+    this.bgColor = index & this.pixelMask;
+  }
+
+  /**
     get color of specific pixel
   */
   ubyte pget(uint x, uint y)

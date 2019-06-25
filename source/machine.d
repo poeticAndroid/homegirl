@@ -172,7 +172,6 @@ class Machine
   {
     Program program = new Program(this, filename);
     this.programs ~= program;
-    this.audio.sync();
     return program;
   }
 
