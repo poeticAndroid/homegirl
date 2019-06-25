@@ -14,6 +14,8 @@ import program;
 import texteditor;
 import soundchip;
 
+const VERSION = "0.1.1";
+
 /**
   Class representing "the machine"!
 */
@@ -51,15 +53,6 @@ class Machine
   */
   void step()
   {
-    if (SDL_GetTicks() < 1024)
-    {
-      ubyte t = cast(ubyte)((SDL_GetTicks() / 256) * 85);
-      SDL_SetRenderDrawColor(this.ren, t, t, t, 255);
-      SDL_RenderClear(this.ren);
-      SDL_RenderPresent(this.ren);
-      return;
-    }
-
     // track mouse position
     this.trackMouse();
 
@@ -141,10 +134,21 @@ class Machine
     this.audio.step(SDL_GetTicks());
     if (runningPrograms == 0)
     {
-      if (SDL_GetTicks() < 1280)
+      if (this.bootup > 48)
+        SDL_SetRenderDrawColor(this.ren, 0, 0, 0, 255);
+      else if (this.bootup > 32)
+        SDL_SetRenderDrawColor(this.ren, 85, 85, 85, 255);
+      else if (this.bootup > 16)
+        SDL_SetRenderDrawColor(this.ren, 170, 170, 170, 255);
+      else if (this.bootup > 0)
+        SDL_SetRenderDrawColor(this.ren, 255, 255, 255, 255);
+      else if (this.bootup == 0)
         this.startProgram("./startup.lua");
       else
         this.running = false;
+      SDL_RenderClear(this.ren);
+      SDL_RenderPresent(this.ren);
+      this.bootup--;
     }
   }
 
@@ -287,11 +291,12 @@ class Machine
   private auto rect2 = new SDL_Rect();
   private uint lastmb = 0;
   private uint scale;
+  private int bootup = 64;
 
   private void init_window()
   {
     // Create a window
-    this.win = SDL_CreateWindow("Homegirl", SDL_WINDOWPOS_UNDEFINED,
+    this.win = SDL_CreateWindow(toStringz("Homegirl " ~ VERSION), SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED, 640 + 48, 360 + 48, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (win == null)
     {

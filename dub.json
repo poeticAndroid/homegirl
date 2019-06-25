@@ -1,4 +1,7 @@
 {
+	"name": "homegirl",
+	"version": "0.1.1",
+	"description": "A fantasy console inspired by the Amiga.",
 	"authors": [
 		"poeticAndroid"
 	],
@@ -8,9 +11,7 @@
 		"bindbc-sdl": "~>0.10.0",
 		"riverd-loader": "~>1.0.2"
 	},
-	"description": "A fantasy console.",
 	"license": "MIT",
-	"name": "homegirl",
 	"subConfigurations": {
 		"riverd-lua": "dynamic"
 	},
