@@ -1,4 +1,4 @@
-screendrag = require("./examples/screendrag")
+screendrag = require("./screendrag")
 players = {
   {
     x = -8,
@@ -15,7 +15,7 @@ players = {
 }
 
 function _init()
-  font = text.loadfont("./examples/fonts/Victoria.8b.gif")
+  font = text.loadfont("./fonts/Victoria.8b.gif")
   scrn = view.newscreen(5, 2)
   gfx.bgcolor(0)
   gfx.palette(1, 0, 7, 15)

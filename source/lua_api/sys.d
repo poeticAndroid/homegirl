@@ -33,7 +33,7 @@ void registerFunctions(Program program)
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.startProgram(cast(string) fromStringz(filename));
+    prog.machine.startProgram(prog.actualFile(cast(string) fromStringz(filename)));
     return 0;
   }
 

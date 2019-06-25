@@ -38,7 +38,7 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    lua_pushinteger(L, prog.loadPixmap(cast(string) filename));
+    lua_pushinteger(L, prog.loadPixmap(prog.actualFile(cast(string) filename)));
     return 1;
   }
 
@@ -51,7 +51,7 @@ void registerFunctions(Program program)
     auto filename = fromStringz(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    uint[] anim = prog.loadAnimation(cast(string) filename);
+    uint[] anim = prog.loadAnimation(prog.actualFile(cast(string) filename));
     lua_createtable(L, cast(uint) anim.length, 0);
     for (uint i = 0; i < anim.length; i++)
     {

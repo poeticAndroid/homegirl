@@ -33,7 +33,7 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    lua_pushinteger(L, prog.loadSample(cast(string) filename));
+    lua_pushinteger(L, prog.loadSample(prog.actualFile(cast(string) filename)));
     return 1;
   }
 

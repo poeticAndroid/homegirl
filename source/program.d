@@ -25,6 +25,7 @@ class Program
   bool running = true; /// is the program running?
   int exitcode = 0; /// exit code
   string filename; /// filename of the Lua script currently running
+  string cwd; /// current working directory
   Machine machine; /// the machine that this program runs on
   lua_State* lua; /// Lua state
 
@@ -42,6 +43,7 @@ class Program
   this(Machine machine, string filename, string[] args = [])
   {
     this.filename = filename;
+    this.cwd = dirName(this.filename);
     this.machine = machine;
     this.viewports ~= null;
 
@@ -96,6 +98,22 @@ class Program
       while (i)
         this.removeSample(cast(uint)--i);
     }
+  }
+
+  /**
+    resolve console path relative to current working directory
+  */
+  string resolve(string path)
+  {
+    return buildNormalizedPath(this.cwd, path);
+  }
+
+  /**
+    resolve console path to actual file
+  */
+  string actualFile(string path)
+  {
+    return absolutePath(this.resolve(path));
   }
 
   /**

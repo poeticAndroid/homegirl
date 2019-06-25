@@ -12,7 +12,6 @@ function _init()
   end
   audio.sampleloop(square, 0, 32)
   start, endd = audio.sampleloop()
-  print("loop " .. start .. " " .. endd)
   audio.samplefreq(square, 44000)
   audio.play(0, square)
   audio.play(3, square)

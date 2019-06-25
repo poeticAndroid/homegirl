@@ -1,4 +1,4 @@
-screendrag = require("./examples/screendrag")
+screendrag = require("./screendrag")
 
 scrn = view.newscreen(15, 5)
 

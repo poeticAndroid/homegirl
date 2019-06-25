@@ -60,7 +60,9 @@ void registerFunctions(Program program)
   extern (C) int dofile(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
-    luaL_dofile(L, filename);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, 1);
+    luaL_dofile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
     return 1;
   }
 
@@ -70,7 +72,9 @@ void registerFunctions(Program program)
   extern (C) int loadfile(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
-    luaL_loadfile(L, filename);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, 1);
+    luaL_loadfile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
     return 1;
   }
 
@@ -92,15 +96,18 @@ void registerFunctions(Program program)
   extern (C) int require(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    auto path = toStringz(prog.actualFile(cast(string) fromStringz(filename)));
     lua_getglobal(L, "package");
     lua_getfield(L, -1, "loaded");
-    lua_getfield(L, -1, filename);
+    lua_getfield(L, -1, path);
     if (lua_isnoneornil(L, -1))
     {
       lua_pop(L, 1);
-      luaL_dofile(L, toStringz(fromStringz(filename) ~ ".lua"));
-      lua_setfield(L, -2, filename);
-      lua_getfield(L, -1, filename);
+      luaL_dofile(L, toStringz(fromStringz(path) ~ ".lua"));
+      lua_setfield(L, -2, path);
+      lua_getfield(L, -1, path);
     }
     return 1;
   }

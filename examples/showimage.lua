@@ -1,9 +1,9 @@
-screendrag = require("./examples/screendrag")
+screendrag = require("./screendrag")
 
 scrn = view.newscreen(10, 5)
-pointer = image.load("./examples/images/pointer.gif")
+pointer = image.load("./images/pointer.gif")
 
-img = image.load("./examples/images/Pharao.gif")
+img = image.load("./images/Pharao.gif")
 width = image.imagewidth(img)
 height = image.imageheight(img)
 image.usepalette(img)
