@@ -1,9 +1,9 @@
 # Lua API overview
-##  _
-    dofile(filename) -- not yet implemented
-    loadfile(filename) -- not yet implemented
+##  _basic_
+    dofile(filename): result
+    loadfile(filename): function
     print(message)
-    require(filename) -- not yet implemented
+    require(filename): module
 ##  audio
     audio.new(): sampl
     audio.load(filename): sampl

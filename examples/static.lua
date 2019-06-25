@@ -1,4 +1,4 @@
-dofile("./examples/screendrag.lua")
+screendrag = require("./examples/screendrag")
 
 scrn = view.newscreen(15, 5)
 
@@ -9,5 +9,5 @@ function _step(t)
       gfx.plot(x, y)
     end
   end
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end

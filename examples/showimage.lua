@@ -1,4 +1,4 @@
-dofile("./examples/screendrag.lua")
+screendrag = require("./examples/screendrag")
 
 scrn = view.newscreen(10, 5)
 pointer = image.load("./examples/images/pointer.gif")
@@ -21,5 +21,5 @@ function _step()
     x = -100
     y = -170
   end
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end

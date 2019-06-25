@@ -1,20 +1,27 @@
-_screendragstate = 0
+local screendrag = {
+  state = 0
+}
 
-function dragscreen(scrn)
+local gfx = NIL
+local image = NIL
+
+function screendrag.step(scrn)
   local x, y, btn = input.mouse()
   if btn == 0 then
-    _screendragstate = 0
+    screendrag.state = 0
   end
-  if _screendragstate == 0 then
+  if screendrag.state == 0 then
     if btn == 1 then
       if y > 10 then
-        _screendragstate = -1
+        screendrag.state = -1
       else
-        _screendragstate = 1
+        screendrag.state = 1
       end
     end
-  elseif _screendragstate > 0 then
+  elseif screendrag.state > 0 then
     local left, top = view.position(scrn)
     view.position(scrn, 0, top + y)
   end
 end
+
+return screendrag

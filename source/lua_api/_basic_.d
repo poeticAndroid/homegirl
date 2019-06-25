@@ -1,4 +1,4 @@
-module lua_api._;
+module lua_api._basic_;
 
 import std.stdio;
 import std.string;
@@ -34,7 +34,7 @@ void registerFunctions(Program program)
     io = NIL
     file = NIL
     os = NIL
-    package = NIL
+    package = { loaded = {} }
 
     function _init()
     end
@@ -56,22 +56,22 @@ void registerFunctions(Program program)
 
   lua_atpanic(lua, &panic);
 
-  /// dofile(filename) -- not yet implemented
+  /// dofile(filename): result
   extern (C) int dofile(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
-    writeln("dofile not yet implemented!");
-    return 0;
+    luaL_dofile(L, filename);
+    return 1;
   }
 
-  // lua_register(lua, "dofile", &dofile);
+  lua_register(lua, "dofile", &dofile);
 
-  /// loadfile(filename) -- not yet implemented
+  /// loadfile(filename): function
   extern (C) int loadfile(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
-    writeln("loadfile not yet implemented!");
-    return 0;
+    luaL_loadfile(L, filename);
+    return 1;
   }
 
   lua_register(lua, "loadfile", &loadfile);
@@ -88,12 +88,21 @@ void registerFunctions(Program program)
 
   lua_register(lua, "print", &print);
 
-  /// require(filename) -- not yet implemented
+  /// require(filename): module
   extern (C) int require(lua_State* L) @trusted
   {
     const filename = lua_tostring(L, 1);
-    writeln("require not yet implemented!");
-    return 0;
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "loaded");
+    lua_getfield(L, -1, filename);
+    if (lua_isnoneornil(L, -1))
+    {
+      lua_pop(L, 1);
+      luaL_dofile(L, toStringz(fromStringz(filename) ~ ".lua"));
+      lua_setfield(L, -2, filename);
+      lua_getfield(L, -1, filename);
+    }
+    return 1;
   }
 
   lua_register(lua, "require", &require);

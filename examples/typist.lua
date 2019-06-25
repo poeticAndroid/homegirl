@@ -1,4 +1,4 @@
-dofile("./examples/screendrag.lua")
+screendrag = require("./examples/screendrag")
 
 scrn = view.newscreen(11, 2)
 
@@ -54,5 +54,5 @@ function _step(t)
   text.draw(string.sub(txt, 0, pos + 1), font, 0, 0)
   gfx.fgcolor(1)
   text.draw(string.sub(txt, 0, pos), font, 0, 0)
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end

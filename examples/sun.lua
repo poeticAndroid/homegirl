@@ -1,4 +1,4 @@
-dofile("./examples/screendrag.lua")
+screendrag = require("./examples/screendrag")
 
 scrn = view.newscreen(10, 4)
 
@@ -40,7 +40,7 @@ function _step()
     end
   end
   _cycle()
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end
 
 function _cycle()

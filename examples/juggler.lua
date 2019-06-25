@@ -1,5 +1,4 @@
-dofile("./examples/screendrag.lua")
-
+screendrag = require("./examples/screendrag")
 scrn = view.newscreen(10, 5)
 
 font = text.loadfont("./examples/fonts/Victoria.8b.gif")
@@ -43,5 +42,5 @@ function _step(t)
   _mx = mx
   _my = my
   nextFrame = nextFrame + image.imageduration(anim[frame])
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end

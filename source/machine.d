@@ -141,7 +141,7 @@ class Machine
     this.audio.step(SDL_GetTicks());
     if (runningPrograms == 0)
     {
-      if (SDL_GetTicks() < 4096)
+      if (SDL_GetTicks() < 1280)
         this.startProgram("./startup.lua");
       else
         this.running = false;

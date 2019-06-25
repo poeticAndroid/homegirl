@@ -1,4 +1,4 @@
-dofile("./examples/screendrag.lua")
+screendrag = require("./examples/screendrag")
 players = {
   {
     x = -8,
@@ -67,5 +67,5 @@ function _step()
       text.draw("Y", font, p.x + 8, p.y + 8)
     end
   end
-  dragscreen(scrn)
+  screendrag.step(scrn)
 end
