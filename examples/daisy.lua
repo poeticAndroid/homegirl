@@ -27,11 +27,6 @@ pos = 0
 nexttime = 0
 function _step(t)
   if nexttime > t then
-    audio.channelvolume(1, vol)
-    audio.channelvolume(2, vol)
-    if vol > 0 then
-      vol = vol - 1
-    end
     return
   end
   if pos == 0 then
@@ -42,6 +37,11 @@ function _step(t)
   audio.channelfreq(2, tone2freq(song[pos]))
   if song[pos] ~= song[pos - 1] then
     vol = 63
+  end
+  audio.channelvolume(1, vol)
+  audio.channelvolume(2, vol)
+  if vol > 0 then
+    vol = vol - 10
   end
   pos = pos + 1
   nexttime = nexttime + 200

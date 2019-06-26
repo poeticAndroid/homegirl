@@ -190,7 +190,8 @@ class SoundChip
     this.spec.freq = 48_000;
     this.spec.format = AUDIO_F32SYS;
     this.spec.channels = 2;
-    this.dev = SDL_OpenAudioDevice(null, 0, this.spec, null, 0);
+    this.dev = SDL_OpenAudioDevice(null, 0, this.spec, this.spec,
+        SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
   }
 
   private void resizeBuffer(uint samples)

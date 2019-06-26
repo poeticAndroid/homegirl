@@ -1,5 +1,6 @@
 module sample;
 
+import std.stdio;
 import std.string;
 import core.stdc.stdlib;
 import bindbc.sdl;
@@ -43,7 +44,7 @@ class Sample
     for (uint i = 0; i < wav_len; i++)
       this.cvt.buf[i] = wav_buffer[i];
     SDL_ConvertAudio(this.cvt);
-    this.data.length = cast(uint)(this.cvt.len * this.cvt.len_ratio);
+    this.data.length = cast(uint)(this.cvt.len_cvt);
     for (uint i = 0; i < this.data.length; i++)
       this.data[i] = this.cvt.buf[i];
 
