@@ -130,26 +130,43 @@ class Machine
       }
     }
 
-    this.drawScreens();
-    this.audio.step(SDL_GetTicks());
     if (runningPrograms == 0)
     {
-      if (this.bootup > 48)
+      if (!this.nextBootup)
+      {
+        this.nextBootup = SDL_GetTicks() + 512;
+        this.bootupState = 1;
+      }
+      switch (this.bootupState)
+      {
+      case 1:
         SDL_SetRenderDrawColor(this.ren, 0, 0, 0, 255);
-      else if (this.bootup > 32)
+        break;
+      case 2:
         SDL_SetRenderDrawColor(this.ren, 85, 85, 85, 255);
-      else if (this.bootup > 16)
+        break;
+      case 3:
         SDL_SetRenderDrawColor(this.ren, 170, 170, 170, 255);
-      else if (this.bootup > 0)
+        break;
+      case 4:
         SDL_SetRenderDrawColor(this.ren, 255, 255, 255, 255);
-      else if (this.bootup == 0)
+        break;
+      case 5:
         this.startProgram("./startup.lua");
-      else
+        this.bootupState = 0;
+        break;
+      default:
         this.running = false;
+      }
       SDL_RenderClear(this.ren);
-      SDL_RenderPresent(this.ren);
-      this.bootup--;
+      if (this.bootupState && SDL_GetTicks() > this.nextBootup)
+      {
+        this.bootupState++;
+        this.nextBootup += 256;
+      }
     }
+    this.audio.step(SDL_GetTicks());
+    this.drawScreens();
   }
 
   /**
@@ -291,7 +308,8 @@ class Machine
   private auto rect2 = new SDL_Rect();
   private uint lastmb = 0;
   private uint scale;
-  private int bootup = 64;
+  private uint bootupState = 5;
+  private uint nextBootup;
 
   private void init_window()
   {
