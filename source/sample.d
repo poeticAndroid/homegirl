@@ -44,7 +44,7 @@ class Sample
     for (uint i = 0; i < wav_len; i++)
       this.cvt.buf[i] = wav_buffer[i];
     SDL_ConvertAudio(this.cvt);
-    this.data.length = cast(uint)(this.cvt.len_cvt);
+    this.data.length = this.cvt.len_cvt;
     for (uint i = 0; i < this.data.length; i++)
       this.data[i] = this.cvt.buf[i];
 
