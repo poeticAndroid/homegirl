@@ -1,6 +1,5 @@
 module machine;
 
-import std.stdio;
 import std.string;
 import std.format;
 import std.math;
@@ -162,7 +161,7 @@ class Machine
       if (this.bootupState && SDL_GetTicks() > this.nextBootup)
       {
         this.bootupState++;
-        this.nextBootup += 256;
+        this.nextBootup += 512;
       }
     }
     this.audio.step(SDL_GetTicks());

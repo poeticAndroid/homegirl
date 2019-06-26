@@ -1,6 +1,5 @@
 module sample;
 
-import std.stdio;
 import std.string;
 import core.stdc.stdlib;
 import bindbc.sdl;

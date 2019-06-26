@@ -39,10 +39,7 @@ int main(string[] args)
         SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
             cast(int) config["window"].object["height"].integer,);
       if ("maximized" in config["window"] && config["window"].object["maximized"].boolean)
-      {
-        writeln("maximizing!");
         SDL_MaximizeWindow(machine.win);
-      }
       if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
         machine.toggleFullscren();
     }
@@ -89,6 +86,6 @@ int main(string[] args)
 
   //shutdown machine
   machine.shutdown();
-  writeln("THE END!");
+  writeln("You Homegirl computer is now powered off.");
   return 0;
 }
