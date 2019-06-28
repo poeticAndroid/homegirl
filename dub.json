@@ -20,6 +20,9 @@
 	],
 	"buildTypes": {
 		"release": {
+			"platforms": [
+				"windows"
+			],
 			"lflags": [
 				"/SUBSYSTEM:WINDOWS"
 			]
