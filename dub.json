@@ -17,5 +17,12 @@
 	"versions": [
 		"SDL_208",
 		"FI_318"
-	]
+	],
+	"buildTypes": {
+		"release": {
+			"lflags": [
+				"/SUBSYSTEM:WINDOWS"
+			]
+		}
+	}
 }
