@@ -5,6 +5,8 @@ import std.format;
 import std.math;
 import std.algorithm.searching;
 import std.algorithm.mutation;
+import std.path;
+import std.file;
 import bindbc.sdl;
 
 import viewport;
@@ -13,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.2";
+const VERSION = "0.1.3";
 
 /**
   Class representing "the machine"!
@@ -31,6 +33,7 @@ class Machine
   bool hasGamepad = false; /// has a gamepad been used?
   uint cursorBlank = 0; /// when to hide the cursor if idle
   SoundChip audio; /// audio output
+  string[string] drives; /// a table of all the console drives and their corresponding host folder
 
   /**
     Create a new machine
@@ -151,7 +154,7 @@ class Machine
         SDL_SetRenderDrawColor(this.ren, 255, 255, 255, 255);
         break;
       case 5:
-        this.startProgram("./startup.lua");
+        this.startProgram("sys:startup.lua");
         this.bootupState = 0;
         break;
       default:
@@ -299,6 +302,43 @@ class Machine
     this.bindGameBtn(1, SDL_SCANCODE_BACKSPACE, GameBtns.x);
     this.bindGameBtn(1, SDL_SCANCODE_K, GameBtns.y);
     this.bindGameBtn(1, SDL_SCANCODE_SPACE, GameBtns.b);
+  }
+
+  /**
+    mount a drive
+  */
+  void mountDrive(string name, string path)
+  {
+    name = toLower(name);
+    if (this.drives.get(name, null))
+      throw new Throwable("Drive '" ~ name ~ "' already mounted!");
+    this.drives[name] = buildNormalizedPath(getcwd(), path) ~ "/";
+  }
+
+  /**
+    resolve console path to host path
+  */
+  string actualPath(string consolePath)
+  {
+    string drive = this.getDrive(consolePath, "");
+    if (!drive)
+      throw new Throwable("Invalid console path!");
+    if (!this.drives.get(drive, null))
+      throw new Throwable("No such drive!");
+    string path = consolePath[drive.length + 1 .. consolePath.length];
+    return buildNormalizedPath(this.drives[drive], path);
+  }
+
+  /**
+    get drive name of path
+  */
+  string getDrive(string path, string end = ":")
+  {
+    int i = countUntil(path, ":");
+    if (i <= 0)
+      return null;
+    else
+      return toLower(path[0 .. i]) ~ end;
   }
 
   // === _privates === //

@@ -24,5 +24,8 @@
 				"/SUBSYSTEM:WINDOWS"
 			]
 		}
-	}
+	},
+	"preBuildCommands": [
+		"sh build_api_doc.sh"
+	]
 }

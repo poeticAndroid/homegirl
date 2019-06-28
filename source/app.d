@@ -9,6 +9,7 @@ import program;
 
 int main(string[] args)
 {
+  writeln("Powering on...");
   Machine machine;
   JSONValue config;
   const ret = loadFreeImage();
@@ -48,6 +49,8 @@ int main(string[] args)
   {
     writeln("no config!");
   }
+
+  machine.mountDrive("sys", "./system_drive/");
 
   // run machine
   // machine.startProgram("startup.lua");

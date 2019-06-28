@@ -52,7 +52,7 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = readText(this.filename);
+    string luacode = readText(this.actualFile(this.filename));
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length,
         toStringz(baseName(this.filename))))
       this.croak();
@@ -101,19 +101,31 @@ class Program
   }
 
   /**
-    resolve console path relative to current working directory
+    resolve relative path to console path
   */
   string resolve(string path)
   {
-    return buildNormalizedPath(this.cwd, path);
+    string drive = this.machine.getDrive(path);
+    if (drive)
+      path = buildNormalizedPath(path[drive.length .. path.length]);
+    else
+    {
+      drive = this.machine.getDrive(this.cwd);
+      path = buildNormalizedPath(this.cwd[drive.length .. this.cwd.length], path);
+    }
+    path = replace(path, "\\", "/");
+    while (path[0 .. 1] == "/")
+      path = path[1 .. path.length];
+    return drive ~ path;
   }
 
   /**
-    resolve console path to actual file
+    resolve relative path to host path
   */
   string actualFile(string path)
   {
-    return absolutePath(this.resolve(path));
+    string str = this.machine.actualPath(this.resolve(path));
+    return str;
   }
 
   /**
