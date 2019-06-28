@@ -33,8 +33,17 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    lua_pushinteger(L, prog.loadSample(prog.actualFile(cast(string) filename)));
-    return 1;
+    try
+    {
+      lua_pushinteger(L, prog.loadSample(prog.actualFile(cast(string) filename)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &audio_load);
@@ -47,14 +56,19 @@ void registerFunctions(Program program)
     const smplID = lua_tointeger(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    try
     {
-      lua_pushstring(L, "Invalid sample!");
+      if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+        throw new Throwable("Invalid sample!");
+      prog.machine.audio.play(cast(uint) channel, prog.samples[cast(uint) smplID]);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    prog.machine.audio.play(cast(uint) channel, prog.samples[cast(uint) smplID]);
-    return 0;
   }
 
   lua_register(lua, "_", &audio_play);
@@ -122,20 +136,25 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    try
     {
-      lua_pushstring(L, "Invalid sample!");
+      if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+        throw new Throwable("Invalid sample!");
+      if (set)
+      {
+        if (prog.samples[cast(uint) smplID].data.length <= pos)
+          prog.samples[cast(uint) smplID].data.length = cast(uint) pos + 1;
+        prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
+      }
+      lua_pushinteger(L, prog.samples[cast(uint) smplID].data[cast(uint) pos]);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-    {
-      if (prog.samples[cast(uint) smplID].data.length <= pos)
-        prog.samples[cast(uint) smplID].data.length = cast(uint) pos + 1;
-      prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
-    }
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].data[cast(uint) pos]);
-    return 1;
   }
 
   lua_register(lua, "_", &audio_sample);
@@ -149,16 +168,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    try
     {
-      lua_pushstring(L, "Invalid sample!");
+      if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+        throw new Throwable("Invalid sample!");
+      if (set)
+        prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
+      lua_pushinteger(L, prog.samples[cast(uint) smplID].freq);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].freq);
-    return 1;
   }
 
   lua_register(lua, "_", &audio_samplefreq);
@@ -173,20 +197,25 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+    try
     {
-      lua_pushstring(L, "Invalid sample!");
+      if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+        throw new Throwable("Invalid sample!");
+      if (set)
+      {
+        prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
+        prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
+      }
+      lua_pushinteger(L, prog.samples[cast(uint) smplID].loopStart);
+      lua_pushinteger(L, prog.samples[cast(uint) smplID].loopEnd);
+      return 2;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-    {
-      prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
-      prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
-    }
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopStart);
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopEnd);
-    return 2;
   }
 
   lua_register(lua, "_", &audio_sampleloop);

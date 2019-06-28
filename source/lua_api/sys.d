@@ -33,8 +33,17 @@ void registerFunctions(Program program)
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.machine.startProgram(prog.resolve(cast(string) fromStringz(filename)));
-    return 0;
+    try
+    {
+      prog.machine.startProgram(prog.resolve(cast(string) fromStringz(filename)));
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &sys_exec);

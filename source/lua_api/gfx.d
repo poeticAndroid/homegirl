@@ -19,14 +19,19 @@ void registerFunctions(Program program)
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      prog.activeViewport.pixmap.cls();
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    prog.activeViewport.pixmap.cls();
-    return 0;
   }
 
   lua_register(lua, "_", &gfx_cls);
@@ -42,19 +47,25 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r,
+            cast(ubyte) g, cast(ubyte) b);
+      uint i = cast(uint)((c * 3) % prog.activeViewport.pixmap.palette.length);
+      lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+      lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+      lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+      return 3;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
-    uint i = cast(uint)((c * 3) % prog.activeViewport.pixmap.palette.length);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
-    return 3;
   }
 
   lua_register(lua, "_", &gfx_palette);
@@ -67,16 +78,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.pixmap.setFGColor(cast(ubyte) cindex);
+      lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.pixmap.setFGColor(cast(ubyte) cindex);
-    lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
-    return 1;
   }
 
   lua_register(lua, "_", &gfx_fgcolor);
@@ -89,16 +105,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.pixmap.setBGColor(cast(ubyte) cindex);
+      lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.pixmap.setBGColor(cast(ubyte) cindex);
-    lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
-    return 1;
   }
 
   lua_register(lua, "_", &gfx_bgcolor);
@@ -114,15 +135,21 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.pixmap.pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
+      lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
+      return 1;
     }
-    if (set)
-      prog.activeViewport.pixmap.pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
-    lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
-    return 1;
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &gfx_pixel);
@@ -136,13 +163,19 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
+      return 0;
     }
-    prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
-    return 0;
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &gfx_plot);
@@ -158,13 +191,19 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      prog.activeViewport.pixmap.bar(cast(int) x, cast(int) y, cast(uint) width, cast(uint) height);
+      return 0;
     }
-    prog.activeViewport.pixmap.bar(cast(int) x, cast(int) y, cast(uint) width, cast(uint) height);
-    return 0;
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &gfx_bar);
@@ -180,13 +219,19 @@ void registerFunctions(Program program)
     //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
-      lua_error(L);
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      prog.activeViewport.pixmap.line(cast(int) x1, cast(int) y1, cast(int) x2, cast(int) y2);
+      return 0;
     }
-    prog.activeViewport.pixmap.line(cast(int) x1, cast(int) y1, cast(int) x2, cast(int) y2);
-    return 0;
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &gfx_line);

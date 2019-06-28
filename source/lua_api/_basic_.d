@@ -62,8 +62,17 @@ void registerFunctions(Program program)
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, 1);
-    luaL_dofile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
-    return 1;
+    try
+    {
+      luaL_dofile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "dofile", &dofile);
@@ -74,8 +83,17 @@ void registerFunctions(Program program)
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, 1);
-    luaL_loadfile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
-    return 1;
+    try
+    {
+      luaL_loadfile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "loadfile", &loadfile);
@@ -98,18 +116,27 @@ void registerFunctions(Program program)
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto path = toStringz(prog.actualFile(cast(string) fromStringz(filename)));
-    lua_getglobal(L, "package");
-    lua_getfield(L, -1, "loaded");
-    lua_getfield(L, -1, path);
-    if (lua_isnoneornil(L, -1))
+    try
     {
-      lua_pop(L, 1);
-      luaL_dofile(L, toStringz(fromStringz(path) ~ ".lua"));
-      lua_setfield(L, -2, path);
+      auto path = toStringz(prog.actualFile(cast(string) fromStringz(filename)));
+      lua_getglobal(L, "package");
+      lua_getfield(L, -1, "loaded");
       lua_getfield(L, -1, path);
+      if (lua_isnoneornil(L, -1))
+      {
+        lua_pop(L, 1);
+        luaL_dofile(L, toStringz(fromStringz(path) ~ ".lua"));
+        lua_setfield(L, -2, path);
+        lua_getfield(L, -1, path);
+      }
+      return 1;
     }
-    return 1;
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "require", &require);

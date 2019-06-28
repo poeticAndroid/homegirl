@@ -21,16 +21,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.getTextinput().setText(cast(string) fromStringz(text));
+      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.getTextinput().setText(cast(string) fromStringz(text));
-    lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
-    return 1;
   }
 
   lua_register(lua, "_", &input_text);
@@ -43,16 +48,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
+      lua_pushinteger(L, prog.activeViewport.getTextinput().posBytes);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
-    lua_pushinteger(L, prog.activeViewport.getTextinput().posBytes);
-    return 1;
   }
 
   lua_register(lua, "_", &input_cursor);
@@ -65,16 +75,21 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) selected);
+      lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) selected);
-    lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
-    return 1;
   }
 
   lua_register(lua, "_", &input_selected);
@@ -85,14 +100,19 @@ void registerFunctions(Program program)
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      lua_pushstring(L, toStringz("" ~ prog.activeViewport.hotkey));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    lua_pushstring(L, toStringz("" ~ prog.activeViewport.hotkey));
-    return 1;
   }
 
   lua_register(lua, "_", &input_hotkey);
@@ -103,16 +123,21 @@ void registerFunctions(Program program)
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      lua_pushinteger(L, prog.activeViewport.mouseX);
+      lua_pushinteger(L, prog.activeViewport.mouseY);
+      lua_pushinteger(L, prog.activeViewport.mouseBtn);
+      return 3;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    lua_pushinteger(L, prog.activeViewport.mouseX);
-    lua_pushinteger(L, prog.activeViewport.mouseY);
-    lua_pushinteger(L, prog.activeViewport.mouseBtn);
-    return 3;
   }
 
   lua_register(lua, "_", &input_mouse);
@@ -124,14 +149,19 @@ void registerFunctions(Program program)
     const player = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (!prog.activeViewport)
+    try
     {
-      lua_pushstring(L, "No active viewport!");
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      lua_pushinteger(L, prog.activeViewport.getGameBtn(cast(ubyte) player));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    lua_pushinteger(L, prog.activeViewport.getGameBtn(cast(ubyte) player));
-    return 1;
   }
 
   lua_register(lua, "_", &input_gamepad);

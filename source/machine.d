@@ -316,6 +316,27 @@ class Machine
   }
 
   /**
+    unmount a drive
+  */
+  void unmountDrive(string name)
+  {
+    name = toLower(name);
+    if (!this.drives.get(name, null))
+      return;
+    uint inUse = 0;
+    for (uint i = 0; i < this.programs.length; i++)
+    {
+      Program program = this.programs[i];
+      if (program && (this.getDrive(program.filename, "") == name
+          || this.getDrive(program.cwd, "") == name))
+        inUse++;
+    }
+    if (inUse)
+      throw new Throwable("Drive '" ~ name ~ "' is in use!");
+    this.drives[name] = null;
+  }
+
+  /**
     resolve console path to host path
   */
   string actualPath(string consolePath)

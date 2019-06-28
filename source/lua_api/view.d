@@ -22,8 +22,17 @@ void registerFunctions(Program program)
     const colorBits = lua_tointeger(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    lua_pushinteger(L, prog.createScreen(cast(ubyte) mode, cast(ubyte) colorBits));
-    return 1;
+    try
+    {
+      lua_pushinteger(L, prog.createScreen(cast(ubyte) mode, cast(ubyte) colorBits));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &view_newscreen);
@@ -37,19 +46,24 @@ void registerFunctions(Program program)
     const colorBits = lua_tointeger(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    Viewport vp = prog.machine.mainScreen;
-    if (screenId > 0)
+    try
     {
-      vp = prog.viewports[cast(uint) screenId];
+      Viewport vp = prog.machine.mainScreen;
+      if (screenId > 0)
+      {
+        vp = prog.viewports[cast(uint) screenId];
+      }
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
+      return 0;
     }
-    if (!vp)
+    catch (Exception err)
     {
-      lua_pushstring(L, "Invalid viewport!");
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
-    return 0;
   }
 
   lua_register(lua, "_", &view_screenmode);
@@ -65,9 +79,18 @@ void registerFunctions(Program program)
     const height = lua_tonumber(L, 5);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
-        cast(int) top, cast(uint) width, cast(uint) height));
-    return 1;
+    try
+    {
+      lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
+          cast(int) top, cast(uint) width, cast(uint) height));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &view_new);
@@ -79,15 +102,20 @@ void registerFunctions(Program program)
     const vpId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto vp = prog.viewports[cast(uint) vpId];
-    if (!vp)
+    try
     {
-      lua_pushstring(L, "Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpId];
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      prog.activeViewport = vp;
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    prog.activeViewport = vp;
-    return 0;
   }
 
   lua_register(lua, "_", &view_activate);
@@ -102,18 +130,23 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto vp = prog.viewports[cast(uint) vpId];
-    if (!vp)
+    try
     {
-      lua_pushstring(L, "Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpId];
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      if (set)
+        vp.move(cast(int) left, cast(int) top);
+      lua_pushinteger(L, vp.left);
+      lua_pushinteger(L, vp.top);
+      return 2;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      vp.move(cast(int) left, cast(int) top);
-    lua_pushinteger(L, vp.left);
-    lua_pushinteger(L, vp.top);
-    return 2;
   }
 
   lua_register(lua, "_", &view_position);
@@ -128,18 +161,23 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto vp = prog.viewports[cast(uint) vpId];
-    if (!vp)
+    try
     {
-      lua_pushstring(L, "Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpId];
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      if (set)
+        vp.resize(cast(uint) width, cast(uint) height);
+      lua_pushinteger(L, vp.pixmap.width);
+      lua_pushinteger(L, vp.pixmap.height);
+      return 2;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      vp.resize(cast(uint) width, cast(uint) height);
-    lua_pushinteger(L, vp.pixmap.width);
-    lua_pushinteger(L, vp.pixmap.height);
-    return 2;
   }
 
   lua_register(lua, "_", &view_size);
@@ -153,17 +191,22 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto vp = prog.viewports[cast(uint) vpId];
-    if (!vp)
+    try
     {
-      lua_pushstring(L, "Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpId];
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      if (set)
+        vp.visible = cast(bool) visible;
+      lua_pushboolean(L, vp.visible);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      vp.visible = cast(bool) visible;
-    lua_pushboolean(L, vp.visible);
-    return 1;
   }
 
   lua_register(lua, "_", &view_visible);
@@ -177,17 +220,22 @@ void registerFunctions(Program program)
     const set = lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    auto vp = prog.viewports[cast(uint) vpId];
-    if (!vp)
+    try
     {
-      lua_pushstring(L, "Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpId];
+      if (!vp)
+        throw new Throwable("Invalid viewport!");
+      if (set)
+        prog.machine.focusViewport(focused ? vp : null);
+      lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
       lua_error(L);
       return 0;
     }
-    if (set)
-      prog.machine.focusViewport(focused ? vp : null);
-    lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
-    return 1;
   }
 
   lua_register(lua, "_", &view_focused);
