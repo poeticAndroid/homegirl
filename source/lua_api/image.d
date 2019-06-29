@@ -21,7 +21,6 @@ void registerFunctions(Program program)
     const width = lua_tonumber(L, 1);
     const height = lua_tonumber(L, 2);
     const colorBits = lua_tointeger(L, 3);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -45,7 +44,6 @@ void registerFunctions(Program program)
   extern (C) int image_load(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

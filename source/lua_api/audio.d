@@ -30,7 +30,6 @@ void registerFunctions(Program program)
   extern (C) int audio_load(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

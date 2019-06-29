@@ -132,7 +132,6 @@ void registerFunctions(Program program)
     const y = lua_tonumber(L, 2);
     const c = lua_tonumber(L, 3);
     const set = 1 - lua_isnoneornil(L, 3);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -160,7 +159,6 @@ void registerFunctions(Program program)
   {
     const x = lua_tonumber(L, 1);
     const y = lua_tonumber(L, 2);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -188,7 +186,6 @@ void registerFunctions(Program program)
     const y = lua_tonumber(L, 2);
     const width = lua_tonumber(L, 3);
     const height = lua_tonumber(L, 4);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -216,7 +213,6 @@ void registerFunctions(Program program)
     const y1 = lua_tonumber(L, 2);
     const x2 = lua_tonumber(L, 3);
     const y2 = lua_tonumber(L, 4);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

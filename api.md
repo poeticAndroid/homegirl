@@ -16,7 +16,12 @@
     audio.sampleloop(sampl[, start, end]): start, end
     audio.forget(sampl)
 ##  fs
-    -- not yet implemented
+    fs.read(filename): string
+    fs.write(filename, string)
+    fs.delete(filename)
+    fs.list(dirname)
+    fs.cd(dirname)
+    fs.mkdir(dirname)
 ##  gfx
     gfx.cls()
     gfx.palette(color[, red, green, blue]): red, green, blue

@@ -19,7 +19,6 @@ void registerFunctions(Program program)
   extern (C) int text_loadfont(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -72,7 +71,6 @@ void registerFunctions(Program program)
     const font = lua_tointeger(L, 2);
     const x = lua_tonumber(L, 3);
     const y = lua_tonumber(L, 4);
-    //Get the pointer
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

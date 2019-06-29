@@ -89,6 +89,6 @@ int main(string[] args)
 
   //shutdown machine
   machine.shutdown();
-  writeln("Your Homegirl computer is now powered off.");
+  writeln("The Homegirl computer is now powered off.");
   return 0;
 }
