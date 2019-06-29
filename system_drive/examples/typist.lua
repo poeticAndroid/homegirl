@@ -12,13 +12,11 @@ function _init()
   gfx.fgcolor(1)
   input.text(fs.read("typist.txt"))
   input.cursor(0)
-  input.selected(3)
 end
 
 function _step(t)
   local txt = input.text()
-  local pos = input.cursor()
-  local sel = input.selected()
+  local pos, sel = input.cursor()
   gfx.cls()
   gfx.fgcolor(1)
   text.draw(txt, font, 0, 0)
@@ -33,9 +31,9 @@ function _step(t)
   text.draw(string.sub(txt, 0, pos + 1), font, 0, 0)
   gfx.fgcolor(1)
   text.draw(string.sub(txt, 0, pos), font, 0, 0)
-  if (pos ~= _pos) then
-    fs.write("typist.txt", txt)
-    _pos = pos
-  end
   screendrag.step(scrn)
+end
+
+function _shutdown()
+  fs.write("typist.txt", input.text())
 end

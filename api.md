@@ -46,8 +46,7 @@
     image.forget(img)
 ##  input
     input.text([text]): text
-    input.cursor([pos]): pos
-    input.selected([bytes]): bytes
+    input.cursor([pos, selected]): pos, selected
     input.hotkey(): hotkey
     input.mouse(): x, y, btn
     input.gamepad([player]): btn

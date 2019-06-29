@@ -41,10 +41,11 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_text);
   luaL_dostring(lua, "input.text = _");
 
-  /// input.cursor([pos]): pos
+  /// input.cursor([pos, selected]): pos, selected
   extern (C) int input_cursor(lua_State* L) @trusted
   {
     const pos = lua_tointeger(L, 1);
+    const sel = lua_tointeger(L, 2);
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -53,9 +54,13 @@ void registerFunctions(Program program)
       if (!prog.activeViewport)
         throw new Throwable("No active viewport!");
       if (set)
+      {
         prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
+        prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) sel);
+      }
       lua_pushinteger(L, prog.activeViewport.getTextinput().posBytes);
-      return 1;
+      lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
+      return 2;
     }
     catch (Exception err)
     {
@@ -67,33 +72,6 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &input_cursor);
   luaL_dostring(lua, "input.cursor = _");
-
-  /// input.selected([bytes]): bytes
-  extern (C) int input_selected(lua_State* L) @trusted
-  {
-    const selected = lua_tointeger(L, 1);
-    const set = 1 - lua_isnoneornil(L, 1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    try
-    {
-      if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      if (set)
-        prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) selected);
-      lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
-      return 1;
-    }
-    catch (Exception err)
-    {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
-    }
-  }
-
-  lua_register(lua, "_", &input_selected);
-  luaL_dostring(lua, "input.selected = _");
 
   /// input.hotkey(): hotkey
   extern (C) int input_hotkey(lua_State* L) @trusted

@@ -14,3 +14,4 @@ homegirl-test-*
 *.obj
 *.lst
 config.json
+system_drive/examples/typist.txt
