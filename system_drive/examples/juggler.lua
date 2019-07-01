@@ -1,15 +1,15 @@
 screendrag = require("./screendrag")
 scrn = view.newscreen(10, 5)
 
-font = text.loadfont("./fonts/Victoria.8b.gif")
-anim = image.loadanimation("./images/juggler32.gif")
-ding = audio.load("./sounds/juggler.wav")
 frame = 0
 nextFrame = 0
 _mx = 0
 _my = 0
 
-function _init()
+function _init(args)
+  font = text.loadfont("./fonts/Victoria.8b.gif")
+  anim = image.loadanimation(args[1])
+  ding = audio.load("./sounds/juggler.wav")
   image.usepalette(anim[1])
 end
 

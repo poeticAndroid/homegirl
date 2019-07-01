@@ -20,7 +20,7 @@
     fs.write(filename, string)
     fs.delete(filename)
     fs.list(dirname)
-    fs.cd(dirname)
+    fs.cd([dirname]): dirname
     fs.mkdir(dirname)
 ##  gfx
     gfx.cls()
@@ -52,7 +52,14 @@
     input.gamepad([player]): btn
 ##  sys
     sys.exit([code])
-    sys.exec(filename)
+    sys.exec(filename[, args[][, cwd]])
+    sys.startchild(filename[, args[]]): child
+    sys.childrunning(child): bool
+    sys.childexitcode(child): int
+    sys.writetochild(child, str)
+    sys.readfromchild(child): str
+    sys.errorfromchild(child): str
+    sys.killchild(child)
 ##  text
     text.loadfont(filename): font
     text.copymode([mode]): mode

@@ -25,9 +25,13 @@ class Program
   bool running = true; /// is the program running?
   int exitcode = 0; /// exit code
   string filename; /// filename of the Lua script currently running
+  string[] args; /// program arguments
   string cwd; /// current working directory
+  string[3] io; /// input/output/error buffers
   Machine machine; /// the machine that this program runs on
   lua_State* lua; /// Lua state
+
+  Program[] children; /// child processes
 
   Viewport[] viewports; /// the viewports accessible by this program
   Viewport activeViewport; /// viewport currently active for graphics operations
@@ -40,10 +44,13 @@ class Program
   /** 
     Initiate a new program!
   */
-  this(Machine machine, string filename, string[] args = [])
+  this(Machine machine, string filename, string[] args = [], string cwd = null)
   {
     this.filename = filename;
-    this.cwd = dirName(this.filename);
+    this.args = args;
+    this.cwd = cwd;
+    if (!this.cwd)
+      this.cwd = dirName(this.filename);
     this.machine = machine;
     this.viewports ~= null;
 
@@ -85,7 +92,10 @@ class Program
     else
     {
       lua_close(this.lua);
-      auto i = this.viewports.length;
+      auto i = this.children.length;
+      while (i)
+        this.removeChild(cast(uint)--i);
+      i = this.viewports.length;
       while (i)
         this.removeViewport(cast(uint)--i);
       i = this.pixmaps.length;
@@ -126,6 +136,53 @@ class Program
   {
     string str = this.machine.actualPath(this.resolve(path));
     return str;
+  }
+
+  /**
+    write to io buffer
+  */
+  void write(uint buf, string data)
+  {
+    this.io[buf] ~= data;
+  }
+
+  /**
+    read from io buffer
+  */
+  string read(uint buf)
+  {
+    string data = this.io[buf];
+    this.io[buf] = "";
+    return data;
+  }
+
+  /**
+    add child program
+  */
+  uint addChild(Program prog)
+  {
+    this.children ~= prog;
+    return cast(uint) this.children.length - 1;
+  }
+
+  /**
+    start child program
+  */
+  uint startChild(string filename, string[] args = [])
+  {
+    return this.addChild(this.machine.startProgram(filename, args, this.cwd));
+  }
+
+  /**
+    remove a child program
+  */
+  void removeChild(uint pid)
+  {
+    if (this.children[pid])
+    {
+      this.children[pid].shutdown(-1);
+      this.children[pid] = null;
+    }
   }
 
   /**
@@ -310,6 +367,15 @@ class Program
     uint args = 0;
     switch (funcname)
     {
+    case "_init":
+      lua_createtable(this.lua, cast(uint) this.args.length, 0);
+      for (uint i = 0; i < this.args.length; i++)
+      {
+        lua_pushstring(this.lua, toStringz(this.args[i]));
+        lua_rawseti(this.lua, -2, i + 1);
+      }
+      args++;
+      break;
     case "_step":
       lua_pushinteger(this.lua, cast(long) timestamp);
       args++;

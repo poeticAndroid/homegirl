@@ -124,19 +124,24 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &fs_list);
   luaL_dostring(lua, "fs.list = _");
 
-  /// fs.cd(dirname)
+  /// fs.cd([dirname]): dirname
   extern (C) int fs_cd(lua_State* L) @trusted
   {
     auto dirname = fromStringz(lua_tostring(L, 1));
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (exists(prog.actualFile(cast(string) dirname)))
-        prog.cwd = prog.resolve(cast(string) dirname);
-      else
-        throw new Throwable("Directory doesn't exist!");
-      return 0;
+      if (set)
+      {
+        if (isDir(prog.actualFile(cast(string) dirname)))
+          prog.cwd = prog.resolve(cast(string) dirname) ~ "/";
+        else
+          throw new Throwable("Directory doesn't exist!");
+      }
+      lua_pushstring(L, toStringz(prog.cwd));
+      return 1;
     }
     catch (Exception err)
     {

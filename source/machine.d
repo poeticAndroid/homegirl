@@ -191,9 +191,9 @@ class Machine
   /**
     start a program
   */
-  Program startProgram(string filename)
+  Program startProgram(string filename, string[] args = [], string cwd = null)
   {
-    Program program = new Program(this, filename);
+    Program program = new Program(this, filename, args, cwd);
     this.programs ~= program;
     return program;
   }
