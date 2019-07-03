@@ -48,7 +48,7 @@ void registerFunctions(Program program)
   extern (C) int panic(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, 1);
+    auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.shutdown(-1);
     writeln("Shit hit the fan!");
     return 0;
@@ -59,12 +59,12 @@ void registerFunctions(Program program)
   /// dofile(filename): result
   extern (C) int dofile(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, 1);
+    const filename = fromStringz(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, 1);
+    auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      luaL_dofile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
+      luaL_dofile(L, toStringz(prog.actualFile(cast(string) filename)));
       return 1;
     }
     catch (Exception err)
@@ -82,7 +82,7 @@ void registerFunctions(Program program)
   {
     const filename = lua_tostring(L, 1);
     lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, 1);
+    auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
       luaL_loadfile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
@@ -101,10 +101,11 @@ void registerFunctions(Program program)
   /// print(message)
   extern (C) int print(lua_State* L) @trusted
   {
-    const msg = lua_tostring(L, 1);
+    const msg = fromStringz(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    writeln(baseName(prog.filename) ~ ": " ~ fromStringz(msg));
+    prog.write(1, cast(string) msg);
+    writeln(baseName(prog.filename) ~ ": " ~ msg);
     return 0;
   }
 

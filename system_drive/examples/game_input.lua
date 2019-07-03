@@ -15,7 +15,7 @@ players = {
 }
 
 function _init()
-  font = text.loadfont("./fonts/Victoria.8b.gif")
+  font = text.loadfont("sys:fonts/Victoria.8b.gif")
   scrn = view.newscreen(5, 2)
   gfx.bgcolor(0)
   gfx.palette(1, 0, 7, 15)

@@ -143,6 +143,8 @@ class Program
   */
   void write(uint buf, string data)
   {
+    if (!this.io[buf])
+      this.io[buf] = "";
     this.io[buf] ~= data;
   }
 

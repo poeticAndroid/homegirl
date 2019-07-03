@@ -63,7 +63,7 @@
 ##  text
     text.loadfont(filename): font
     text.copymode([mode]): mode
-    text.draw(text, font, x, y): width
+    text.draw(text, font, x, y): width, height
     text.forgetfont(font)
 ##  view
     view.newscreen(mode, colorbits): view

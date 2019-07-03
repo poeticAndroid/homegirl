@@ -7,7 +7,7 @@ _mx = 0
 _my = 0
 
 function _init(args)
-  font = text.loadfont("./fonts/Victoria.8b.gif")
+  font = text.loadfont("sys:fonts/Victoria.8b.gif")
   anim = image.loadanimation(args[1])
   ding = audio.load("./sounds/juggler.wav")
   image.usepalette(anim[1])

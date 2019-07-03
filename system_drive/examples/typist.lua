@@ -1,7 +1,7 @@
 screendrag = require("./screendrag")
 
 scrn = view.newscreen(11, 2)
-font = text.loadfont("./fonts/Victoria.8b.gif")
+font = text.loadfont("sys:fonts/Victoria.8b.gif")
 
 function _init()
   gfx.palette(0, 0, 5, 10)

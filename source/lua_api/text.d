@@ -64,7 +64,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &text_copymode);
   luaL_dostring(lua, "text.copymode = _");
 
-  /// text.draw(text, font, x, y): width
+  /// text.draw(text, font, x, y): width, height
   extern (C) int text_draw(lua_State* L) @trusted
   {
     const text = lua_tostring(L, 1);
@@ -79,9 +79,11 @@ void registerFunctions(Program program)
         throw new Throwable("No active viewport!");
       if (!prog.fonts[cast(uint) font])
         throw new Throwable("Invalid font!");
-      prog.activeViewport.pixmap.text(cast(string) fromStringz(text),
+      auto o = prog.activeViewport.pixmap.text(cast(string) fromStringz(text),
           prog.fonts[cast(uint) font], cast(int) x, cast(int) y);
-      return 0;
+      for (uint i = 0; i < o.length; i++)
+        lua_pushinteger(L, o[i]);
+      return o.length;
     }
     catch (Exception err)
     {
