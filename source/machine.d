@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.3";
+const VERSION = "0.1.5";
 
 /**
   Class representing "the machine"!
@@ -204,6 +204,8 @@ class Machine
   void shutdownProgram(Program program)
   {
     auto i = countUntil(this.programs, program);
+    if (i < 0)
+      return;
     if (program.running)
       program.shutdown(-1);
     program.shutdown(-1);
@@ -229,6 +231,8 @@ class Machine
   void removeScreen(Viewport screen)
   {
     auto i = countUntil(this.screens, screen);
+    if (i < 0)
+      return;
     if (screen != this.mainScreen)
     {
       this.screens = this.screens.remove(i);

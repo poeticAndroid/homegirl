@@ -52,7 +52,7 @@
     input.gamepad([player]): btn
 ##  sys
     sys.exit([code])
-    sys.exec(filename[, args[][, cwd]])
+    sys.exec(filename[, args[][, cwd]]): success
     sys.startchild(filename[, args[]]): child
     sys.childrunning(child): bool
     sys.childexitcode(child): int
@@ -60,6 +60,7 @@
     sys.readfromchild(child): str
     sys.errorfromchild(child): str
     sys.killchild(child)
+    sys.forgetchild(child)
 ##  text
     text.loadfont(filename): font
     text.copymode([mode]): mode

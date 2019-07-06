@@ -7,8 +7,11 @@ _mx = 0
 _my = 0
 
 function _init(args)
-  font = text.loadfont("sys:fonts/Victoria.8b.gif")
-  anim = image.loadanimation(args[1])
+  if args[1] == nil then
+    anim = image.loadanimation("images/juggler32.gif")
+  else
+    anim = image.loadanimation(args[1])
+  end
   ding = audio.load("./sounds/juggler.wav")
   image.usepalette(anim[1])
 end

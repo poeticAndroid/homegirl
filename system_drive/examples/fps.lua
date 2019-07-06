@@ -1,5 +1,6 @@
 sec = 0
 frames = 0
+to = 0
 
 function _step(t)
   s = math.floor(t / 1000)
@@ -9,7 +10,14 @@ function _step(t)
     sec = s
     frames = 0
   end
-  if t > 60000 then
+  if to == 0 then
+    to = s + 10
+  end
+  if s > to then
     sys.exit(0)
   end
+end
+
+function _shutdown(code)
+  print("fps done! " .. tostring(code))
 end

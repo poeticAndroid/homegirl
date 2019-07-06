@@ -14,7 +14,7 @@ function _init()
   gfx.palette(2, 0, 0, 2)
   gfx.palette(3, 15, 8, 0)
 
-  out("Homegirl terminal ready!\n\n")
+  out("Homegirl Shell\n\n")
 end
 
 function _step()
@@ -26,12 +26,19 @@ function _step()
     out("")
   elseif state == 1 then
     if task == nil then
-      out("\n" .. fs.cd() .. "> ")
+      out(fs.cd() .. "> ")
       state = 0
-    elseif sys.childrunning(task) then
-      out(sys.readfromchild(task))
     else
-      sys.killchild(task)
+      out(sys.readfromchild(task))
+      out(sys.errorfromchild(task))
+      if sys.childrunning(task) then
+        if (input.hotkey() == "c") then
+          sys.killchild(task)
+        end
+      else
+        sys.forgetchild(task)
+        task = nil
+      end
     end
   end
 end
@@ -57,11 +64,28 @@ function submit(line)
       sys.exit(0)
     elseif (cmd == "cd") then
       fs.cd(args[1])
+    elseif cmd ~= "" then
+      if task == nil then
+        task = sys.startchild(cmd, args)
+      end
+      if task == nil then
+        task = sys.startchild(cmd .. ".lua", args)
+      end
+      if task == nil then
+        task = sys.startchild("sys:cmd/" .. cmd, args)
+      end
+      if task == nil then
+        task = sys.startchild("sys:cmd/" .. cmd .. ".lua", args)
+      end
+      if task == nil then
+        out("unknown command!\n")
+      end
     end
     state = 1
   elseif state == 1 then
     if task ~= nil then
       sys.writetochild(task, line .. "\n")
+      out(line .. "\n")
     end
   end
 end

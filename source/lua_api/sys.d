@@ -27,7 +27,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_exit);
   luaL_dostring(lua, "sys.exit = _");
 
-  /// sys.exec(filename[, args[][, cwd]])
+  /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted
   {
     const filename = fromStringz(lua_tostring(L, 1));
@@ -35,23 +35,23 @@ void registerFunctions(Program program)
     const cwd = fromStringz(lua_tostring(L, 3));
     string[] args;
     lua_pushnil(L);
-    for (uint i = 0; i < args_len; i++)
+    while (lua_next(L, 2))
     {
-      lua_next(L, 2);
       args ~= cast(string) fromStringz(lua_tostring(L, -1));
+      lua_pop(L, 1);
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
       prog.machine.startProgram(prog.resolve(cast(string) filename), args, cast(string) cwd);
-      return 0;
+      lua_pushboolean(L, true);
+      return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
@@ -65,23 +65,22 @@ void registerFunctions(Program program)
     const args_len = lua_rawlen(L, 2);
     string[] args;
     lua_pushnil(L);
-    for (uint i = 0; i < args_len; i++)
+    while (lua_next(L, 2))
     {
-      lua_next(L, 2);
       args ~= cast(string) fromStringz(lua_tostring(L, -1));
+      lua_pop(L, 1);
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      prog.startChild(prog.resolve(cast(string) filename), args);
+      lua_pushinteger(L, prog.startChild(prog.resolve(cast(string) filename), args));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
@@ -218,7 +217,7 @@ void registerFunctions(Program program)
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
         throw new Throwable("Invalid child!");
-      prog.removeChild(cast(uint) child);
+      prog.children[cast(uint) child].shutdown(-1);
       return 0;
     }
     catch (Exception err)
@@ -231,4 +230,28 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &sys_killchild);
   luaL_dostring(lua, "sys.killchild = _");
+
+  /// sys.forgetchild(child)
+  extern (C) int sys_forgetchild(lua_State* L) @trusted
+  {
+    const child = lua_tointeger(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (child >= prog.children.length || !prog.children[cast(uint) child])
+        throw new Throwable("Invalid child!");
+      prog.removeChild(cast(uint) child);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_forgetchild);
+  luaL_dostring(lua, "sys.forgetchild = _");
 }

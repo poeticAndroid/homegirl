@@ -89,9 +89,10 @@ class Program
       this.exitcode = code;
       this.call("_shutdown");
     }
-    else
+    else if (this.lua)
     {
       lua_close(this.lua);
+      this.lua = null;
       auto i = this.children.length;
       while (i)
         this.removeChild(cast(uint)--i);
@@ -382,6 +383,10 @@ class Program
       lua_pushinteger(this.lua, cast(long) timestamp);
       args++;
       break;
+    case "_shutdown":
+      lua_pushinteger(this.lua, cast(long) this.exitcode);
+      args++;
+      break;
     default:
     }
     if (lua_pcall(this.lua, args, 0, 0))
@@ -391,6 +396,7 @@ class Program
   private void croak()
   {
     auto err = fromStringz(lua_tostring(this.lua, -1));
+    this.write(2, cast(string)("Lua err: " ~ err ~ "\n"));
     writeln("Lua err: " ~ err);
     this.running = false;
   }
