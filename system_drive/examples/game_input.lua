@@ -1,4 +1,4 @@
-screendrag = require("./screendrag")
+screendrag = require("sys:libs/screendrag")
 players = {
   {
     x = -8,

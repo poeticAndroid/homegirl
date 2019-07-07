@@ -1,4 +1,4 @@
-screendrag = require("./screendrag")
+screendrag = require("sys:libs/screendrag")
 
 scrn = view.newscreen(15, 5)
 

@@ -1,4 +1,4 @@
-screendrag = require("./screendrag")
+screendrag = require("sys:libs/screendrag")
 
 scrn = view.newscreen(11, 2)
 font = text.loadfont("sys:fonts/Victoria.8b.gif")

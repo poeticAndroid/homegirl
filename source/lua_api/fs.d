@@ -136,7 +136,11 @@ void registerFunctions(Program program)
       if (set)
       {
         if (isDir(prog.actualFile(cast(string) dirname)))
-          prog.cwd = prog.resolve(cast(string) dirname) ~ "/";
+        {
+          prog.cwd = prog.resolve(cast(string) dirname);
+          if (prog.cwd.length && prog.cwd[prog.cwd.length - 1 .. prog.cwd.length] != ":")
+            prog.cwd ~= "/";
+        }
         else
           throw new Throwable("Directory doesn't exist!");
       }

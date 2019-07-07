@@ -1,4 +1,4 @@
-screendrag = require("./screendrag")
+screendrag = require("sys:libs/screendrag")
 scrn = view.newscreen(10, 5)
 
 frame = 0
@@ -44,6 +44,6 @@ function _step(t)
   end
   _mx = mx
   _my = my
-  nextFrame = nextFrame + image.imageduration(anim[frame])
+  nextFrame = nextFrame + image.duration(anim[frame])
   screendrag.step(scrn)
 end

@@ -90,8 +90,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_loadanimation);
   luaL_dostring(lua, "image.loadanimation = _");
 
-  /// image.imagewidth(img): width
-  extern (C) int image_imagewidth(lua_State* L) @trusted
+  /// image.size(img): width, height
+  extern (C) int image_size(lua_State* L) @trusted
   {
     const imgId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
@@ -99,29 +99,8 @@ void registerFunctions(Program program)
     try
     {
       lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].width);
-      return 1;
-    }
-    catch (Exception err)
-    {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
-    }
-  }
-
-  lua_register(lua, "_", &image_imagewidth);
-  luaL_dostring(lua, "image.imagewidth = _");
-
-  /// image.imageheight(img): height
-  extern (C) int image_imageheight(lua_State* L) @trusted
-  {
-    const imgId = lua_tointeger(L, 1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    try
-    {
       lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].height);
-      return 1;
+      return 2;
     }
     catch (Exception err)
     {
@@ -131,11 +110,11 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &image_imageheight);
-  luaL_dostring(lua, "image.imageheight = _");
+  lua_register(lua, "_", &image_size);
+  luaL_dostring(lua, "image.size = _");
 
-  /// image.imageduration(img): height
-  extern (C) int image_imageduration(lua_State* L) @trusted
+  /// image.duration(img): height
+  extern (C) int image_duration(lua_State* L) @trusted
   {
     const imgId = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
@@ -153,8 +132,8 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &image_imageduration);
-  luaL_dostring(lua, "image.imageduration = _");
+  lua_register(lua, "_", &image_duration);
+  luaL_dostring(lua, "image.duration = _");
 
   /// image.copymode([mode]): mode
   extern (C) int image_copymode(lua_State* L) @trusted

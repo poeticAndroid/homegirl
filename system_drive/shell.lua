@@ -3,6 +3,7 @@ scrnw, scrnh = view.size(scrn)
 spare = image.new(scrnw, scrnh, 4)
 font = text.loadfont("sys:fonts/Victoria.8b.gif")
 fontsize = 8
+fontw = 8
 termline = ""
 termbottom = fontsize
 state = 1
@@ -64,6 +65,10 @@ function submit(line)
       sys.exit(0)
     elseif (cmd == "cd") then
       fs.cd(args[1])
+    elseif (cmd == "clear") then
+      gfx.cls()
+      termbottom = 0
+      out("\n")
     elseif cmd ~= "" then
       if task == nil then
         task = sys.startchild(cmd, args)
@@ -78,7 +83,7 @@ function submit(line)
         task = sys.startchild("sys:cmd/" .. cmd .. ".lua", args)
       end
       if task == nil then
-        out("unknown command!\n")
+        out("Unknown command " .. cmd .. "\n")
       end
     end
     state = 1
@@ -94,24 +99,21 @@ function out(data)
   local w, h
   local txt = input.text()
   local pos, sel = input.cursor()
-  termline = termline .. data
+  termline = termline .. wrap(data, view.size(scrn) / fontw)
   gfx.fgcolor(0)
   gfx.bar(0, termbottom - fontsize, scrnw, scrnh)
   gfx.fgcolor(1)
-  repeat
-    w, h = text.draw(termline, font, 0, termbottom - fontsize)
-    h = termbottom - fontsize + h
-    if h > scrnh then
-      scroll(fontsize)
-    end
-    if string.find(termline, "\n") ~= nil then
-      termline = string.sub(termline, string.find(termline, "\n") + 1)
-      termbottom = termbottom + fontsize
-    end
-  until string.find(termline, "\n") == nil
-  gfx.fgcolor(2)
-  text.draw(txt, font, w + 1, termbottom - fontsize + 1)
-  gfx.fgcolor(1)
+  -- repeat
+  w, h = text.draw(termline, font, 0, termbottom - fontsize)
+  h = termbottom - fontsize + h
+  if h > scrnh then
+    scroll(fontsize)
+  end
+  if string.find(termline, "\n") ~= nil then
+    termline = string.sub(termline, string.find(termline, "\n") + 1)
+    termbottom = termbottom + fontsize
+  end
+  -- until string.find(termline, "\n") == nil
   text.draw(txt, font, w, termbottom - fontsize)
   gfx.fgcolor(3)
   text.draw(string.sub(txt, 0, pos) .. "\x7f", font, w, termbottom - fontsize)
@@ -132,4 +134,21 @@ function scroll(amount)
   gfx.cls()
   image.draw(spare, 0, -amount, 0, 0, scrnw, scrnh)
   termbottom = termbottom - amount
+end
+
+function wrap(txt, width)
+  local col = 0
+  local out = ""
+  for i = 1, #txt do
+    out = out .. string.sub(txt, i, i)
+    col = col + 1
+    if string.sub(txt, i, i) == "\n" then
+      col = 0
+    end
+    if col == width then
+      out = out .. "\n"
+      col = 0
+    end
+  end
+  return out
 end

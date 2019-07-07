@@ -125,8 +125,23 @@ class Program
       path = buildNormalizedPath(this.cwd[drive.length .. this.cwd.length], path);
     }
     path = replace(path, "\\", "/");
-    while (path[0 .. 1] == "/")
-      path = path[1 .. path.length];
+    auto segs = split(path, "/");
+    path = "";
+    for (uint i = 0; i < segs.length; i++)
+    {
+      switch (segs[i])
+      {
+      case "":
+      case "/":
+      case ".":
+      case "..":
+        break;
+      default:
+        if (path.length > 0)
+          path ~= "/";
+        path ~= segs[i];
+      }
+    }
     return drive ~ path;
   }
 

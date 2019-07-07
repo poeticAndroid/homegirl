@@ -35,9 +35,8 @@
     image.new(width, height, colorbits): img
     image.load(filename): img
     image.loadanimation(filename): img[]
-    image.imagewidth(img): width
-    image.imageheight(img): height
-    image.imageduration(img): height
+    image.size(img): width, height
+    image.duration(img): height
     image.copymode([mode]): mode
     image.draw(img, x, y, imgx, imgy, width, height)
     image.copy(img, x, y, imgx, imgy, width, height)

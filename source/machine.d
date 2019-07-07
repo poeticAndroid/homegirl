@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.5";
+const VERSION = "0.1.7";
 
 /**
   Class representing "the machine"!
@@ -316,7 +316,7 @@ class Machine
     name = toLower(name);
     if (this.drives.get(name, null))
       throw new Throwable("Drive '" ~ name ~ "' already mounted!");
-    this.drives[name] = buildNormalizedPath(getcwd(), path) ~ "/";
+    this.drives[name] = buildNormalizedPath(path) ~ "/";
   }
 
   /**
@@ -434,6 +434,7 @@ class Machine
       my = ((dy - my) / scale) * -1;
 
     Viewport vp;
+    bool validFocus = false;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
@@ -442,8 +443,10 @@ class Machine
           .pixelHeight);
       if (_vp)
         vp = _vp;
+      if (screen.containsViewport(this.focusedViewport))
+        validFocus = validFocus || true;
     }
-    if (this.lastmb == 0 && mb == 1)
+    if ((this.lastmb == 0 && mb == 1) || !validFocus)
       this.focusViewport(vp);
     if (this.focusedViewport)
       this.focusedViewport.setMouseBtn(mb);

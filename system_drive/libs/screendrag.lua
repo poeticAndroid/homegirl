@@ -22,6 +22,9 @@ function screendrag.step(scrn)
     local left, top = view.position(scrn)
     view.position(scrn, 0, top + y)
   end
+  if input.hotkey() == "q" then
+    sys.exit(0)
+  end
 end
 
 return screendrag
