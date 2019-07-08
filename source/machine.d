@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.7";
+const VERSION = "0.1.8";
 
 /**
   Class representing "the machine"!

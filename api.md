@@ -17,11 +17,11 @@
     audio.forget(sampl)
 ##  fs
     fs.read(filename): string
-    fs.write(filename, string)
-    fs.delete(filename)
-    fs.list(dirname)
+    fs.write(filename, string): success
+    fs.delete(filename): success
+    fs.list(dirname): entries[]
     fs.cd([dirname]): dirname
-    fs.mkdir(dirname)
+    fs.mkdir(dirname): success
 ##  gfx
     gfx.cls()
     gfx.palette(color[, red, green, blue]): red, green, blue

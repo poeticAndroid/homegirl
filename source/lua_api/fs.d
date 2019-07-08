@@ -29,16 +29,15 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
   lua_register(lua, "_", &fs_read);
   luaL_dostring(lua, "fs.read = _");
 
-  /// fs.write(filename, string)
+  /// fs.write(filename, string): success
   extern (C) int fs_write(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
@@ -48,20 +47,20 @@ void registerFunctions(Program program)
     try
     {
       write(prog.actualFile(cast(string) filename), str);
-      return 0;
+      lua_pushboolean(L, true);
+      return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
   lua_register(lua, "_", &fs_write);
   luaL_dostring(lua, "fs.write = _");
 
-  /// fs.delete(filename)
+  /// fs.delete(filename): success
   extern (C) int fs_delete(lua_State* L) @trusted
   {
     auto filename = fromStringz(lua_tostring(L, 1));
@@ -77,20 +76,20 @@ void registerFunctions(Program program)
         else
           remove(path);
       }
-      return 0;
+      lua_pushboolean(L, true);
+      return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
   lua_register(lua, "_", &fs_delete);
   luaL_dostring(lua, "fs.delete = _");
 
-  /// fs.list(dirname)
+  /// fs.list(dirname): entries[]
   extern (C) int fs_list(lua_State* L) @trusted
   {
     auto dirname = fromStringz(lua_tostring(L, 1));
@@ -115,9 +114,8 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
@@ -149,16 +147,15 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 
   lua_register(lua, "_", &fs_cd);
   luaL_dostring(lua, "fs.cd = _");
 
-  /// fs.mkdir(dirname)
+  /// fs.mkdir(dirname): success
   extern (C) int fs_mkdir(lua_State* L) @trusted
   {
     auto dirname = fromStringz(lua_tostring(L, 1));
@@ -167,13 +164,13 @@ void registerFunctions(Program program)
     try
     {
       mkdirRecurse(prog.actualFile(cast(string) dirname));
-      return 0;
+      lua_pushboolean(L, true);
+      return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 

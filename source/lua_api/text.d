@@ -28,9 +28,8 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
-      return 0;
+      lua_pushnil(L);
+      return 1;
     }
   }
 

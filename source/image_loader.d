@@ -1,6 +1,7 @@
 module image_loader;
 
 import std.string;
+import std.file;
 import bindbc.freeimage;
 
 import pixmap;
@@ -10,6 +11,8 @@ import pixmap;
 */
 Pixmap loadImage(string filename)
 {
+  if (!isFile(filename))
+    throw new Throwable("No such file " ~ filename);
   FIBITMAP* img = FreeImage_Load(FIF_GIF, toStringz(filename));
   Pixmap pix = fibitmapToPixmap(img, null);
   FreeImage_Unload(img);
@@ -23,12 +26,11 @@ Pixmap[] loadAnimation(string filename)
 {
   Pixmap[] frames;
   Pixmap canvas = loadImage(filename);
-  FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename),
-      false, true, true);
+  FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename), false, true, true);
   const count = FreeImage_GetPageCount(anim);
-  for (uint i = 0; i < count; i++) 
+  for (uint i = 0; i < count; i++)
   {
-    FIBITMAP* img = FreeImage_LockPage(anim, i); 
+    FIBITMAP* img = FreeImage_LockPage(anim, i);
     frames ~= fibitmapToPixmap(img, canvas).clone();
     FreeImage_UnlockPage(anim, img, false);
   }

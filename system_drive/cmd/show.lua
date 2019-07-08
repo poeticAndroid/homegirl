@@ -4,6 +4,10 @@ function _init(args)
   mode = 0
   scrn = view.newscreen(mode, 8)
   anim = image.loadanimation(args[1])
+  if anim == nil then
+    print("Couldn't show file " .. args[1])
+    return sys.exit(1)
+  end
   width, height = image.size(anim[1])
   scrnw, scrnh = view.size(scrn)
   while width > scrnw do
