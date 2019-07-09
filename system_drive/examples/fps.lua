@@ -1,6 +1,7 @@
 sec = 0
 frames = 0
 to = 0
+sys.stepinterval(0)
 
 function _step(t)
   s = math.floor(t / 1000)

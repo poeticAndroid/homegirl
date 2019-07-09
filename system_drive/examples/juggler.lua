@@ -2,7 +2,6 @@ screendrag = require("sys:libs/screendrag")
 scrn = view.newscreen(10, 5)
 
 frame = 0
-nextFrame = 0
 _mx = 0
 _my = 0
 
@@ -19,12 +18,6 @@ end
 function _step(t)
   local left, top = view.position(scrn)
   local mx, my, mbtn = input.mouse()
-  if t - nextFrame > 100 then
-    nextFrame = t
-  end
-  if t < nextFrame then
-    return
-  end
   frame = frame + 1
   if frame > #anim then
     frame = 1
@@ -44,6 +37,6 @@ function _step(t)
   end
   _mx = mx
   _my = my
-  nextFrame = nextFrame + image.duration(anim[frame])
+  sys.stepinterval(image.duration(anim[frame]))
   screendrag.step(scrn)
 end

@@ -1,5 +1,6 @@
 screendrag = require("sys:libs/screendrag")
 
+sys.stepinterval(1000 / 60)
 scrn = view.newscreen(10, 4)
 
 x = 0

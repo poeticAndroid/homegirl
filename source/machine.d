@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.8";
+const VERSION = "0.1.9";
 
 /**
   Class representing "the machine"!
@@ -34,6 +34,7 @@ class Machine
   uint cursorBlank = 0; /// when to hide the cursor if idle
   SoundChip audio; /// audio output
   string[string] drives; /// a table of all the console drives and their corresponding host folder
+  string[string] env; /// environment variables
 
   /**
     Create a new machine
@@ -47,7 +48,6 @@ class Machine
 
     this.init_window();
     this.audio = new SoundChip();
-    this.setDefaultGameBindings();
   }
 
   /**
@@ -73,11 +73,13 @@ class Machine
         SDL_ShowCursor(SDL_ENABLE);
         break;
       case SDL_TEXTINPUT:
+        this.newInput = true;
         if (this.focusedViewport && this.focusedViewport.textinput)
           this.focusedViewport.textinput.insertText(
               cast(string) fromStringz(cast(char*)(event.text.text)));
         break;
       case SDL_KEYDOWN:
+        this.newInput = true;
         if (this.focusedViewport)
         {
           if ((SDL_GetModState() & KMOD_CTRL && event.key.keysym.sym < 128)
@@ -99,6 +101,9 @@ class Machine
           break;
         default:
         }
+        break;
+      case SDL_KEYUP:
+        this.newInput = true;
         break;
       case SDL_WINDOWEVENT:
         switch (event.window.event)
@@ -128,9 +133,19 @@ class Machine
         if (!program.running)
           this.shutdownProgram(program);
         else
-          program.step(SDL_GetTicks());
+        {
+          if (program.nextStep == 0)
+          {
+            this.newInput = true;
+            program.nextStep = SDL_GetTicks();
+          }
+          if ((program.stepInterval < 0 && newInput)
+              || (program.stepInterval >= 0 && program.nextStep < SDL_GetTicks()))
+            program.step(SDL_GetTicks());
+        }
       }
     }
+    this.newInput = false;
 
     if (runningPrograms == 0)
     {
@@ -193,6 +208,7 @@ class Machine
   */
   Program startProgram(string filename, string[] args = [], string cwd = null)
   {
+    this.audio.sync();
     Program program = new Program(this, filename, args, cwd);
     this.programs ~= program;
     return program;
@@ -274,41 +290,6 @@ class Machine
   }
 
   /**
-    set default game bindings
-  */
-  void setDefaultGameBindings()
-  {
-    this.bindGameBtn(0, SDL_SCANCODE_G, GameBtns.right);
-    this.bindGameBtn(0, SDL_SCANCODE_D, GameBtns.left);
-    this.bindGameBtn(0, SDL_SCANCODE_R, GameBtns.up);
-    this.bindGameBtn(0, SDL_SCANCODE_F, GameBtns.down);
-    this.bindGameBtn(0, SDL_SCANCODE_A, GameBtns.a);
-    this.bindGameBtn(0, SDL_SCANCODE_S, GameBtns.b);
-    this.bindGameBtn(0, SDL_SCANCODE_X, GameBtns.x);
-    this.bindGameBtn(0, SDL_SCANCODE_Z, GameBtns.y);
-    this.bindGameBtn(0, SDL_SCANCODE_C, GameBtns.y);
-    this.bindGameBtn(0, SDL_SCANCODE_Y, GameBtns.y);
-    this.bindGameBtn(0, SDL_SCANCODE_V, GameBtns.a);
-    this.bindGameBtn(0, SDL_SCANCODE_B, GameBtns.b);
-    this.bindGameBtn(0, SDL_SCANCODE_LCTRL, GameBtns.a);
-    this.bindGameBtn(0, SDL_SCANCODE_SPACE, GameBtns.b);
-
-    this.bindGameBtn(1, SDL_SCANCODE_RIGHT, GameBtns.right);
-    this.bindGameBtn(1, SDL_SCANCODE_LEFT, GameBtns.left);
-    this.bindGameBtn(1, SDL_SCANCODE_UP, GameBtns.up);
-    this.bindGameBtn(1, SDL_SCANCODE_DOWN, GameBtns.down);
-    this.bindGameBtn(1, SDL_SCANCODE_I, GameBtns.a);
-    this.bindGameBtn(1, SDL_SCANCODE_P, GameBtns.a);
-    this.bindGameBtn(1, SDL_SCANCODE_RETURN, GameBtns.a);
-    this.bindGameBtn(1, SDL_SCANCODE_RCTRL, GameBtns.a);
-    this.bindGameBtn(1, SDL_SCANCODE_O, GameBtns.b);
-    this.bindGameBtn(1, SDL_SCANCODE_L, GameBtns.x);
-    this.bindGameBtn(1, SDL_SCANCODE_BACKSPACE, GameBtns.x);
-    this.bindGameBtn(1, SDL_SCANCODE_K, GameBtns.y);
-    this.bindGameBtn(1, SDL_SCANCODE_SPACE, GameBtns.b);
-  }
-
-  /**
     mount a drive
   */
   void mountDrive(string name, string path)
@@ -371,9 +352,11 @@ class Machine
   private auto rect = new SDL_Rect();
   private auto rect2 = new SDL_Rect();
   private uint lastmb = 0;
+  private ulong lastgmb = 0;
   private uint scale;
   private uint bootupState = 5;
   private uint nextBootup;
+  private bool newInput;
 
   private void init_window()
   {
@@ -450,7 +433,11 @@ class Machine
       this.focusViewport(vp);
     if (this.focusedViewport)
       this.focusedViewport.setMouseBtn(mb);
-    this.lastmb = mb;
+    if (this.lastmb != mb)
+    {
+      this.newInput = true;
+      this.lastmb = mb;
+    }
   }
 
   private void drawScreens()
@@ -647,8 +634,18 @@ class Machine
       SDL_GameControllerClose(gamepad);
     }
 
+    ulong neo = 0;
     for (uint i = 0; i < gameBtns.length; i++)
+    {
+      neo *= 256;
+      neo += gameBtns[i];
       this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
+    }
+    if (this.lastgmb != neo)
+    {
+      this.lastgmb = neo;
+      this.newInput = true;
+    }
   }
 
 }

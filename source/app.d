@@ -44,10 +44,15 @@ int main(string[] args)
       if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
         machine.toggleFullscren();
     }
+    if (config["gameBindings"].type == JSONType.object)
+      setDefaultGameBindings(machine);
+    else
+      setDefaultGameBindings(machine);
   }
   catch (Exception e)
   {
     writeln("no config!");
+    setDefaultGameBindings(machine);
   }
 
   machine.mountDrive("sys", "./system_drive/");
@@ -91,4 +96,39 @@ int main(string[] args)
   machine.shutdown();
   writeln("Powered off.");
   return 0;
+}
+
+/**
+  set default game bindings
+*/
+void setDefaultGameBindings(Machine machine)
+{
+  machine.bindGameBtn(0, SDL_SCANCODE_G, GameBtns.right);
+  machine.bindGameBtn(0, SDL_SCANCODE_D, GameBtns.left);
+  machine.bindGameBtn(0, SDL_SCANCODE_R, GameBtns.up);
+  machine.bindGameBtn(0, SDL_SCANCODE_F, GameBtns.down);
+  machine.bindGameBtn(0, SDL_SCANCODE_A, GameBtns.a);
+  machine.bindGameBtn(0, SDL_SCANCODE_S, GameBtns.b);
+  machine.bindGameBtn(0, SDL_SCANCODE_X, GameBtns.x);
+  machine.bindGameBtn(0, SDL_SCANCODE_Z, GameBtns.y);
+  machine.bindGameBtn(0, SDL_SCANCODE_C, GameBtns.y);
+  machine.bindGameBtn(0, SDL_SCANCODE_Y, GameBtns.y);
+  machine.bindGameBtn(0, SDL_SCANCODE_V, GameBtns.a);
+  machine.bindGameBtn(0, SDL_SCANCODE_B, GameBtns.b);
+  machine.bindGameBtn(0, SDL_SCANCODE_LCTRL, GameBtns.a);
+  machine.bindGameBtn(0, SDL_SCANCODE_SPACE, GameBtns.b);
+
+  machine.bindGameBtn(1, SDL_SCANCODE_RIGHT, GameBtns.right);
+  machine.bindGameBtn(1, SDL_SCANCODE_LEFT, GameBtns.left);
+  machine.bindGameBtn(1, SDL_SCANCODE_UP, GameBtns.up);
+  machine.bindGameBtn(1, SDL_SCANCODE_DOWN, GameBtns.down);
+  machine.bindGameBtn(1, SDL_SCANCODE_I, GameBtns.a);
+  machine.bindGameBtn(1, SDL_SCANCODE_P, GameBtns.a);
+  machine.bindGameBtn(1, SDL_SCANCODE_RETURN, GameBtns.a);
+  machine.bindGameBtn(1, SDL_SCANCODE_RCTRL, GameBtns.a);
+  machine.bindGameBtn(1, SDL_SCANCODE_O, GameBtns.b);
+  machine.bindGameBtn(1, SDL_SCANCODE_L, GameBtns.x);
+  machine.bindGameBtn(1, SDL_SCANCODE_BACKSPACE, GameBtns.x);
+  machine.bindGameBtn(1, SDL_SCANCODE_K, GameBtns.y);
+  machine.bindGameBtn(1, SDL_SCANCODE_SPACE, GameBtns.b);
 }

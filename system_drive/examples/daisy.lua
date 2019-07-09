@@ -20,19 +20,12 @@ function _init()
   start, endd = audio.sampleloop()
   audio.play(1, square)
   audio.play(2, square)
+  sys.stepinterval(200)
 end
 
 vol = 63
-pos = 0
-nexttime = 0
+pos = 1
 function _step(t)
-  if nexttime > t then
-    return
-  end
-  if pos == 0 then
-    nexttime = t
-    pos = pos + 1
-  end
   audio.channelfreq(1, tone2freq(song[pos]))
   audio.channelfreq(2, tone2freq(song[pos]))
   if song[pos] ~= song[pos - 1] then
@@ -44,7 +37,6 @@ function _step(t)
     vol = vol - 10
   end
   pos = pos + 1
-  nexttime = nexttime + 200
 end
 
 song = {

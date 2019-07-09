@@ -14,6 +14,77 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "sys = {}");
 
+  /// sys.stepinterval([milliseconds]): milliseconds
+  extern (C) int sys_stepinterval(lua_State* L) @trusted
+  {
+    const duration = lua_tonumber(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (set)
+        prog.stepInterval = duration;
+      lua_pushnumber(L, prog.stepInterval);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &sys_stepinterval);
+  luaL_dostring(lua, "sys.stepinterval = _");
+
+  /// sys.listenv(): keys[]
+  extern (C) int sys_listenv(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      string[] entries = prog.machine.env.keys();
+      lua_createtable(L, cast(uint) entries.length, 0);
+      for (uint i = 0; i < entries.length; i++)
+      {
+        lua_pushstring(L, toStringz(entries[i]));
+        lua_rawseti(L, -2, i + 1);
+      }
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &sys_listenv);
+  luaL_dostring(lua, "sys.listenv = _");
+
+  /// sys.env(key[, value]): value
+  extern (C) int sys_env(lua_State* L) @trusted
+  {
+    const key = fromStringz(lua_tostring(L, 1));
+    const value = fromStringz(lua_tostring(L, 2));
+    const set = 1 - lua_isnoneornil(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    if (set)
+      prog.machine.env[cast(string) key] = cast(string) value;
+    string val = prog.machine.env.get(cast(string) key, null);
+    if (val)
+      lua_pushstring(L, toStringz(val));
+    else
+      lua_pushnil(L);
+    return 1;
+  }
+
+  lua_register(lua, "_", &sys_env);
+  luaL_dostring(lua, "sys.env = _");
+
   /// sys.exit([code])
   extern (C) int sys_exit(lua_State* L) @trusted
   {

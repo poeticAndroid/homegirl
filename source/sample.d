@@ -36,7 +36,7 @@ class Sample
     uint wav_len;
     SDL_LoadWAV(toStringz(filename), wav_spec, &wav_buffer, &wav_len);
     this.freq = wav_spec.freq;
-    while (this.freq > 28_867)
+    while (this.freq > 24_000)
       this.freq /= 2;
 
     SDL_BuildAudioCVT(this.cvt, wav_spec.format, wav_spec.channels,

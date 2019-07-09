@@ -139,10 +139,6 @@ class Viewport
   {
     this.mouseX = x;
     this.mouseY = y;
-    this.mouseBtn = 0;
-    this.hotkey = 0;
-    for (ubyte i = 0; i < this.gameBtn.length; i++)
-      this.gameBtn[i] = 0;
     Viewport vp = this;
     foreach (viewport; this.children)
     {
@@ -215,6 +211,17 @@ class Viewport
     if (!this.textinput)
       this.textinput = new TextEditor();
     return this.textinput;
+  }
+
+  /**
+    clear inputs
+  */
+  void clearInput()
+  {
+    this.mouseBtn = 0;
+    this.hotkey = 0;
+    for (ubyte i = 0; i < this.gameBtn.length; i++)
+      this.gameBtn[i] = 0;
   }
 
   /**

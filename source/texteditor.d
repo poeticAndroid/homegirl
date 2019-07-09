@@ -296,4 +296,15 @@ class TextEditor
     this.posHist = this.posHist[0 .. last];
     this.recalculate();
   }
+
+  /**
+    Clear undo history
+  */
+  void clearHistory()
+  {
+    if (this.textHist.length == 0)
+      return;
+    this.textHist = [];
+    this.posHist = [];
+  }
 }

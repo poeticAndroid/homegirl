@@ -15,6 +15,7 @@ players = {
 }
 
 function _init()
+  sys.stepinterval(1000 / 60)
   font = text.loadfont("sys:fonts/Victoria.8b.gif")
   scrn = view.newscreen(5, 2)
   gfx.bgcolor(0)

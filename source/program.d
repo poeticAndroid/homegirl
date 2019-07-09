@@ -30,6 +30,8 @@ class Program
   string[3] io; /// input/output/error buffers
   Machine machine; /// the machine that this program runs on
   lua_State* lua; /// Lua state
+  double stepInterval = -1; /// minimum milliseconds between steps. -1 = step only on input
+  double nextStep = 0; /// timestamp for next step
 
   Program[] children; /// child processes
 
@@ -76,6 +78,11 @@ class Program
   {
     if (this.running)
       this.call("_step", timestamp);
+    this.nextStep += this.stepInterval;
+    if (this.nextStep < timestamp)
+      this.nextStep = timestamp;
+    if (this.activeViewport)
+      this.activeViewport.clearInput();
   }
 
   /**

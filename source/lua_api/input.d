@@ -73,6 +73,29 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_cursor);
   luaL_dostring(lua, "input.cursor = _");
 
+  /// input.clearhistory()
+  extern (C) int input_clearhistory(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      prog.activeViewport.getTextinput().clearHistory();
+      return 0;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_clearhistory);
+  luaL_dostring(lua, "input.clearhistory = _");
+
   /// input.hotkey(): hotkey
   extern (C) int input_hotkey(lua_State* L) @trusted
   {

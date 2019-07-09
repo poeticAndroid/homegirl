@@ -88,7 +88,7 @@ class SoundChip
   void setFreq(uint channel, int freq)
   {
     channel = channel % this.src.length;
-    while (freq > 28_867)
+    while (freq > 24_000)
       freq /= 2;
 
     this.rate[channel] = 1.0 * freq / this.spec.freq;

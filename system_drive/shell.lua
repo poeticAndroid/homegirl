@@ -61,7 +61,7 @@ function submit(line)
     cmd = table.remove(args, 1)
     out(cmd .. " " .. table.concat(args, " ") .. "\n")
 
-    if (cmd == "exit") then
+    if (cmd == "endcli") then
       sys.exit(0)
     elseif (cmd == "cd") then
       fs.cd(args[1])
@@ -69,6 +69,9 @@ function submit(line)
       gfx.cls()
       termbottom = 0
       out("\n")
+    elseif (cmd == "help") then
+      out("Builtin commands: cd, clear, endcli, help\n\nsys:cmd/\n")
+      task = sys.startchild("sys:cmd/dir.lua", {"sys:cmd/"})
     elseif cmd ~= "" then
       if task == nil then
         task = sys.startchild(cmd, args)
@@ -107,11 +110,20 @@ function out(data)
   w, h = text.draw(termline, font, 0, termbottom - fontsize)
   h = termbottom - fontsize + h
   if h > scrnh then
-    scroll(fontsize)
+    if h - scrnh < fontsize then
+      scroll(h - scrnh)
+    else
+      scroll(fontsize)
+    end
   end
   if string.find(termline, "\n") ~= nil then
     termline = string.sub(termline, string.find(termline, "\n") + 1)
     termbottom = termbottom + fontsize
+    sys.stepinterval(32)
+  elseif state == 1 then
+    sys.stepinterval(128)
+  else
+    sys.stepinterval(-1)
   end
   -- until string.find(termline, "\n") == nil
   text.draw(txt, font, w, termbottom - fontsize)

@@ -16,6 +16,48 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "fs = {}");
 
+  /// fs.isfile(filename): confirmed
+  extern (C) int fs_isfile(lua_State* L) @trusted
+  {
+    auto filename = fromStringz(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      lua_pushboolean(L, isFile(prog.actualFile(cast(string) filename)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_isfile);
+  luaL_dostring(lua, "fs.isfile = _");
+
+  /// fs.isdir(filename): confirmed
+  extern (C) int fs_isdir(lua_State* L) @trusted
+  {
+    auto filename = fromStringz(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      lua_pushboolean(L, isDir(prog.actualFile(cast(string) filename)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_isdir);
+  luaL_dostring(lua, "fs.isdir = _");
+
   /// fs.read(filename): string
   extern (C) int fs_read(lua_State* L) @trusted
   {
@@ -121,6 +163,32 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &fs_list);
   luaL_dostring(lua, "fs.list = _");
+
+  /// fs.drives(): drivenames[]
+  extern (C) int fs_drives(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      string[] entries = prog.machine.drives.keys();
+      lua_createtable(L, cast(uint) entries.length, 0);
+      for (uint i = 0; i < entries.length; i++)
+      {
+        lua_pushstring(L, toStringz(entries[i]));
+        lua_rawseti(L, -2, i + 1);
+      }
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_drives);
+  luaL_dostring(lua, "fs.drives = _");
 
   /// fs.cd([dirname]): dirname
   extern (C) int fs_cd(lua_State* L) @trusted

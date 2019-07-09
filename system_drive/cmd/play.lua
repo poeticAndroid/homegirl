@@ -6,7 +6,8 @@ function _init(args)
   end
   audio.play(0, snd)
   audio.play(3, snd)
-  print("Playing " .. args[1] .. " at " .. audio.channelfreq(0) .. "Hz")
+  print("Playing " .. args[1] .. " at " .. audio.samplefreq(snd) .. "Hz")
+  sys.stepinterval(128)
 end
 
 function _step()

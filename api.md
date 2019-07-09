@@ -16,10 +16,13 @@
     audio.sampleloop(sampl[, start, end]): start, end
     audio.forget(sampl)
 ##  fs
+    fs.isfile(filename): confirmed
+    fs.isdir(filename): confirmed
     fs.read(filename): string
     fs.write(filename, string): success
     fs.delete(filename): success
     fs.list(dirname): entries[]
+    fs.drives(): drivenames[]
     fs.cd([dirname]): dirname
     fs.mkdir(dirname): success
 ##  gfx
@@ -46,10 +49,14 @@
 ##  input
     input.text([text]): text
     input.cursor([pos, selected]): pos, selected
+    input.clearhistory()
     input.hotkey(): hotkey
     input.mouse(): x, y, btn
     input.gamepad([player]): btn
 ##  sys
+    sys.stepinterval([milliseconds]): milliseconds
+    sys.listenv(): keys[]
+    sys.env(key[, value]): value
     sys.exit([code])
     sys.exec(filename[, args[][, cwd]]): success
     sys.startchild(filename[, args[]]): child
