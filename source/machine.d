@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.10";
+const VERSION = "0.1.11";
 
 /**
   Class representing "the machine"!
@@ -104,16 +104,6 @@ class Machine
         break;
       case SDL_KEYUP:
         this.newInput = true;
-        break;
-      case SDL_WINDOWEVENT:
-        switch (event.window.event)
-        {
-        case SDL_WINDOWEVENT_ENTER:
-        case SDL_WINDOWEVENT_LEAVE:
-          break;
-        default:
-          this.audio.sync();
-        }
         break;
       default:
         // writeln("event ", event.type);
@@ -208,7 +198,6 @@ class Machine
   */
   Program startProgram(string filename, string[] args = [], string cwd = null)
   {
-    this.audio.sync();
     Program program = new Program(this, filename, args, cwd);
     this.programs ~= program;
     return program;
@@ -226,7 +215,6 @@ class Machine
       program.shutdown(-1);
     program.shutdown(-1);
     this.programs[i] = null;
-    this.audio.sync();
   }
 
   /**
