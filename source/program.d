@@ -48,12 +48,12 @@ class Program
   */
   this(Machine machine, string filename, string[] args = [], string cwd = null)
   {
+    this.machine = machine;
     this.filename = filename;
     this.args = args;
     this.cwd = cwd;
     if (!this.cwd)
-      this.cwd = dirName(this.filename);
-    this.machine = machine;
+      this.cwd = this.machine.dirName(this.filename);
     this.viewports ~= null;
 
     // Load the Lua library.
@@ -62,8 +62,7 @@ class Program
     luaL_openlibs(this.lua);
     registerFunctions(this);
     string luacode = readText(this.actualFile(this.filename));
-    if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length,
-        toStringz(baseName(this.filename))))
+    if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(this.filename)))
       this.croak();
     else if (lua_pcall(this.lua, 0, LUA_MULTRET, 0))
       this.croak();

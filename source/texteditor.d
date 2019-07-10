@@ -33,9 +33,9 @@ class TextEditor
   */
   void setPosBytes(uint pos)
   {
-    uint left = this.getText().length;
+    const left = this.getText().length;
     if (pos > left)
-      pos = left;
+      pos = cast(uint) left;
     this.pos = cast(uint) toUTF32(this.getText()[0 .. pos]).length;
     this.selected = 0;
     this.recalculate();
@@ -46,9 +46,9 @@ class TextEditor
   */
   void setSelectedBytes(uint sel)
   {
-    uint left = this.getText().length - this.posBytes;
+    const left = this.getText().length - this.posBytes;
     if (sel > left)
-      sel = left;
+      sel = cast(uint) left;
     this.selected = cast(uint) toUTF32(this.getText()[this.posBytes .. this.posBytes + sel]).length;
     this.recalculate();
   }

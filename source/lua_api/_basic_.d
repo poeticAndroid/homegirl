@@ -105,7 +105,7 @@ void registerFunctions(Program program)
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.write(1, cast(string) msg ~ "\n");
-    writeln(baseName(prog.filename) ~ ": " ~ msg);
+    writeln(prog.machine.baseName(prog.filename) ~ ": " ~ msg);
     return 0;
   }
 

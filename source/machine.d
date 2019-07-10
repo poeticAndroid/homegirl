@@ -15,7 +15,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.9";
+const VERSION = "0.1.10";
 
 /**
   Class representing "the machine"!
@@ -340,11 +340,37 @@ class Machine
   */
   string getDrive(string path, string end = ":")
   {
-    int i = countUntil(path, ":");
+    const i = countUntil(path, ":");
     if (i <= 0)
       return null;
     else
       return toLower(path[0 .. i]) ~ end;
+  }
+
+  /**
+    get parent of path
+  */
+  string dirName(string path)
+  {
+    if (path[$ - 1 .. $] == "/")
+      path = path[0 .. $ - 1];
+    auto i = path.length;
+    while (i >= 1 && path[i - 1 .. i] != "/" && path[i - 1 .. i] != ":")
+      i--;
+    return path[0 .. i];
+  }
+
+  /**
+    get basename of path
+  */
+  string baseName(string path)
+  {
+    if (path[$ - 1 .. $] == "/")
+      path = path[0 .. $ - 1];
+    auto i = path.length;
+    while (i >= 1 && path[i - 1 .. i] != "/" && path[i - 1 .. i] != ":")
+      i--;
+    return path[i .. $];
   }
 
   // === _privates === //
