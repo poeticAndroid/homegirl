@@ -29,7 +29,7 @@ class Sample
   */
   void loadWav(string filename)
   {
-    if (!isFile(filename))
+    if (!exists(filename) || !isFile(filename))
       throw new Throwable("No such file " ~ filename);
     SDL_AudioSpec* wav_spec = new SDL_AudioSpec();
     ubyte* wav_buffer;

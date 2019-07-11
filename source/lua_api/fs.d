@@ -25,7 +25,7 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushboolean(L, isFile(prog.actualFile(filename)));
+      lua_pushboolean(L, exists(prog.actualFile(filename)) && isFile(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)
@@ -46,7 +46,7 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushboolean(L, isDir(prog.actualFile(filename)));
+      lua_pushboolean(L, exists(prog.actualFile(filename)) && isDir(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)
@@ -202,7 +202,7 @@ void registerFunctions(Program program)
     {
       if (set)
       {
-        if (isDir(prog.actualFile(dirname)))
+        if (exists(prog.actualFile(dirname)) && isDir(prog.actualFile(dirname)))
         {
           prog.cwd = prog.resolve(dirname);
           if (prog.cwd.length > 0 && prog.cwd[$ - 1 .. $] != ":")
