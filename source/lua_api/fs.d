@@ -205,7 +205,7 @@ void registerFunctions(Program program)
         if (isDir(prog.actualFile(dirname)))
         {
           prog.cwd = prog.resolve(dirname);
-          if (prog.cwd.length && prog.cwd[prog.cwd.length - 1 .. prog.cwd.length] != ":")
+          if (prog.cwd.length > 0 && prog.cwd[$ - 1 .. $] != ":")
             prog.cwd ~= "/";
         }
         else

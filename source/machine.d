@@ -320,7 +320,7 @@ class Machine
       throw new Throwable("Invalid console path!");
     if (!this.drives.get(drive, null))
       throw new Throwable("No such drive!");
-    string path = consolePath[drive.length + 1 .. consolePath.length];
+    string path = consolePath[drive.length + 1 .. $];
     return buildNormalizedPath(this.drives[drive], path);
   }
 
@@ -613,22 +613,22 @@ class Machine
       {
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_A))
           this.hasGamepad = true;
-        gameBtns[i % gameBtns.length] |= GameBtns.right * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.right * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-        gameBtns[i % gameBtns.length] |= GameBtns.left * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.left * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-        gameBtns[i % gameBtns.length] |= GameBtns.up * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.up * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_DPAD_UP);
-        gameBtns[i % gameBtns.length] |= GameBtns.down * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.down * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_DPAD_DOWN);
 
-        gameBtns[i % gameBtns.length] |= GameBtns.a * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.a * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_A);
-        gameBtns[i % gameBtns.length] |= GameBtns.b * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.b * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_B);
-        gameBtns[i % gameBtns.length] |= GameBtns.x * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.x * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_X);
-        gameBtns[i % gameBtns.length] |= GameBtns.y * SDL_GameControllerGetButton(gamepad,
+        gameBtns[i % $] |= GameBtns.y * SDL_GameControllerGetButton(gamepad,
             SDL_CONTROLLER_BUTTON_Y);
 
         short lx = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_LEFTX);
@@ -636,15 +636,15 @@ class Machine
         short rx = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
         short ry = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
 
-        gameBtns[i % gameBtns.length] |= GameBtns.right * (lx > short.max / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.left * (lx < short.min / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.up * (ly < short.min / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.down * (ly > short.max / 2);
+        gameBtns[i % $] |= GameBtns.right * (lx > short.max / 2);
+        gameBtns[i % $] |= GameBtns.left * (lx < short.min / 2);
+        gameBtns[i % $] |= GameBtns.up * (ly < short.min / 2);
+        gameBtns[i % $] |= GameBtns.down * (ly > short.max / 2);
 
-        gameBtns[i % gameBtns.length] |= GameBtns.a * (rx > short.max / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.b * (ry < short.min / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.x * (rx < short.min / 2);
-        gameBtns[i % gameBtns.length] |= GameBtns.y * (ry > short.max / 2);
+        gameBtns[i % $] |= GameBtns.a * (rx > short.max / 2);
+        gameBtns[i % $] |= GameBtns.b * (ry < short.min / 2);
+        gameBtns[i % $] |= GameBtns.x * (rx < short.min / 2);
+        gameBtns[i % $] |= GameBtns.y * (ry > short.max / 2);
       }
       SDL_GameControllerClose(gamepad);
     }

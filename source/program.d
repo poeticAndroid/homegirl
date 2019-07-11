@@ -125,11 +125,11 @@ class Program
   {
     string drive = this.machine.getDrive(path);
     if (drive)
-      path = buildNormalizedPath(path[drive.length .. path.length]);
+      path = buildNormalizedPath(path[drive.length .. $]);
     else
     {
       drive = this.machine.getDrive(this.cwd);
-      path = buildNormalizedPath(this.cwd[drive.length .. this.cwd.length], path);
+      path = buildNormalizedPath(this.cwd[drive.length .. $], path);
     }
     path = replace(path, "\\", "/");
     auto segs = split(path, "/");

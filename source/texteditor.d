@@ -102,13 +102,12 @@ class TextEditor
     this.posHist ~= this.pos;
     if (this.textHist.length > 256)
     {
-      this.textHist = this.textHist[1 .. this.textHist.length];
-      this.posHist = this.posHist[1 .. this.posHist.length];
+      this.textHist = this.textHist[1 .. $];
+      this.posHist = this.posHist[1 .. $];
     }
 
     const text = toUTF32(replace(_text, "\r", ""));
-    this.text = this.text[0 .. this.pos] ~ text
-      ~ this.text[this.pos + this.selected .. this.text.length];
+    this.text = this.text[0 .. this.pos] ~ text ~ this.text[this.pos + this.selected .. $];
     this.pos += text.length;
     this.selected = 0;
     this.recalculate();
