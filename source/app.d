@@ -1,6 +1,8 @@
 import std.stdio;
 import std.file;
+import std.path;
 import std.json;
+import std.process : environment;
 import bindbc.sdl;
 import bindbc.freeimage;
 
@@ -12,6 +14,13 @@ int main(string[] args)
   writeln("Powering on...");
   Machine machine;
   JSONValue config;
+  string configFileName;
+
+  if (args.length > 1 && args[$ - 1][$ - 5 .. $] == ".json")
+    configFileName = args[$ - 1];
+  else
+    configFileName = "./homegirl.json";
+
   const ret = loadFreeImage();
   if (ret == FISupport.noLibrary)
     writeln("Couldn't load FreeImage!");
@@ -30,32 +39,54 @@ int main(string[] args)
   // read config
   try
   {
-    config = parseJSON(readText("./config.json"));
-    if (config["window"].type == JSONType.object)
-    {
-      if ("left" in config["window"] && "top" in config["window"])
-        SDL_SetWindowPosition(machine.win, cast(int) config["window"].object["left"].integer,
-            cast(int) config["window"].object["top"].integer,);
-      if ("width" in config["window"] && "height" in config["window"])
-        SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
-            cast(int) config["window"].object["height"].integer,);
-      if ("maximized" in config["window"] && config["window"].object["maximized"].boolean)
-        SDL_MaximizeWindow(machine.win);
-      if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
-        machine.toggleFullscren();
-    }
-    if (config["gameBindings"].type == JSONType.object)
-      setDefaultGameBindings(machine);
-    else
-      setDefaultGameBindings(machine);
+    config = parseJSON(readText(configFileName));
   }
   catch (Exception e)
   {
     writeln("no config!");
-    setDefaultGameBindings(machine);
+    config = parseJSON("{}");
   }
-
-  machine.mountDrive("sys", "./system_drive/");
+  if ("window" in config && config["window"].type == JSONType.object)
+  {
+    if ("left" in config["window"] && "top" in config["window"])
+      SDL_SetWindowPosition(machine.win, cast(int) config["window"].object["left"].integer,
+          cast(int) config["window"].object["top"].integer,);
+    if ("width" in config["window"] && "height" in config["window"])
+      SDL_SetWindowSize(machine.win, cast(int) config["window"].object["width"].integer,
+          cast(int) config["window"].object["height"].integer,);
+    if ("maximized" in config["window"] && config["window"].object["maximized"].boolean)
+      SDL_MaximizeWindow(machine.win);
+    if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
+      machine.toggleFullscren();
+  }
+  if ("drives" in config && config["drives"].type == JSONType.object)
+  {
+    string[] drives = config["drives"].object.keys();
+    for (uint i = 0; i < drives.length; i++)
+      machine.mountDrive(drives[i], config["drives"].object[drives[i]].str);
+  }
+  else
+  {
+    machine.mountDrive("sys", "./system_drive/");
+    version (Windows)
+    {
+      machine.mountDrive("user", buildNormalizedPath(environment["APPDATA"],
+          "Homegirl/user_drive/"));
+    }
+    else
+    {
+      if ("HOME" in environment)
+        machine.mountDrive("user", buildNormalizedPath(environment["HOME"],
+            ".config/Homegirl/user_drive/"));
+      else
+        machine.mountDrive("user", buildNormalizedPath("./user_drive/"));
+    }
+  }
+  if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
+  {
+  }
+  else
+    setDefaultGameBindings(machine);
 
   // run machine
   // machine.startProgram("startup.lua");
@@ -67,12 +98,16 @@ int main(string[] args)
   // write config
   try
   {
-    config = parseJSON(readText("./config.json"));
+    config = parseJSON(readText(configFileName));
   }
   catch (Exception e)
   {
-    config = parseJSON("{ \"window\":{} }");
+    config = parseJSON("{}");
   }
+  if (!("window" in config))
+    config["window"] = parseJSON("{}");
+  config["drives"] = parseJSON("{}");
+  // config["gameBindings"] = parseJSON("{}");
   int x;
   int y;
   x = SDL_GetWindowFlags(machine.win);
@@ -88,7 +123,10 @@ int main(string[] args)
     config["window"].object["width"] = JSONValue(x);
     config["window"].object["height"] = JSONValue(y);
   }
-  auto configFile = File("./config.json", "w");
+  for (uint i = 0; i < machine.drives.keys().length; i++)
+    config["drives"].object[machine.drives.keys()[i]] = machine.drives[machine.drives.keys()[i]];
+
+  auto configFile = File(configFileName, "w");
   configFile.write(toJSON(config, true));
   configFile.close();
 

@@ -283,7 +283,9 @@ class Machine
     name = toLower(name);
     if (this.drives.get(name, null))
       throw new Throwable("Drive '" ~ name ~ "' already mounted!");
-    this.drives[name] = buildNormalizedPath(path) ~ "/";
+    this.drives[name] = buildNormalizedPath(path) ~ dirSeparator;
+    if (!isDir(this.drives[name]))
+      mkdirRecurse(this.drives[name]);
   }
 
   /**
