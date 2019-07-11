@@ -68,10 +68,7 @@ class SoundChip
       this.buffer[p++] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
       this.lastTick++;
       if (this.timeToSync-- == 0)
-      {
         SDL_ClearQueuedAudio(this.dev);
-        this.lastTick += this.spec.freq;
-      }
     }
     if (SDL_GetQueuedAudioSize(this.dev) > this.spec.freq * float.sizeof)
       SDL_ClearQueuedAudio(this.dev);

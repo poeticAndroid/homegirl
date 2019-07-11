@@ -6,6 +6,7 @@ import std.path;
 import std.array;
 import std.file;
 import std.algorithm;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -416,8 +417,8 @@ class Program
 
   private void croak()
   {
-    auto err = fromStringz(lua_tostring(this.lua, -1));
-    this.write(2, cast(string)("Lua err: " ~ err ~ "\n"));
+    auto err = to!string(lua_tostring(this.lua, -1));
+    this.write(2, ("Lua err: " ~ err ~ "\n"));
     writeln("Lua err: " ~ err);
     this.running = false;
   }

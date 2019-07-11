@@ -7,6 +7,7 @@ import std.algorithm.searching;
 import std.algorithm.mutation;
 import std.path;
 import std.file;
+import std.conv;
 import bindbc.sdl;
 
 import viewport;
@@ -48,6 +49,7 @@ class Machine
 
     this.init_window();
     this.audio = new SoundChip();
+    this.env["Homegirl_version"] = VERSION;
   }
 
   /**
@@ -75,8 +77,7 @@ class Machine
       case SDL_TEXTINPUT:
         this.newInput = true;
         if (this.focusedViewport && this.focusedViewport.textinput)
-          this.focusedViewport.textinput.insertText(
-              cast(string) fromStringz(cast(char*)(event.text.text)));
+          this.focusedViewport.textinput.insertText(to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
         this.newInput = true;
@@ -545,7 +546,7 @@ class Machine
         SDL_SetClipboardText(toStringz(te.getSelectedText()));
         break;
       case SDLK_v:
-        te.insertText(cast(string) fromStringz(cast(char*)(SDL_GetClipboardText())));
+        te.insertText(to!string(cast(char*)(SDL_GetClipboardText())));
         break;
       default:
       }

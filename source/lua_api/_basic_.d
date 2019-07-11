@@ -3,6 +3,7 @@ module lua_api._basic_;
 import std.stdio;
 import std.string;
 import std.path;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -59,12 +60,12 @@ void registerFunctions(Program program)
   /// dofile(filename): result
   extern (C) int dofile(lua_State* L) @trusted
   {
-    const filename = fromStringz(lua_tostring(L, 1));
+    const filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      luaL_dofile(L, toStringz(prog.actualFile(cast(string) filename)));
+      luaL_dofile(L, toStringz(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)
@@ -80,12 +81,12 @@ void registerFunctions(Program program)
   /// loadfile(filename): function
   extern (C) int loadfile(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, 1);
+    const filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      luaL_loadfile(L, toStringz(prog.actualFile(cast(string) fromStringz(filename))));
+      luaL_loadfile(L, toStringz(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)
@@ -101,10 +102,10 @@ void registerFunctions(Program program)
   /// print(message)
   extern (C) int print(lua_State* L) @trusted
   {
-    const msg = fromStringz(lua_tostring(L, 1));
+    const msg = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.write(1, cast(string) msg ~ "\n");
+    prog.write(1, msg ~ "\n");
     writeln(prog.machine.baseName(prog.filename) ~ ": " ~ msg);
     return 0;
   }
@@ -114,19 +115,19 @@ void registerFunctions(Program program)
   /// require(filename): module
   extern (C) int require(lua_State* L) @trusted
   {
-    const filename = lua_tostring(L, 1);
+    const filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto path = toStringz(prog.actualFile(cast(string) fromStringz(filename)));
+      auto path = toStringz(prog.actualFile(filename));
       lua_getglobal(L, "package");
       lua_getfield(L, -1, "loaded");
       lua_getfield(L, -1, path);
       if (lua_isnoneornil(L, -1))
       {
         lua_pop(L, 1);
-        luaL_dofile(L, toStringz(fromStringz(path) ~ ".lua"));
+        luaL_dofile(L, toStringz(to!string(path) ~ ".lua"));
         lua_setfield(L, -2, path);
         lua_getfield(L, -1, path);
       }

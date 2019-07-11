@@ -12,8 +12,7 @@ function _init(args)
     list = sys.listenv()
     table.sort(list)
     for i, entry in pairs(list) do
-      print(entry)
-      -- print(entry .. " = " .. sys.env(entry))
+      print(entry .. " = " .. sys.env(entry))
     end
   end
 end

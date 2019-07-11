@@ -1,6 +1,7 @@
 module lua_api.image;
 
 import std.string;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -43,12 +44,12 @@ void registerFunctions(Program program)
   /// image.load(filename): img
   extern (C) int image_load(lua_State* L) @trusted
   {
-    auto filename = fromStringz(lua_tostring(L, 1));
+    auto filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.loadPixmap(prog.actualFile(cast(string) filename)));
+      lua_pushinteger(L, prog.loadPixmap(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)
@@ -64,12 +65,12 @@ void registerFunctions(Program program)
   /// image.loadanimation(filename): img[]
   extern (C) int image_loadanimation(lua_State* L) @trusted
   {
-    auto filename = fromStringz(lua_tostring(L, 1));
+    auto filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      uint[] anim = prog.loadAnimation(prog.actualFile(cast(string) filename));
+      uint[] anim = prog.loadAnimation(prog.actualFile(filename));
       lua_createtable(L, cast(uint) anim.length, 0);
       for (uint i = 0; i < anim.length; i++)
       {

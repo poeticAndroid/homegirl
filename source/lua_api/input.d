@@ -1,6 +1,7 @@
 module lua_api.input;
 
 import std.string;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -17,7 +18,7 @@ void registerFunctions(Program program)
   /// input.text([text]): text
   extern (C) int input_text(lua_State* L) @trusted
   {
-    const text = lua_tostring(L, 1);
+    const text = to!string(lua_tostring(L, 1));
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -26,7 +27,7 @@ void registerFunctions(Program program)
       if (!prog.activeViewport)
         throw new Throwable("No active viewport!");
       if (set)
-        prog.activeViewport.getTextinput().setText(cast(string) fromStringz(text));
+        prog.activeViewport.getTextinput().setText(text);
       lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
       return 1;
     }

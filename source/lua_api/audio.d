@@ -1,6 +1,7 @@
 module lua_api.audio;
 
 import std.string;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -29,12 +30,12 @@ void registerFunctions(Program program)
   /// audio.load(filename): sampl
   extern (C) int audio_load(lua_State* L) @trusted
   {
-    auto filename = fromStringz(lua_tostring(L, 1));
+    auto filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.loadSample(prog.actualFile(cast(string) filename)));
+      lua_pushinteger(L, prog.loadSample(prog.actualFile(filename)));
       return 1;
     }
     catch (Exception err)

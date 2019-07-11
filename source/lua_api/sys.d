@@ -1,6 +1,7 @@
 module lua_api.sys;
 
 import std.string;
+import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -67,14 +68,14 @@ void registerFunctions(Program program)
   /// sys.env(key[, value]): value
   extern (C) int sys_env(lua_State* L) @trusted
   {
-    const key = fromStringz(lua_tostring(L, 1));
-    const value = fromStringz(lua_tostring(L, 2));
+    const key = to!string(lua_tostring(L, 1));
+    const value = to!string(lua_tostring(L, 2));
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     if (set)
-      prog.machine.env[cast(string) key] = cast(string) value;
-    string val = prog.machine.env.get(cast(string) key, null);
+      prog.machine.env[key] = value;
+    string val = prog.machine.env.get(key, null);
     if (val)
       lua_pushstring(L, toStringz(val));
     else
@@ -101,21 +102,21 @@ void registerFunctions(Program program)
   /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted
   {
-    const filename = fromStringz(lua_tostring(L, 1));
+    const filename = to!string(lua_tostring(L, 1));
     const args_len = lua_rawlen(L, 2);
-    const cwd = fromStringz(lua_tostring(L, 3));
+    const cwd = to!string(lua_tostring(L, 3));
     string[] args;
     lua_pushnil(L);
     while (lua_next(L, 2))
     {
-      args ~= cast(string) fromStringz(lua_tostring(L, -1));
+      args ~= to!string(lua_tostring(L, -1));
       lua_pop(L, 1);
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      prog.machine.startProgram(prog.resolve(cast(string) filename), args, cast(string) cwd);
+      prog.machine.startProgram(prog.resolve(filename), args, cwd);
       lua_pushboolean(L, true);
       return 1;
     }
@@ -132,20 +133,20 @@ void registerFunctions(Program program)
   /// sys.startchild(filename[, args[]]): child
   extern (C) int sys_startchild(lua_State* L) @trusted
   {
-    const filename = fromStringz(lua_tostring(L, 1));
+    const filename = to!string(lua_tostring(L, 1));
     const args_len = lua_rawlen(L, 2);
     string[] args;
     lua_pushnil(L);
     while (lua_next(L, 2))
     {
-      args ~= cast(string) fromStringz(lua_tostring(L, -1));
+      args ~= to!string(lua_tostring(L, -1));
       lua_pop(L, 1);
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.startChild(prog.resolve(cast(string) filename), args));
+      lua_pushinteger(L, prog.startChild(prog.resolve(filename), args));
       return 1;
     }
     catch (Exception err)
@@ -207,14 +208,14 @@ void registerFunctions(Program program)
   extern (C) int sys_writetochild(lua_State* L) @trusted
   {
     const child = lua_tointeger(L, 1);
-    const str = fromStringz(lua_tostring(L, 2));
+    const str = to!string(lua_tostring(L, 2));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
         throw new Throwable("Invalid child!");
-      prog.children[cast(uint) child].write(0, cast(string) str);
+      prog.children[cast(uint) child].write(0, str);
       return 0;
     }
     catch (Exception err)
@@ -232,7 +233,7 @@ void registerFunctions(Program program)
   extern (C) int sys_readfromchild(lua_State* L) @trusted
   {
     const child = lua_tointeger(L, 1);
-    const str = fromStringz(lua_tostring(L, 2));
+    const str = to!string(lua_tostring(L, 2));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -257,7 +258,7 @@ void registerFunctions(Program program)
   extern (C) int sys_errorfromchild(lua_State* L) @trusted
   {
     const child = lua_tointeger(L, 1);
-    const str = fromStringz(lua_tostring(L, 2));
+    const str = to!string(lua_tostring(L, 2));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
