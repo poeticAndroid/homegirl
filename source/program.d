@@ -65,10 +65,6 @@ class Program
     string luacode = readText(this.actualFile(this.filename));
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(this.filename)))
       this.croak();
-    else if (lua_pcall(this.lua, 0, LUA_MULTRET, 0))
-      this.croak();
-    if (this.running)
-      this.call("_init");
   }
 
   /**
@@ -76,6 +72,12 @@ class Program
   */
   void step(uint timestamp)
   {
+    if (this.nextStep == 0 && this.running && lua_pcall(this.lua, 0, LUA_MULTRET, 0))
+      this.croak();
+    if (this.nextStep == 0 && this.running)
+      this.call("_init");
+    if (this.nextStep == 0)
+      this.nextStep = timestamp;
     if (this.running)
       this.call("_step", timestamp);
     this.nextStep += this.stepInterval;

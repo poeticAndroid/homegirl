@@ -16,7 +16,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.11";
+const VERSION = "0.1.11"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -126,12 +126,9 @@ class Machine
         else
         {
           if (program.nextStep == 0)
-          {
             this.newInput = true;
-            program.nextStep = SDL_GetTicks();
-          }
           if ((program.stepInterval < 0 && newInput)
-              || (program.stepInterval >= 0 && program.nextStep < SDL_GetTicks()))
+              || (program.stepInterval >= 0 && program.nextStep <= SDL_GetTicks()))
             program.step(SDL_GetTicks());
         }
       }
