@@ -281,16 +281,11 @@ class Machine
   void mountDrive(string name, string path)
   {
     name = toLower(name);
-    path = buildNormalizedPath(path);
+    path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Throwable("Drive '" ~ name ~ "' already mounted!");
-    try
-    {
+    if (!exists(path) || !isDir(path))
       mkdirRecurse(path);
-    }
-    catch (Exception err)
-    {
-    }
     if (path[$ - 1 .. $] != dirSeparator)
       path ~= dirSeparator;
     this.drives[name] = path;

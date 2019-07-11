@@ -16,10 +16,22 @@ int main(string[] args)
   JSONValue config;
   string configFileName;
 
+  version (Windows)
+  {
+    configFileName = buildNormalizedPath(environment["APPDATA"], "Homegirl/config.json");
+  }
+  else
+  {
+    if ("HOME" in environment)
+      configFileName = buildNormalizedPath(environment["HOME"], ".config/Homegirl/config.json");
+    else
+      configFileName = "./config.json";
+  }
   if (args.length > 1 && args[$ - 1][$ - 5 .. $] == ".json")
     configFileName = args[$ - 1];
-  else
+  else if (exists("./homegirl.json") && isFile("./homegirl.json"))
     configFileName = "./homegirl.json";
+  writeln("Configuration file: ", configFileName);
 
   const ret = loadFreeImage();
   if (ret == FISupport.noLibrary)
