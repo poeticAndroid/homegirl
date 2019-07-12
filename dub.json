@@ -25,6 +25,12 @@
 			]
 		}
 	},
+	"copyFiles-windows-x86": [
+		"dlls/x86/*.dll"
+	],
+	"copyFiles-windows-x86_64": [
+		"dlls/x86_64/*.dll"
+	],
 	"preBuildCommands": [
 		"sh build_api_doc.sh"
 	]
