@@ -19,6 +19,9 @@ function _init(args)
   if mode > 15 then
     mode = 15
   end
+  if height > scrnh then
+    mode = mode + 16
+  end
   view.screenmode(scrn, mode, 8)
   scrnw, scrnh = view.size(scrn)
   image.copymode(0)
@@ -74,9 +77,18 @@ function _step(t)
 end
 
 function zoom(amount)
+  wide = mode < 16
   mode = mode + amount
-  if mode > 15 then
-    mode = 15
+  if math.abs(amount) == 5 then
+    if wide and mode >= 16 then
+      mode = mode - 4
+    end
+    if not wide and mode < 16 then
+      mode = mode + 4
+    end
+  end
+  if mode > 31 then
+    mode = 31
   end
   if mode < 0 then
     mode = 0

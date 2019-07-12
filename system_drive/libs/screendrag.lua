@@ -20,7 +20,7 @@ function screendrag.step(scrn)
     end
   elseif screendrag.state > 0 then
     local left, top = view.position(scrn)
-    view.position(scrn, 0, top + y)
+    view.position(scrn, 0, top + y - 5)
   end
   if input.hotkey() == "q" then
     sys.exit(0)

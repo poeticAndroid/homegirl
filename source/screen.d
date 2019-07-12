@@ -28,7 +28,7 @@ class Screen : Viewport
     void changeMode(ubyte mode, ubyte colorBits)
     {
       this.pixmap.destroyTexture();
-      if (mode > 15)
+      if (mode > 31)
         throw new Exception("Unsupported screen mode!");
       if (colorBits > 8)
         throw new Exception("Unsupported number of colorBits!");
@@ -39,7 +39,11 @@ class Screen : Viewport
       mode /= 4;
       for (uint i = 0; i < (mode % 4); i++)
         this.pixelHeight /= 2;
-      this.pixmap = new Pixmap(640 / this.pixelWidth, 360 / this.pixelHeight, colorBits);
+      mode /= 4;
+      uint height = 360;
+      if (mode)
+        height = 480;
+      this.pixmap = new Pixmap(640 / this.pixelWidth, height / this.pixelHeight, colorBits);
     }
 
     /**

@@ -1,4 +1,4 @@
-scrn = view.newscreen(11, 2)
+scrn = view.newscreen(16 + 11, 2)
 scrnw, scrnh = view.size(scrn)
 spare = image.new(scrnw, scrnh, 4)
 font = text.loadfont("sys:fonts/Victoria.8b.gif")

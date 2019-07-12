@@ -92,7 +92,9 @@ class Machine
         switch (event.key.keysym.sym)
         {
         case SDLK_F7:
-          SDL_SetWindowSize(this.win, (640 + 32) * scale, (360 + 18) * scale);
+          SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 18)
+              * scale);
+          SDL_SetWindowPosition(this.win, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           break;
         case SDLK_F8:
           this.audio.sync();
@@ -280,7 +282,7 @@ class Machine
   */
   void mountDrive(string name, string path)
   {
-    name = toLower(name);
+    name = toUpper(name);
     path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Throwable("Drive '" ~ name ~ "' already mounted!");
@@ -296,7 +298,7 @@ class Machine
   */
   void unmountDrive(string name)
   {
-    name = toLower(name);
+    name = toUpper(name);
     if (!this.drives.get(name, null))
       return;
     uint inUse = 0;
@@ -335,7 +337,7 @@ class Machine
     if (i <= 0)
       return null;
     else
-      return toLower(path[0 .. i]) ~ end;
+      return toUpper(path[0 .. i]) ~ end;
   }
 
   /**
@@ -374,6 +376,7 @@ class Machine
   private uint bootupState = 5;
   private uint nextBootup;
   private bool newInput;
+  private bool oldAspect;
 
   private void init_window()
   {
@@ -404,7 +407,9 @@ class Machine
       this.cursorBlank += 1024;
     }
     const width = 640;
-    const height = 360;
+    uint height = 360;
+    if (this.oldAspect)
+      height = 480;
     int dx;
     int dy;
     SDL_GetWindowSize(this.win, &dx, &dy);
@@ -460,7 +465,9 @@ class Machine
   private void drawScreens()
   {
     const width = 640;
-    const height = 360;
+    uint height = 360;
+    if (this.oldAspect)
+      height = 480;
     int dx;
     int dy;
     SDL_GetWindowSize(this.win, &dx, &dy);
@@ -479,19 +486,22 @@ class Machine
     dy = (dy - height * scale) / 2;
     int highest = 1024;
 
+    bool oldAspect = false;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
       if (screen.top < 0)
         screen.top = 0;
-      if (screen.top > 360)
-        screen.top = 360;
+      if (screen.top > height)
+        screen.top = height;
       auto pixmap = screen.pixmap;
       int nextPos = height;
       if (this.screens.length > i + 1)
         nextPos = this.screens[i + 1].top;
       if (screen.top >= nextPos)
         continue;
+      if (screen.pixmap.height * screen.pixelHeight > 400)
+        oldAspect = true;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
       if (screen.top <= highest)
@@ -509,7 +519,7 @@ class Machine
       rect.x = 0;
       rect.y = 0;
       rect.w = pixmap.width;
-      rect.h = pixmap.height - screen.top / screen.pixelHeight;
+      rect.h = pixmap.height; // - screen.top / screen.pixelHeight;
       rect2.x = dx;
       rect2.y = dy + screen.top * scale;
       rect2.w = rect.w * screen.pixelWidth * scale;
@@ -519,7 +529,11 @@ class Machine
         pixmap.initTexture(this.ren);
       pixmap.updateTexture();
       SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
+      rect2.y = dy + height * scale;
+      SDL_RenderFillRect(ren, rect2);
     }
+    if (this.lastmb == 0)
+      this.oldAspect = oldAspect;
     SDL_RenderPresent(this.ren);
   }
 

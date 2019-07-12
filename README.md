@@ -13,7 +13,7 @@ Hopefully I would also get to make some decent tools, like text editor, music ed
 Specs
 -----
  - **Programming language:** Lua ([See API](./api.md))
- - **Screen resolutions:** 16 combinations of 80, 160, 320 or 640 pixels horizontally and 45, 90, 180 or 360 pixels vertically
+ - **Screen resolutions:** 4 horizontal * 4 vertical * 2 aspect ratios = 32 resolutions in total!
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** 4 8-bit PCM channels in stereo
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
