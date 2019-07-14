@@ -106,11 +106,14 @@ void registerFunctions(Program program)
     const args_len = lua_rawlen(L, 2);
     const cwd = to!string(lua_tostring(L, 3));
     string[] args;
-    lua_pushnil(L);
-    while (lua_next(L, 2))
+    if (args_len)
     {
-      args ~= to!string(lua_tostring(L, -1));
-      lua_pop(L, 1);
+      lua_pushnil(L);
+      while (lua_next(L, 2))
+      {
+        args ~= to!string(lua_tostring(L, -1));
+        lua_pop(L, 1);
+      }
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -136,11 +139,14 @@ void registerFunctions(Program program)
     const filename = to!string(lua_tostring(L, 1));
     const args_len = lua_rawlen(L, 2);
     string[] args;
-    lua_pushnil(L);
-    while (lua_next(L, 2))
+    if (args_len)
     {
-      args ~= to!string(lua_tostring(L, -1));
-      lua_pop(L, 1);
+      lua_pushnil(L);
+      while (lua_next(L, 2))
+      {
+        args ~= to!string(lua_tostring(L, -1));
+        lua_pop(L, 1);
+      }
     }
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

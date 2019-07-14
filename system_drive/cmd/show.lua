@@ -57,17 +57,17 @@ function _step(t)
   if btn & 8 > 0 then
     y = y - 1
   end
-  if _lastbtn == 0 and btn & 16 > 0 then
-    zoom(0)
+  if _lastbtn == 0 and btn & 16 > 0 then -- A
+    zoom(-32)
   end
-  if _lastbtn == 0 and btn & 32 > 0 then
+  if _lastbtn == 0 and btn & 32 > 0 then -- B
+    zoom(16)
+  end
+  if _lastbtn == 0 and btn & 64 > 0 then -- X
     zoom(1)
   end
-  if _lastbtn == 0 and btn & 64 > 0 then
-    zoom(5)
-  end
-  if _lastbtn == 0 and btn & 128 > 0 then
-    zoom(-5)
+  if _lastbtn == 0 and btn & 128 > 0 then -- Y
+    zoom(4)
   end
   _lastbtn = btn
   image.usepalette(anim[f])
@@ -77,21 +77,12 @@ function _step(t)
 end
 
 function zoom(amount)
-  wide = mode < 16
   mode = mode + amount
-  if math.abs(amount) == 5 then
-    if wide and mode >= 16 then
-      mode = mode - 4
-    end
-    if not wide and mode < 16 then
-      mode = mode + 4
-    end
-  end
-  if mode > 31 then
-    mode = 31
-  end
   if mode < 0 then
     mode = 0
+  end
+  while mode >= 32 do
+    mode = mode - 32
   end
   view.screenmode(scrn, mode, 8)
   scrnw, scrnh = view.size(scrn)

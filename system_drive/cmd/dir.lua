@@ -18,6 +18,10 @@ function _init(args)
         print(line .. entry)
         line = ""
       end
+      if #line >= 35 then
+        print(line)
+        line = ""
+      end
     end
   end
   if line ~= "" then

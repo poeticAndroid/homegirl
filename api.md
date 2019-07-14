@@ -48,6 +48,7 @@
     image.forget(img)
 ##  input
     input.text([text]): text
+    input.selected([text]): text
     input.cursor([pos, selected]): pos, selected
     input.clearhistory()
     input.hotkey(): hotkey

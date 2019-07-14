@@ -42,6 +42,33 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_text);
   luaL_dostring(lua, "input.text = _");
 
+  /// input.selected([text]): text
+  extern (C) int input_selected(lua_State* L) @trusted
+  {
+    const text = to!string(lua_tostring(L, 1));
+    const set = 1 - lua_isnoneornil(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Throwable("No active viewport!");
+      if (set)
+        prog.activeViewport.getTextinput().insertText(text);
+      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getSelectedText()));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushstring(L, toStringz(err.msg));
+      lua_error(L);
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_selected);
+  luaL_dostring(lua, "input.selected = _");
+
   /// input.cursor([pos, selected]): pos, selected
   extern (C) int input_cursor(lua_State* L) @trusted
   {

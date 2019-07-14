@@ -103,7 +103,10 @@ class Viewport
   */
   bool containsViewport(Viewport vp)
   {
-    return vp.isInViewport(this);
+    if (vp)
+      return vp.isInViewport(this);
+    else
+      return false;
   }
 
   /**

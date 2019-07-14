@@ -1,4 +1,4 @@
-scrn = view.newscreen(16 + 11, 2)
+scrn = view.newscreen(11, 2)
 scrnw, scrnh = view.size(scrn)
 spare = image.new(scrnw, scrnh, 4)
 font = text.loadfont("sys:fonts/Victoria.8b.gif")
@@ -8,6 +8,8 @@ termline = ""
 termbottom = fontsize
 state = 1
 task = nil
+history = {}
+histpos = #history
 
 function _init()
   gfx.palette(0, 0, 5, 10)
@@ -20,10 +22,32 @@ end
 
 function _step()
   local inp = input.text()
+  if string.find(inp, "\t") ~= nil then
+    input.text(tabcomplete(inp, fs.list()))
+  end
   if string.find(inp, "\n") ~= nil then
     submit(string.gsub(inp, "\n", ""))
   end
   if state == 0 then
+    local btn = input.gamepad()
+    if lastinp == inp and lastbtn == 0 and btn > 0 then
+      if btn & 4 > 0 then
+        histpos = histpos - 1
+        if histpos < 1 then
+          histpos = 1
+        end
+        input.text(history[histpos])
+      end
+      if btn & 8 > 0 then
+        histpos = histpos + 1
+        if histpos > #history then
+          histpos = #history + 1
+          input.text("")
+        end
+        input.text(history[histpos])
+      end
+    end
+    lastbtn = btn
     out("")
   elseif state == 1 then
     if task == nil then
@@ -33,7 +57,7 @@ function _step()
       out(sys.readfromchild(task))
       out(sys.errorfromchild(task))
       if sys.childrunning(task) then
-        if (input.hotkey() == "c") then
+        if (input.hotkey() == "\x1b") then
           sys.killchild(task)
         end
       else
@@ -42,6 +66,7 @@ function _step()
       end
     end
   end
+  lastinp = inp
 end
 
 function _shutdown()
@@ -50,16 +75,19 @@ end
 
 function submit(line)
   local cmd = ""
-  local args = {}
+  local args = parsecmd(line)
+  out(line .. "\n")
   input.text("")
+  input.clearhistory()
   if state == 0 then
-    while string.find(line, " ") ~= nil do
-      table.insert(args, string.sub(line, 1, string.find(line, " ") - 1))
-      line = string.sub(line, string.find(line, " ") + 1)
-    end
-    table.insert(args, line)
     cmd = table.remove(args, 1)
-    out(cmd .. " " .. table.concat(args, " ") .. "\n")
+    if cmd then
+      if searchhistory(line) then
+        table.remove(history, searchhistory(line))
+      end
+      table.insert(history, line)
+    end
+    histpos = #history + 1
 
     if (cmd == "endcli") then
       sys.exit(0)
@@ -72,7 +100,7 @@ function submit(line)
     elseif (cmd == "help") then
       out("Builtin commands: cd, clear, endcli, help\n\nsys:cmd/\n")
       task = sys.startchild("sys:cmd/dir.lua", {"sys:cmd/"})
-    elseif cmd ~= "" then
+    elseif cmd and cmd ~= "" then
       if task == nil then
         task = sys.startchild(cmd, args)
       end
@@ -93,7 +121,6 @@ function submit(line)
   elseif state == 1 then
     if task ~= nil then
       sys.writetochild(task, line .. "\n")
-      out(line .. "\n")
     end
   end
 end
@@ -163,4 +190,76 @@ function wrap(txt, width)
     end
   end
   return out
+end
+
+function parsecmd(line)
+  local args = {}
+  local arg = nil
+  local term = " "
+  local esc = false
+  for i = 1, #line do
+    local char = string.sub(line, i, i)
+    if esc then
+      arg = arg .. char
+      esc = false
+    elseif char == term then
+      if arg ~= nil then
+        table.insert(args, arg)
+        arg = nil
+        term = " "
+      end
+    elseif term == " " and (char == '"' or char == "'") then
+      term = char
+      arg = ""
+    else
+      if arg == nil then
+        arg = ""
+      end
+      if char == "\\" then
+        esc = true
+      else
+        arg = arg .. char
+      end
+    end
+  end
+  if arg ~= nil then
+    table.insert(args, arg)
+  end
+  return args
+end
+
+function searchhistory(line)
+  for i = 1, #history do
+    if history[i] == line then
+      return i
+    end
+  end
+  return nil
+end
+
+function tabcomplete(line, options)
+  local tabpos = string.find(line, "\t")
+  if not tabpos then
+    return line
+  end
+  local rest = string.sub(line, tabpos + 1)
+  local args = parsecmd(string.sub(line, 1, tabpos - 1))
+  local arg = table.remove(args)
+  if not arg then
+    return line
+  end
+  for i = 1, #options do
+    local opt = options[i]
+    if string.lower(string.sub(opt, 1, #arg)) == string.lower(arg) then
+      arg = opt
+    end
+  end
+  table.insert(args, arg)
+  line = ""
+  for i = 1, #args do
+    arg = args[i]
+    line = line .. string.gsub(arg, " ", "\\ ") .. " "
+  end
+  line = line .. rest
+  return line
 end

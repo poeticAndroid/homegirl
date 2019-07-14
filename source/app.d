@@ -27,11 +27,11 @@ int main(string[] args)
     else
       configFileName = "./config.json";
   }
+  if (exists("./homegirl.json") && isFile("./homegirl.json"))
+    configFileName = "./homegirl.json";
   if (args.length > 1 && args[$ - 1][$ - 5 .. $] == ".json")
     configFileName = args[$ - 1];
-  else if (exists("./homegirl.json") && isFile("./homegirl.json"))
-    configFileName = "./homegirl.json";
-  writeln("Configuration file: ", configFileName);
+  writeln("Config file: ", configFileName);
 
   const ret = loadFreeImage();
   if (ret == FISupport.noLibrary)

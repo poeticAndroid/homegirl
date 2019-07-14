@@ -16,7 +16,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.1.11"; /// version of the software
+const VERSION = "0.1.12"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -159,7 +159,7 @@ class Machine
         SDL_SetRenderDrawColor(this.ren, 255, 255, 255, 255);
         break;
       case 5:
-        this.startProgram("sys:startup.lua");
+        this.startProgram("SYS:startup.lua");
         this.bootupState = 0;
         break;
       default:
@@ -370,6 +370,8 @@ class Machine
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
   private auto rect2 = new SDL_Rect();
+  private int lastmx = 0;
+  private int lastmy = 0;
   private uint lastmb = 0;
   private ulong lastgmb = 0;
   private uint scale;
@@ -459,6 +461,12 @@ class Machine
     {
       this.newInput = true;
       this.lastmb = mb;
+    }
+    if (mb && (this.lastmx != mx || this.lastmy != my))
+    {
+      this.newInput = true;
+      this.lastmx = mx;
+      this.lastmy = my;
     }
   }
 
