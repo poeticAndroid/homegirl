@@ -210,11 +210,9 @@ function parsecmd(line)
       end
     elseif term == " " and (char == '"' or char == "'") then
       term = char
-      arg = ""
+      arg = arg or ""
     else
-      if arg == nil then
-        arg = ""
-      end
+      arg = arg or ""
       if char == "\\" then
         esc = true
       else

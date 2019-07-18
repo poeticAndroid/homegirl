@@ -16,7 +16,7 @@ import program;
 import texteditor;
 import soundchip;
 
-const VERSION = "0.2.0"; /// version of the software
+const VERSION = "0.2.5"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -676,7 +676,7 @@ class Machine
     ulong neo = 0;
     for (uint i = 0; i < gameBtns.length; i++)
     {
-      neo *= 256;
+       neo *= 256;
       neo += gameBtns[i];
       this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }
