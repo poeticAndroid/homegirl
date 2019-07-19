@@ -15,6 +15,8 @@ import screen;
 import program;
 import texteditor;
 import soundchip;
+import pixmap;
+import image_loader;
 
 const VERSION = "0.2.5"; /// version of the software
 
@@ -36,6 +38,7 @@ class Machine
   SoundChip audio; /// audio output
   string[string] drives; /// a table of all the console drives and their corresponding host folder
   string[string] env; /// environment variables
+  Pixmap[][string] fonts; /// fonts loaded
 
   /**
     Create a new machine
@@ -312,6 +315,16 @@ class Machine
     if (inUse)
       throw new Throwable("Drive '" ~ name ~ "' is in use!");
     this.drives[name] = null;
+  }
+
+  /**
+    load a font
+  */
+  Pixmap[] getFont(string filename)
+  {
+    if (!this.fonts.get(filename, null))
+      this.fonts[filename] = image_loader.loadAnimation(filename);
+    return this.fonts[filename];
   }
 
   /**
@@ -676,7 +689,7 @@ class Machine
     ulong neo = 0;
     for (uint i = 0; i < gameBtns.length; i++)
     {
-       neo *= 256;
+      neo *= 256;
       neo += gameBtns[i];
       this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }

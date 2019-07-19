@@ -375,7 +375,7 @@ class Program
   */
   uint loadFont(string filename)
   {
-    return this.addFont(image_loader.loadAnimation(filename));
+    return this.addFont(this.machine.getFont(filename));
   }
 
   /**
