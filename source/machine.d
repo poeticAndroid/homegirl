@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.2.5"; /// version of the software
+const VERSION = "0.2.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -50,7 +50,7 @@ class Machine
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
       throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
 
-    this.init_window();
+    this.initWindow();
     this.audio = new SoundChip();
     this.env["Homegirl_version"] = VERSION;
   }
@@ -270,6 +270,7 @@ class Machine
     {
       SDL_SetWindowFullscreen(this.win, 0);
     }
+    this.initWindow();
   }
 
   /**
@@ -334,9 +335,9 @@ class Machine
   {
     string drive = this.getDrive(consolePath, "");
     if (!drive)
-      throw new Throwable("Invalid console path!");
+      return null;
     if (!this.drives.get(drive, null))
-      throw new Throwable("No such drive!");
+      return null;
     string path = consolePath[drive.length + 1 .. $];
     return buildNormalizedPath(this.drives[drive], path);
   }
@@ -393,11 +394,26 @@ class Machine
   private bool newInput;
   private bool oldAspect;
 
-  private void init_window()
+  private void initWindow()
   {
+    int x = SDL_WINDOWPOS_CENTERED;
+    int y = SDL_WINDOWPOS_CENTERED;
+    int w = 640 + 48;
+    int h = 360 + 48;
+    SDL_WindowFlags flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+    if (this.win)
+    {
+      flags = SDL_GetWindowFlags(this.win);
+      if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP)
+        SDL_SetWindowFullscreen(this.win, 0);
+      if (flags & SDL_WINDOW_MAXIMIZED)
+        SDL_RestoreWindow(this.win);
+      SDL_GetWindowPosition(this.win, &x, &y);
+      SDL_GetWindowSize(this.win, &w, &h);
+      this.destroyWindow();
+    }
     // Create a window
-    this.win = SDL_CreateWindow(toStringz("Homegirl " ~ VERSION), SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, 640 + 48, 360 + 48, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    this.win = SDL_CreateWindow(toStringz("Homegirl " ~ VERSION), x, y, w, h, flags);
     if (win == null)
     {
       SDL_Quit();
@@ -412,6 +428,14 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
+  }
+
+  private void destroyWindow()
+  {
+    for (uint i = 0; i < this.screens.length; i++)
+      this.screens[i].pixmap.destroyTexture();
+    SDL_DestroyRenderer(ren);
+    SDL_DestroyWindow(win);
   }
 
   private void trackMouse()
