@@ -1,1 +1,1 @@
-dofile("shell.lua")
+dofile("/cmd/shell.lua")

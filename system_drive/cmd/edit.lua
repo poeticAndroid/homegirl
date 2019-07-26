@@ -3,6 +3,8 @@ filename = nil
 lasttxt = ""
 scrn = view.newscreen(11, 2)
 font = text.loadfont("sys:fonts/Victoria.8b.gif")
+statustxt = ""
+statusto = 0
 
 function _init(args)
   gfx.palette(0, 0,0,0)
@@ -28,10 +30,16 @@ function _step(t)
   local deltalen = #txt - #lasttxt
   local pos, sel = input.cursor()
   local lines = getlines(txt)
+  local gutter = ""
+  local gutterw = 0
   line, col = txtpos(txt, pos)
   local top = 86 - 8 * line
+  local left = 500 - 8 * col
   if top > 0 then
     top = 0
+  end
+  if left > 0 then
+    left = 0
   end
   if deltalen > 0 then
     if string.sub(txt, pos, pos) == "\n" then
@@ -49,24 +57,39 @@ function _step(t)
   end
   if input.hotkey() == "s" then
     fs.write(filename, input.text())
-    print("saved " .. filename)
+    setstatus("saved " .. filename, t)
   end
   lasttxt = txt
 
+  gutterw = string.len("" .. #lines)
+  for i = 1, #lines do
+    gutter = gutter .. string.format("%0" .. gutterw .. "d", i) .. "\n"
+  end
   gfx.cls()
+  gutterw = text.draw(gutter, font, 0, top) + 4
   gfx.fgcolor(1)
-  text.draw(txt, font, 0, top)
+  text.draw(txt, font, gutterw + left, top)
   gfx.fgcolor(3)
-  text.draw(string.sub(txt, 0, pos) .. "\x7f", font, 0, top)
-  text.draw(string.sub(txt, 0, pos + sel), font, 0, top)
+  text.draw(string.sub(txt, 0, pos) .. "\x7f", font, gutterw + left, top)
+  text.draw(string.sub(txt, 0, pos + sel), font, gutterw + left, top)
   if sel == 0 then
     gfx.fgcolor(2)
   else
     gfx.fgcolor(1)
   end
-  text.draw(string.sub(txt, 0, pos + 1), font, 0, top)
+  text.draw(string.sub(txt, 0, pos + 1), font, gutterw + left, top)
   gfx.fgcolor(1)
-  text.draw(string.sub(txt, 0, pos), font, 0, top)
+  text.draw(string.sub(txt, 0, pos), font, gutterw + left, top)
+  gfx.fgcolor(0)
+  gfx.bar(0, 0, gutterw, 1024)
+  gfx.fgcolor(3)
+  text.draw(gutter, font, 0, top)
+  if statusto > t then
+    gfx.fgcolor(3)
+    gutterw = view.size(scrn)
+    gutterw = gutterw - text.draw(statustxt, font, gutterw, 0)
+    text.draw(statustxt, font, gutterw, 0)
+  end
   screendrag.step(scrn)
 end
 
@@ -114,4 +137,9 @@ function getindent(line)
     end
   end
   return indent
+end
+
+function setstatus(txt, t)
+  statustxt = txt
+  statusto = t + 1024
 end
