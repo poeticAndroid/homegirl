@@ -2,6 +2,8 @@ Homegirl
 ========
 It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
+[💾 Download it here! 💾](https://github.com/poeticAndroid/homegirl/releases)
+
 It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It has 4 channel 8-bit stereo sound and eventually ability to mount web-servers as drives..
 
 The software for it, is based on Lua, which is a pretty simple and fast scripting language..
