@@ -174,14 +174,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       lua_pushboolean(L, prog.children[cast(uint) child].running);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -198,14 +197,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       lua_pushinteger(L, prog.children[cast(uint) child].exitcode);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -220,14 +218,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       prog.children[cast(uint) child].write(0, str);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -245,14 +242,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       lua_pushstring(L, toStringz(prog.children[cast(uint) child].read(1)));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -270,14 +266,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       lua_pushstring(L, toStringz(prog.children[cast(uint) child].read(2)));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -294,14 +289,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       prog.children[cast(uint) child].shutdown(-1);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -318,14 +312,13 @@ void registerFunctions(Program program)
     try
     {
       if (child >= prog.children.length || !prog.children[cast(uint) child])
-        throw new Throwable("Invalid child!");
+        throw new Exception("Invalid child!");
       prog.removeChild(cast(uint) child);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }

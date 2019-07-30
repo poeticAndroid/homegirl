@@ -25,7 +25,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.getTextinput().setText(text);
       lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
@@ -33,8 +33,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -52,7 +51,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.getTextinput().insertText(text);
       lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getSelectedText()));
@@ -60,8 +59,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -80,7 +78,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
       {
         prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
@@ -92,8 +90,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -109,14 +106,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       prog.activeViewport.getTextinput().clearHistory();
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -132,14 +128,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       lua_pushstring(L, toStringz("" ~ prog.activeViewport.hotkey));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -155,7 +150,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       lua_pushinteger(L, prog.activeViewport.mouseX);
       lua_pushinteger(L, prog.activeViewport.mouseY);
       lua_pushinteger(L, prog.activeViewport.mouseBtn);
@@ -163,8 +158,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -181,14 +175,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       lua_pushinteger(L, prog.activeViewport.getGameBtn(cast(ubyte) player));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }

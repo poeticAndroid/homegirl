@@ -66,7 +66,7 @@ function _step(t)
     gutter = gutter .. string.format("%0" .. gutterw .. "d", i) .. "\n"
   end
   gfx.cls()
-  gutterw = text.draw(gutter, font, 0, top) + 4
+  gutterw = text.draw(gutter, font, 0, top) + 8
   gfx.fgcolor(1)
   text.draw(txt, font, gutterw + left, top)
   gfx.fgcolor(3)

@@ -65,13 +65,13 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      luaL_dofile(L, toStringz(prog.actualFile(filename)));
+      if (luaL_dofile(L, toStringz(prog.actualFile(filename))))
+        throw new Exception("Cannot do file " ~ filename);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -86,13 +86,13 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      luaL_loadfile(L, toStringz(prog.actualFile(filename)));
+      if (luaL_loadfile(L, toStringz(prog.actualFile(filename))))
+        throw new Exception("Cannot load file " ~ filename);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -127,7 +127,8 @@ void registerFunctions(Program program)
       if (lua_isnoneornil(L, -1))
       {
         lua_pop(L, 1);
-        luaL_dofile(L, toStringz(to!string(path) ~ ".lua"));
+        if (luaL_dofile(L, toStringz(to!string(path) ~ ".lua")))
+          throw new Exception("Cannot require file " ~ filename);
         lua_setfield(L, -2, path);
         lua_getfield(L, -1, path);
       }
@@ -135,8 +136,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }

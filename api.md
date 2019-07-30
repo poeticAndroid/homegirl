@@ -39,7 +39,7 @@
     image.load(filename): img
     image.loadanimation(filename): img[]
     image.size(img): width, height
-    image.duration(img): height
+    image.duration(img): milliseconds
     image.copymode([mode]): mode
     image.draw(img, x, y, imgx, imgy, width, height)
     image.copy(img, x, y, imgx, imgy, width, height)

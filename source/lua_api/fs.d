@@ -202,14 +202,14 @@ void registerFunctions(Program program)
     {
       if (set)
       {
-        if (exists(prog.actualFile(dirname)) && isDir(prog.actualFile(dirname)))
+        if (!exists(prog.actualFile(dirname)) || !isDir(prog.actualFile(dirname)))
         {
-          prog.cwd = prog.resolve(dirname);
-          if (prog.cwd.length > 0 && prog.cwd[$ - 1 .. $] != ":")
-            prog.cwd ~= "/";
+          lua_pushnil(L);
+          return 1;
         }
-        else
-          throw new Throwable("Directory doesn't exist!");
+        prog.cwd = prog.resolve(dirname);
+        if (prog.cwd.length > 0 && prog.cwd[$ - 1 .. $] != ":")
+          prog.cwd ~= "/";
       }
       lua_pushstring(L, toStringz(prog.cwd));
       return 1;

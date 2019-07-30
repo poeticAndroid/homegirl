@@ -17,7 +17,7 @@ function _init()
     audio.sample(square, len, val)
   end
   audio.sampleloop(square, 0, 8)
-  start, endd = audio.sampleloop()
+  start, endd = audio.sampleloop(square)
   audio.play(1, square)
   audio.play(2, square)
   sys.stepinterval(200)

@@ -22,14 +22,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       prog.activeViewport.pixmap.cls();
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -50,11 +49,11 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r,
             cast(ubyte) g, cast(ubyte) b);
-      uint i = cast(uint)((c * 3) % prog.activeViewport.pixmap.palette.length);
+      uint i = cast(uint)(c * 3) % prog.activeViewport.pixmap.palette.length;
       lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
       lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
       lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
@@ -62,8 +61,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -81,7 +79,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.setFGColor(cast(ubyte) cindex);
       lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
@@ -89,8 +87,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -108,7 +105,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.setBGColor(cast(ubyte) cindex);
       lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
@@ -116,8 +113,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -137,7 +133,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
       lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
@@ -145,8 +141,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -164,14 +159,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       prog.activeViewport.pixmap.plot(cast(uint) x, cast(uint) y);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -191,14 +185,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      prog.activeViewport.pixmap.bar(cast(int) x, cast(int) y, cast(uint) width, cast(uint) height);
+        throw new Exception("No active viewport!");
+      prog.activeViewport.pixmap.bar(cast(int) x, cast(int) y, cast(int) width, cast(int) height);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -218,14 +211,13 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       prog.activeViewport.pixmap.line(cast(int) x1, cast(int) y1, cast(int) x2, cast(int) y2);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }

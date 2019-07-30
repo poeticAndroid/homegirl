@@ -32,8 +32,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -92,19 +91,20 @@ void registerFunctions(Program program)
   /// image.size(img): width, height
   extern (C) int image_size(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, 1);
+    const imgID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].width);
-      lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].height);
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
+      lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].width);
+      lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].height);
       return 2;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -112,21 +112,22 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_size);
   luaL_dostring(lua, "image.size = _");
 
-  /// image.duration(img): height
+  /// image.duration(img): milliseconds
   extern (C) int image_duration(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, 1);
+    const imgID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.pixmaps[cast(uint) imgId].duration);
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
+      lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].duration);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -144,7 +145,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.copymode = cast(CopyMode) mode;
       lua_pushinteger(L, prog.activeViewport.pixmap.copymode);
@@ -152,8 +153,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -176,9 +176,9 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
-        throw new Throwable("Invalid image!");
+        throw new Exception("Invalid image!");
       prog.activeViewport.pixmap.copyFrom(prog.pixmaps[cast(uint) imgID],
           cast(int) imgx, cast(int) imgy, cast(int) x, cast(int) y,
           cast(uint) width, cast(uint) height);
@@ -186,8 +186,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -210,9 +209,9 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      if (!prog.pixmaps[cast(uint) imgID])
-        throw new Throwable("Invalid image!");
+        throw new Exception("No active viewport!");
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
       prog.pixmaps[cast(uint) imgID].copyFrom(prog.activeViewport.pixmap,
           cast(int) x, cast(int) y, cast(int) imgx, cast(int) imgy,
           cast(uint) width, cast(uint) height);
@@ -220,8 +219,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -238,16 +236,15 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      if (!prog.pixmaps[cast(uint) imgID])
-        throw new Throwable("Invalid image!");
+        throw new Exception("No active viewport!");
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
       prog.activeViewport.pixmap.copyPaletteFrom(prog.pixmaps[cast(uint) imgID]);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -264,16 +261,15 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      if (!prog.pixmaps[cast(uint) imgID])
-        throw new Throwable("Invalid image!");
+        throw new Exception("No active viewport!");
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
       prog.pixmaps[cast(uint) imgID].copyPaletteFrom(prog.activeViewport.pixmap);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -284,11 +280,21 @@ void registerFunctions(Program program)
   /// image.forget(img)
   extern (C) int image_forget(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, 1);
+    const imgID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removePixmap(cast(uint) imgId);
-    return 0;
+    try
+    {
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
+      prog.removePixmap(cast(uint) imgID);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &image_forget);

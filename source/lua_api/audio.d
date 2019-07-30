@@ -58,14 +58,13 @@ void registerFunctions(Program program)
     try
     {
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
-        throw new Throwable("Invalid sample!");
+        throw new Exception("Invalid sample!");
       prog.machine.audio.play(cast(uint) channel, prog.samples[cast(uint) smplID]);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -138,7 +137,7 @@ void registerFunctions(Program program)
     try
     {
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
-        throw new Throwable("Invalid sample!");
+        throw new Exception("Invalid sample!");
       if (set)
       {
         if (prog.samples[cast(uint) smplID].data.length <= pos)
@@ -150,8 +149,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -170,7 +168,7 @@ void registerFunctions(Program program)
     try
     {
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
-        throw new Throwable("Invalid sample!");
+        throw new Exception("Invalid sample!");
       if (set)
         prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
       lua_pushinteger(L, prog.samples[cast(uint) smplID].freq);
@@ -178,8 +176,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -199,7 +196,7 @@ void registerFunctions(Program program)
     try
     {
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
-        throw new Throwable("Invalid sample!");
+        throw new Exception("Invalid sample!");
       if (set)
       {
         prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
@@ -211,8 +208,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -226,8 +222,18 @@ void registerFunctions(Program program)
     const smplID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removeSample(cast(uint) smplID);
-    return 0;
+    try
+    {
+      if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+        throw new Exception("Invalid sample!");
+      prog.removeSample(cast(uint) smplID);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &audio_forget);

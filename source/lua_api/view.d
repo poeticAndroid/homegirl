@@ -29,8 +29,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -41,27 +40,22 @@ void registerFunctions(Program program)
   /// view.screenmode(view, mode, colorbits)
   extern (C) int view_screenmode(lua_State* L) @trusted
   {
-    const screenId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     const mode = lua_tointeger(L, 2);
     const colorBits = lua_tointeger(L, 3);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      Viewport vp = prog.machine.mainScreen;
-      if (screenId > 0)
-      {
-        vp = prog.viewports[cast(uint) screenId];
-      }
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      Viewport vp = prog.viewports[cast(uint) vpID];
       vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -81,14 +75,16 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (parentId != 0 && (parentId >= prog.viewports.length
+          || !prog.viewports[cast(uint) parentId]))
+        throw new Exception("Invalid viewport!");
       lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
           cast(int) top, cast(uint) width, cast(uint) height));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -99,21 +95,20 @@ void registerFunctions(Program program)
   /// view.activate(view)
   extern (C) int view_activate(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto vp = prog.viewports[cast(uint) vpId];
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpID];
       prog.activeViewport = vp;
       return 0;
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -124,7 +119,7 @@ void registerFunctions(Program program)
   /// view.position(view[, left, top]): left, top
   extern (C) int view_position(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     const left = lua_tonumber(L, 2);
     const top = lua_tonumber(L, 3);
     const set = 1 - lua_isnoneornil(L, 2);
@@ -132,9 +127,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto vp = prog.viewports[cast(uint) vpId];
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpID];
       if (set)
         vp.move(cast(int) left, cast(int) top);
       lua_pushinteger(L, vp.left);
@@ -143,8 +138,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -155,7 +149,7 @@ void registerFunctions(Program program)
   /// view.size(view[, width, height]): width, height
   extern (C) int view_size(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     const width = lua_tonumber(L, 2);
     const height = lua_tonumber(L, 3);
     const set = 1 - lua_isnoneornil(L, 2);
@@ -163,9 +157,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto vp = prog.viewports[cast(uint) vpId];
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpID];
       if (set)
         vp.resize(cast(uint) width, cast(uint) height);
       lua_pushinteger(L, vp.pixmap.width);
@@ -174,8 +168,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -186,16 +179,16 @@ void registerFunctions(Program program)
   /// view.visible(view[, isvisible]): isvisible
   extern (C) int view_visible(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     const visible = lua_toboolean(L, 2);
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto vp = prog.viewports[cast(uint) vpId];
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpID];
       if (set)
         vp.visible = cast(bool) visible;
       lua_pushboolean(L, vp.visible);
@@ -203,8 +196,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -215,16 +207,16 @@ void registerFunctions(Program program)
   /// view.focused(view[, isfocused]): isfocused
   extern (C) int view_focused(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     const focused = lua_toboolean(L, 2);
     const set = lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto vp = prog.viewports[cast(uint) vpId];
-      if (!vp)
-        throw new Throwable("Invalid viewport!");
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      auto vp = prog.viewports[cast(uint) vpID];
       if (set)
         prog.machine.focusViewport(focused ? vp : null);
       lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
@@ -232,8 +224,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -244,11 +235,21 @@ void registerFunctions(Program program)
   /// view.remove(view)
   extern (C) int view_remove(lua_State* L) @trusted
   {
-    const vpId = lua_tointeger(L, 1);
+    const vpID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removeViewport(cast(uint) vpId);
-    return 0;
+    try
+    {
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      prog.removeViewport(cast(uint) vpID);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &view_remove);

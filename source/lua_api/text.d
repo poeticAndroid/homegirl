@@ -47,7 +47,7 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
+        throw new Exception("No active viewport!");
       if (set)
         prog.activeViewport.pixmap.textCopymode = cast(CopyMode) mode;
       lua_pushinteger(L, prog.activeViewport.pixmap.textCopymode);
@@ -55,8 +55,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -76,9 +75,9 @@ void registerFunctions(Program program)
     try
     {
       if (!prog.activeViewport)
-        throw new Throwable("No active viewport!");
-      if (!prog.fonts[cast(uint) font])
-        throw new Throwable("Invalid font!");
+        throw new Exception("No active viewport!");
+      if (font >= prog.fonts.length || !prog.fonts[cast(uint) font])
+        throw new Exception("Invalid font!");
       auto o = prog.activeViewport.pixmap.text(text,
           prog.fonts[cast(uint) font], cast(int) x, cast(int) y);
       for (uint i = 0; i < o.length; i++)
@@ -87,8 +86,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushstring(L, toStringz(err.msg));
-      lua_error(L);
+      luaL_error(L, toStringz(err.msg));
       return 0;
     }
   }
@@ -99,11 +97,21 @@ void registerFunctions(Program program)
   /// text.forgetfont(font)
   extern (C) int text_forgetfont(lua_State* L) @trusted
   {
-    const imgId = lua_tointeger(L, 1);
+    const font = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    prog.removeFont(cast(uint) imgId);
-    return 0;
+    try
+    {
+      if (font >= prog.fonts.length || !prog.fonts[cast(uint) font])
+        throw new Exception("Invalid font!");
+      prog.removeFont(cast(uint) font);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
   }
 
   lua_register(lua, "_", &text_forgetfont);

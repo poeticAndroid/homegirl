@@ -26,6 +26,8 @@ class Pixmap
   */
   this(uint width, uint height, ubyte colorBits)
   {
+    if (colorBits > 8)
+      throw new Exception("Too many colorbits!");
     this.width = width;
     this.height = height;
     this.colorBits = colorBits;
@@ -154,8 +156,40 @@ class Pixmap
   /**
     draw a filled rectange with foreground color
   */
-  void bar(int x, int y, uint width, uint height)
+  void bar(int x, int y, int width, int height)
   {
+    if (width < 0)
+    {
+      x += width;
+      width *= -1;
+    }
+    if (height < 0)
+    {
+      y += height;
+      height *= -1;
+    }
+    if (x < 0)
+    {
+      width += x;
+      x = 0;
+    }
+    if (y < 0)
+    {
+      height += y;
+      y = 0;
+    }
+    if (width < 0)
+      width = 0;
+    if (height < 0)
+      height = 0;
+    if (width + x > this.width)
+      width = this.width - x;
+    if (height + y > this.height)
+      height = this.height - y;
+    if (x > this.width)
+      width = 0;
+    if (y > this.height)
+      height = 0;
     for (uint _y = 0; _y < height; _y++)
     {
       for (uint _x = 0; _x < width; _x++)

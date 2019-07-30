@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.2.6"; /// version of the software
+const VERSION = "0.2.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -289,7 +289,7 @@ class Machine
     name = toUpper(name);
     path = absolutePath(path);
     if (this.drives.get(name, null))
-      throw new Throwable("Drive '" ~ name ~ "' already mounted!");
+      throw new Exception("Drive '" ~ name ~ "' already mounted!");
     if (!exists(path) || !isDir(path))
       mkdirRecurse(path);
     if (path[$ - 1 .. $] != dirSeparator)
@@ -314,7 +314,7 @@ class Machine
         inUse++;
     }
     if (inUse)
-      throw new Throwable("Drive '" ~ name ~ "' is in use!");
+      throw new Exception("Drive '" ~ name ~ "' is in use!");
     this.drives[name] = null;
   }
 

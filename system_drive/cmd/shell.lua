@@ -92,7 +92,9 @@ function submit(line)
     if (cmd == "endcli") then
       sys.exit(0)
     elseif (cmd == "cd") then
-      fs.cd(args[1])
+      if not fs.cd(args[1]) then
+        out("Unable to change directory to " .. args[1] .. "\n")
+      end
     elseif (cmd == "clear") then
       gfx.cls()
       termbottom = 0

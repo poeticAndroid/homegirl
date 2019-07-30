@@ -12,7 +12,7 @@ import pixmap;
 Pixmap loadImage(string filename)
 {
   if (!exists(filename) || !isFile(filename))
-    throw new Throwable("No such file " ~ filename);
+    throw new Exception("No such file " ~ filename);
   FIBITMAP* img = FreeImage_Load(FIF_GIF, toStringz(filename));
   Pixmap pix = fibitmapToPixmap(img, null);
   FreeImage_Unload(img);

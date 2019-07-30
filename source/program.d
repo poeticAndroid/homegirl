@@ -55,7 +55,11 @@ class Program
     this.cwd = cwd;
     if (!this.cwd)
       this.cwd = this.machine.dirName(this.filename);
+    this.children ~= null;
     this.viewports ~= null;
+    this.pixmaps ~= null;
+    this.fonts ~= null;
+    this.samples ~= null;
 
     // Load the Lua library.
     dylib_load_lua();
