@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.2.7"; /// version of the software
+const VERSION = "0.2.8"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -290,8 +290,14 @@ class Machine
     path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Exception("Drive '" ~ name ~ "' already mounted!");
-    if (!exists(path) || !isDir(path))
-      mkdirRecurse(path);
+    try
+    {
+      if (!exists(path))
+        mkdirRecurse(path);
+    }
+    catch (Exception err)
+    {
+    }
     if (path[$ - 1 .. $] != dirSeparator)
       path ~= dirSeparator;
     this.drives[name] = path;
