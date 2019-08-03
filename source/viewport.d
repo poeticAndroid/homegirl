@@ -32,7 +32,6 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
-    this.pixmap.copymode = CopyMode.matte;
   }
 
   Viewport getParent()

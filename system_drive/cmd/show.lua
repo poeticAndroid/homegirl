@@ -20,13 +20,9 @@ function _init(args)
     mode = 15
   end
   if height > scrnh then
-    mode = mode + 16
+    mode = mode + 16 
   end
-  view.screenmode(scrn, mode, 8)
-  scrnw, scrnh = view.size(scrn)
-  image.copymode(0)
-  x = scrnw / 2 - width / 2
-  y = scrnh / 2 - height / 2
+  zoom(0)
   f = 0
 end
 

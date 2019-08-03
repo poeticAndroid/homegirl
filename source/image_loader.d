@@ -45,27 +45,15 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
 {
   const width = FreeImage_GetWidth(img);
   const height = FreeImage_GetHeight(img);
-  ushort color = 1;
-  ubyte maxindex;
-  ubyte c;
-  maxindex = cast(ubyte)(FreeImage_GetColorsUsed(img) - 1);
-  if (!pixmap)
-  {
-    ubyte colorBits = 0;
-    while (color < maxindex + 1)
-    {
-      color *= 2;
-      colorBits++;
-    }
-    pixmap = new Pixmap(width, height, colorBits);
-  }
+
+  int time = 100;
   int left = 0;
   int top = 0;
   ubyte dispose = 0;
   FITAG* tag;
   FreeImage_GetMetadata(FIMD_ANIMATION, img, "FrameTime", &tag);
   if (tag)
-    pixmap.duration = cast(uint)(cast(long*) FreeImage_GetTagValue(tag))[0];
+    time = cast(uint)(cast(long*) FreeImage_GetTagValue(tag))[0];
   FreeImage_GetMetadata(FIMD_ANIMATION, img, "FrameLeft", &tag);
   if (tag)
     left = (cast(short*) FreeImage_GetTagValue(tag))[0];
@@ -76,6 +64,22 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
   if (tag)
     dispose = (cast(ubyte*) FreeImage_GetTagValue(tag))[0];
 
+  ushort color = 1;
+  ubyte c;
+  ubyte maxindex = cast(ubyte)(FreeImage_GetColorsUsed(img) - 1);
+  if (!pixmap)
+  {
+    ubyte colorBits = 0;
+    while (color < maxindex + 1)
+    {
+      color *= 2;
+      colorBits++;
+    }
+    pixmap = new Pixmap(width, height, colorBits);
+    dispose = 2;
+  }
+
+  pixmap.duration = time;
   pixmap.bgColor = cast(ubyte) FreeImage_GetTransparentIndex(img);
   if (dispose == 2)
     pixmap.cls();
