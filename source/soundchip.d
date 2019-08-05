@@ -64,8 +64,12 @@ class SoundChip
         else
           this.rate[i] = 0;
       }
-      this.buffer[p++] = this.value[0] + this.value[1] - this.value[0] * this.value[1];
-      this.buffer[p++] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
+      this.buffer[p] = this.value[0] + this.value[1] - this.value[0] * this.value[1];
+      this.buffer[p] = this.buffer[p] + this.value[2] * .5 - this.buffer[p] * this.value[2] * .5;
+      p++;
+      this.buffer[p] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
+      this.buffer[p] = this.buffer[p] + this.value[1] * .5 - this.buffer[p] * this.value[1] * .5;
+      p++;
       this.lastTick++;
       if (this.timeToSync-- == 0)
         SDL_ClearQueuedAudio(this.dev);
