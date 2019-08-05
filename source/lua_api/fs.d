@@ -67,7 +67,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushstring(L, toStringz(readText(prog.actualFile(filename))));
+      ubyte[] bin = cast(ubyte[]) read(prog.actualFile(filename));
+      lua_pushlstring(L, cast(char*) bin, bin.length);
       return 1;
     }
     catch (Exception err)
@@ -84,12 +85,17 @@ void registerFunctions(Program program)
   extern (C) int fs_write(lua_State* L) @trusted
   {
     auto filename = to!string(lua_tostring(L, 1));
-    auto str = to!string(lua_tostring(L, 2));
+    uint len;
+    auto str = lua_tolstring(L, 2, &len);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      write(prog.actualFile(filename), str);
+      ubyte[] bin;
+      bin.length = len;
+      for (uint i = 0; i < len; i++)
+        bin[i] = cast(ubyte) str[i];
+      write(prog.actualFile(filename), bin);
       lua_pushboolean(L, true);
       return 1;
     }

@@ -17,7 +17,7 @@ Specs
  - **Programming language:** Lua ([See API](./api.md))
  - **Screen resolutions:** 4 horizontal * 4 vertical * 2 aspect ratios = 32 resolutions in total!
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
- - **Audio:** Four 8-bit PCM channels in stereo
+ - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** Local system folder (and ability to mount Webservers as drives)*
  - **Native filetypes:** GIF for images and animations, WAV for sound samples (currently only for loading)*
