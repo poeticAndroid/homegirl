@@ -17,7 +17,8 @@ function _init()
   gfx.palette(2, 0, 0, 2)
   gfx.palette(3, 15, 8, 0)
 
-  out("Homegirl Shell\n\n")
+  -- out("Homegirl Shell\n")
+  out(sys.env("ENGINE") .. " version " .. sys.env("ENGINE_VERSION") .. "\n\n")
 end
 
 function _step()
@@ -148,7 +149,7 @@ function out(data)
   if string.find(termline, "\n") ~= nil then
     termline = string.sub(termline, string.find(termline, "\n") + 1)
     termbottom = termbottom + fontsize
-    sys.stepinterval(32)
+    sys.stepinterval(16)
   elseif state == 1 then
     sys.stepinterval(128)
   else

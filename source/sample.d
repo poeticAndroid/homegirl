@@ -1,9 +1,9 @@
 module sample;
 
+import std.stdio;
 import std.string;
 import std.file;
 import core.stdc.stdlib;
-import bindbc.sdl;
 
 /**
   Sound sample
@@ -29,31 +29,104 @@ class Sample
   */
   void loadWav(string filename)
   {
-    if (!exists(filename) || !isFile(filename))
-      throw new Exception("No such file " ~ filename);
-    SDL_AudioSpec* wav_spec = new SDL_AudioSpec();
-    ubyte* wav_buffer;
-    uint wav_len;
-    SDL_LoadWAV(toStringz(filename), wav_spec, &wav_buffer, &wav_len);
-    this.freq = wav_spec.freq;
-    while (this.freq > 24_000)
-      this.freq /= 2;
+    char[4] tag;
+    ubyte[1] b;
+    ushort[1] s;
+    uint[1] i;
+    auto f = File(filename, "rb");
+    if (this.nextChunk(f) != "RIFF")
+      throw new Exception("Unsupported format!");
+    if (f.rawRead(tag) != "WAVE")
+      throw new Exception("Unsupported format!");
+    while (f.eof() == false && this.nextChunk(f) != "fmt ")
+      this.skipChunk(f);
+    ushort audioFormat = f.rawRead(s)[0];
+    ushort numChannels = f.rawRead(s)[0];
+    uint sampleRate = f.rawRead(i)[0];
+    uint byteRate = f.rawRead(i)[0];
+    ushort blockAlign = f.rawRead(s)[0];
+    ushort bitsPerSample = f.rawRead(s)[0];
+    if (audioFormat != 1)
+      throw new Exception("Unsupported format!");
+    while (sampleRate > 24_000)
+    {
+      numChannels *= 2;
+      sampleRate /= 2;
+    }
+    this.freq = sampleRate;
+    this.skipChunk(f);
+    while (!f.eof() && this.nextChunk(f) != "data")
+      this.skipChunk(f);
+    uint p = cast(uint)(this.nextChuckOffset - f.tell());
+    p /= numChannels * (bitsPerSample / 8);
+    this.data.length = p;
+    p = 0;
+    uint skip = numChannels * (bitsPerSample / 8) - 1;
+    for (uint n = 1; n < (bitsPerSample / 8); n++)
+      f.rawRead(b);
+    while (!f.eof() && p < this.data.length)
+    {
+      f.rawRead(b);
+      if ((bitsPerSample / 8) > 1)
+        this.data[p++] = b[0];
+      else
+        this.data[p++] = b[0] - 128;
+      for (uint n = 0; !f.eof() && n < skip; n++)
+        f.rawRead(b);
+    }
+    this.data.length = p;
+    f.close();
+    // this._loadWav(filename);
+  }
 
-    SDL_BuildAudioCVT(this.cvt, wav_spec.format, wav_spec.channels,
-        wav_spec.freq, AUDIO_S8, 1, this.freq);
-    this.cvt.len = wav_len;
-    this.cvt.buf = cast(ubyte*) malloc(this.cvt.len * this.cvt.len_mult);
-    for (uint i = 0; i < wav_len; i++)
-      this.cvt.buf[i] = wav_buffer[i];
-    SDL_ConvertAudio(this.cvt);
-    this.data.length = this.cvt.len_cvt;
-    for (uint i = 0; i < this.data.length; i++)
-      this.data[i] = this.cvt.buf[i];
-
-    SDL_FreeWAV(wav_buffer);
-    free(cvt.buf);
+  /**
+    save sample to wav file
+  */
+  void saveWav(string filename)
+  {
+    ubyte[] b;
+    ushort[] s;
+    uint[] i;
+    auto f = File(filename, "wb");
+    f.rawWrite("RIFF");
+    i = [36 + this.data.length];
+    f.rawWrite(i);
+    f.rawWrite("WAVE");
+    f.rawWrite("fmt ");
+    i = [16];
+    f.rawWrite(i);
+    s = [1, 1];
+    f.rawWrite(s);
+    i = [this.freq, this.freq];
+    f.rawWrite(i);
+    s = [1, 8];
+    f.rawWrite(s);
+    f.rawWrite("data");
+    i = [this.data.length];
+    f.rawWrite(i);
+    b.length = this.data.length;
+    for (uint n = 0; n < b.length; n++)
+      b[n] = this.data[n] + 128;
+    f.rawWrite(b);
+    f.close();
   }
 
   // --- _privates --- //
-  private SDL_AudioCVT* cvt = new SDL_AudioCVT();
+  private long nextChuckOffset;
+
+  private char[4] nextChunk(File f)
+  {
+    char[4] tag;
+    uint[1] i;
+    f.rawRead(tag);
+    f.rawRead(i);
+    this.nextChuckOffset = f.tell() + i[0];
+    return tag;
+  }
+
+  private void skipChunk(File f)
+  {
+    f.seek(this.nextChuckOffset);
+  }
+
 }

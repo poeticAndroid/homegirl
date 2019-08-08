@@ -20,6 +20,6 @@ Specs
  - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*
  - **Filesystem:** Local system folder (and ability to mount Webservers as drives)*
- - **Native filetypes:** GIF for images and animations, WAV for sound samples (currently only for loading)*
+ - **Native filetypes:** GIF for images and animations(currently only for loading)*, WAV for sound samples
 
 _*Work in progress_

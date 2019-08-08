@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.5"; /// version of the software
+const VERSION = "0.3.8"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -52,7 +52,8 @@ class Machine
 
     this.initWindow();
     this.audio = new SoundChip();
-    this.env["Homegirl_version"] = VERSION;
+    this.env["ENGINE"] = "Homegirl";
+    this.env["ENGINE_VERSION"] = VERSION;
   }
 
   /**
@@ -406,7 +407,7 @@ class Machine
     int y = SDL_WINDOWPOS_CENTERED;
     int w = 640 + 48;
     int h = 360 + 48;
-    SDL_WindowFlags flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+    SDL_WindowFlags flags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
     if (this.win)
     {
       flags = SDL_GetWindowFlags(this.win);

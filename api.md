@@ -7,11 +7,14 @@
 ##  audio
     audio.new(): sampl
     audio.load(filename): sampl
+    audio.save(filename, sampl): success
     audio.play(channel, sampl)
     audio.channelfreq(channel[, freq]): freq
+    audio.channelhead(channel[, pos]): pos
     audio.channelvolume(channel[, volume]): volume
     audio.channelloop(channel[, start, end]): start, end
-    audio.sample(sampl, pos[, value]): value
+    audio.samplevalue(sampl, pos[, value]): value
+    audio.samplelength(sampl[, length]): length
     audio.samplefreq(sampl[, freq]): freq
     audio.sampleloop(sampl[, start, end]): start, end
     audio.forget(sampl)
