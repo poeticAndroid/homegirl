@@ -39,7 +39,7 @@ void registerFunctions(Program program)
   /// gfx.palette(color[, red, green, blue]): red, green, blue
   extern (C) int gfx_palette(lua_State* L) @trusted
   {
-    const c = lua_tointeger(L, 1);
+    const c = lua_tonumber(L, 1);
     const r = lua_tonumber(L, 2);
     const g = lua_tonumber(L, 3);
     const b = lua_tonumber(L, 4);

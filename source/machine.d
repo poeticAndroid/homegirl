@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.8"; /// version of the software
+const VERSION = "0.3.9"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -254,7 +254,17 @@ class Machine
   */
   void focusViewport(Viewport vp)
   {
-    this.focusedViewport = vp;
+    if (this.focusedViewport != vp)
+    {
+      if (this.focusedViewport)
+      {
+        this.focusedViewport.setHotkey(0);
+        this.focusedViewport.setMouseBtn(0);
+        this.focusedViewport.setGameBtn(0, 1);
+        this.focusedViewport.setGameBtn(0, 2);
+      }
+      this.focusedViewport = vp;
+    }
   }
 
   /**

@@ -1,16 +1,18 @@
-screendrag = require("sys:libs/screendrag")
+Screen = require("sys:libs/screen")
 
 function _init(args)
   mode = 0
-  scrn = view.newscreen(mode, 8)
   anim = image.loadanimation(args[1])
   if anim == nil then
     print("Couldn't show file " .. args[1])
     return sys.exit(1)
   end
+  scrn = Screen:new(args[1], mode, 8)
+  view.visible(scrn.mainvp, false)
+  view.active(scrn.rootvp)
   width, height = image.size(anim[1])
   print(args[1] .. ": " .. width .. " x " .. height .. " pixels")
-  scrnw, scrnh = view.size(scrn)
+  scrnw, scrnh = scrn:size()
   while width > scrnw do
     mode = mode + 5
     scrnw = scrnw * 2
@@ -20,10 +22,11 @@ function _init(args)
     mode = 15
   end
   if height > scrnh then
-    mode = mode + 16 
+    mode = mode + 16
   end
   zoom(0)
   f = 0
+  _lastbtn = 255
 end
 
 function _step(t)
@@ -40,6 +43,7 @@ function _step(t)
   else
     rx = x - mx
     ry = y - my
+    view.visible(scrn.titlevp, my <= 10)
   end
   if btn & 1 > 0 then
     x = x - 1
@@ -66,9 +70,13 @@ function _step(t)
     zoom(4)
   end
   _lastbtn = btn
-  image.usepalette(anim[f])
+  scrn:usepalette(anim[f])
+  scrn:autocolor()
   image.draw(anim[f], x, y, 0, 0, width, height)
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
   sys.stepinterval(image.duration(anim[f]))
 end
 
@@ -80,8 +88,8 @@ function zoom(amount)
   while mode >= 32 do
     mode = mode - 32
   end
-  view.screenmode(scrn, mode, 8)
-  scrnw, scrnh = view.size(scrn)
+  scrn:mode(mode, 8)
+  scrnw, scrnh = scrn:size()
   image.copymode(0)
   x = scrnw / 2 - width / 2
   y = scrnh / 2 - height / 2

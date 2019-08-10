@@ -1,4 +1,4 @@
-screendrag = require("sys:libs/screendrag")
+Screen = require("sys:libs/screen")
 players = {
   {
     x = -8,
@@ -17,12 +17,12 @@ players = {
 function _init()
   sys.stepinterval(1000 / 60)
   font = text.loadfont("sys:fonts/Victoria.8b.gif")
-  scrn = view.newscreen(5, 2)
+  scrn = Screen:new("Game input demo", 5, 2)
   gfx.bgcolor(0)
-  gfx.palette(1, 0, 7, 15)
-  gfx.palette(2, 0, 7, 15)
-  gfx.palette(3, 0, 7, 15)
-  local w, h = view.size(scrn)
+  scrn:palette(1, 0, 7, 15)
+  scrn:palette(2, 0, 7, 15)
+  scrn:palette(3, 0, 7, 15)
+  local w, h = view.size(scrn.mainvp)
   for pn = 0, 2, 1 do
     p = players[1 + pn]
     p.x = p.x + w / 2
@@ -52,21 +52,24 @@ function _step()
     gfx.bar(p.x, p.y, 16, 16)
     gfx.fgcolor(0)
     if btn & 16 > 0 then
-      gfx.palette(1 + pn, 0, 15, 0)
+      scrn:palette(1 + pn, 0, 15, 0)
       text.draw("A", font, p.x, p.y)
     end
     if btn & 32 > 0 then
-      gfx.palette(1 + pn, 15, 0, 0)
+      scrn:palette(1 + pn, 15, 0, 0)
       text.draw("B", font, p.x + 8, p.y)
     end
     if btn & 64 > 0 then
-      gfx.palette(1 + pn, 0, 0, 15)
+      scrn:palette(1 + pn, 0, 0, 15)
       text.draw("X", font, p.x, p.y + 8)
     end
     if btn & 128 > 0 then
-      gfx.palette(1 + pn, 15, 15, 0)
+      scrn:palette(1 + pn, 15, 15, 0)
       text.draw("Y", font, p.x + 8, p.y + 8)
     end
   end
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end

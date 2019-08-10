@@ -80,7 +80,7 @@
     view.newscreen(mode, colorbits): view
     view.screenmode(view, mode, colorbits)
     view.new(parentview, left, top, width, height): view
-    view.activate(view)
+    view.active([view]): view
     view.position(view[, left, top]): left, top
     view.size(view[, width, height]): width, height
     view.visible(view[, isvisible]): isvisible

@@ -1,7 +1,10 @@
-screendrag = require("sys:libs/screendrag")
+Screen = require("sys:libs/screen")
 
-sys.stepinterval(0)
-scrn = view.newscreen(15, 5)
+function _init()
+  sys.stepinterval(0)
+  scrn = Screen:new("Static", 15, 5)
+  scrn:colors(15, 0)
+end
 
 function _step(t)
   for y = 0, 360 do
@@ -10,5 +13,8 @@ function _step(t)
       gfx.plot(x, y)
     end
   end
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end

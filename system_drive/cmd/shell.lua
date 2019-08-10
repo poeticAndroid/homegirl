@@ -1,7 +1,5 @@
-scrn = view.newscreen(11, 2)
-scrnw, scrnh = view.size(scrn)
-spare = image.new(scrnw, scrnh, 4)
-font = text.loadfont("sys:fonts/Victoria.8b.gif")
+Screen = require("sys:libs/screen")
+
 fontsize = 8
 fontw = 8
 termline = ""
@@ -12,13 +10,20 @@ history = {}
 histpos = #history
 
 function _init()
-  gfx.palette(0, 0, 5, 10)
-  gfx.palette(1, 15, 15, 15)
-  gfx.palette(2, 0, 0, 2)
-  gfx.palette(3, 15, 8, 0)
+  scrn = Screen:new((sys.env("ENGINE") or "System") .. " Shell", 11, 2)
+  scrnw, scrnh = view.size(scrn.mainvp)
+  spare = image.new(scrnw, scrnh, 4)
+  font = text.loadfont("sys:fonts/Victoria.8b.gif")
+
+  scrn:palette(0, 0, 5, 10)
+  scrn:palette(1, 15, 15, 15)
+  scrn:palette(2, 0, 0, 2)
+  scrn:palette(3, 15, 8, 0)
 
   -- out("Homegirl Shell\n")
-  out(sys.env("ENGINE") .. " version " .. sys.env("ENGINE_VERSION") .. "\n\n")
+  if sys.env("ENGINE_VERSION") then
+    out("System version " .. sys.env("ENGINE_VERSION") .. "\n\n")
+  end
 end
 
 function _step()
@@ -58,7 +63,7 @@ function _step()
       out(sys.readfromchild(task))
       out(sys.errorfromchild(task))
       if sys.childrunning(task) then
-        if (input.hotkey() == "\x1b") then
+        if (input.hotkey() == "c") then
           sys.killchild(task)
         end
       else
@@ -68,6 +73,7 @@ function _step()
     end
   end
   lastinp = inp
+  scrn:step()
 end
 
 function _shutdown()
@@ -132,7 +138,7 @@ function out(data)
   local w, h
   local txt = input.text()
   local pos, sel = input.cursor()
-  termline = termline .. wrap(data, view.size(scrn) / fontw)
+  termline = termline .. wrap(data, scrnw / fontw)
   gfx.fgcolor(0)
   gfx.bar(0, termbottom - fontsize, scrnw, scrnh)
   gfx.fgcolor(1)

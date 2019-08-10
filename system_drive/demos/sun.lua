@@ -1,13 +1,16 @@
-screendrag = require("sys:libs/screendrag")
-
-sys.stepinterval(1000 / 60)
-scrn = view.newscreen(10, 4)
+Screen = require("sys:libs/screen")
 
 x = 0
 y = 0
 dx = 1
 dy = 0
 c = 0
+
+function _init()
+  sys.stepinterval(1000 / 60)
+  scrn = Screen:new("Sun", 10, 4)
+  scrn:colors(7, 0)
+end
 
 function _step()
   mx, my = input.mouse()
@@ -41,12 +44,15 @@ function _step()
     end
   end
   _cycle()
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end
 
 function _cycle()
   c = c + 1
   for i = 0, 15 do
-    gfx.palette(i, i + c, i + c, i + c)
+    scrn:palette(i, i + c, i + c, i + c)
   end
 end

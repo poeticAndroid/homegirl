@@ -1,22 +1,23 @@
-screendrag = require("sys:libs/screendrag")
-scrn = view.newscreen(10, 5)
+Screen = require("sys:libs/screen")
 
 frame = 0
 _mx = 0
 _my = 0
 
 function _init(args)
+  scrn = Screen:new("Juggler demo", 10, 5)
+  scrn:colors(15, 0)
   if args[1] == nil then
     anim = image.loadanimation("images/juggler32.gif")
   else
     anim = image.loadanimation(args[1])
   end
   ding = audio.load("./sounds/juggler.wav")
-  image.usepalette(anim[1])
+  scrn:usepalette(anim[1])
 end
 
 function _step(t)
-  local left, top = view.position(scrn)
+  local left, top = view.position(scrn.rootvp)
   local mx, my, mbtn = input.mouse()
   frame = frame + 1
   if frame > #anim then
@@ -38,5 +39,8 @@ function _step(t)
   _mx = mx
   _my = my
   sys.stepinterval(image.duration(anim[frame]))
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end

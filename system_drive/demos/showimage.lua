@@ -1,16 +1,16 @@
-screendrag = require("sys:libs/screendrag")
+Screen = require("sys:libs/screen")
 
 x = -100
 y = -170
 
 function _init()
   sys.stepinterval(1000 / 60)
-  scrn = view.newscreen(10, 5)
+  scrn = Screen:new("showimage.lua", 10, 5)
   pointer = image.load("./images/pointer.gif")
 
   img = image.load("./images/Pharao.gif")
   width, height = image.size(img)
-  image.usepalette(img)
+  scrn:usepalette(img)
   image.copymode(1)
 end
 
@@ -25,5 +25,8 @@ function _step()
     x = -100
     y = -170
   end
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end

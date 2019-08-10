@@ -1,22 +1,24 @@
-screendrag = require("sys:libs/screendrag")
+Screen = require("sys:libs/screen")
+
 filename = nil
 lasttxt = ""
-scrn = view.newscreen(11, 2)
-font = text.loadfont("sys:fonts/Victoria.8b.gif")
 statustxt = ""
 statusto = 0
 
 function _init(args)
-  gfx.palette(0, 0,0,0)
-  gfx.palette(1, 13, 14, 15)
-  gfx.palette(2, 0, 0, 5)
-  gfx.palette(3, 0, 10, 15)
+  scrn = Screen:new("Edit", 11, 2)
+  font = text.loadfont("sys:fonts/Victoria.8b.gif")
+  scrn:palette(0, 0, 0, 0)
+  scrn:palette(1, 13, 14, 15)
+  scrn:palette(2, 0, 0, 5)
+  scrn:palette(3, 0, 10, 15)
   gfx.bgcolor(0)
   gfx.fgcolor(1)
   if #args > 0 then
     filename = args[1]
     input.text(fs.read(filename))
     input.clearhistory()
+    scrn:title(args[1])
   else
     print("filename missing!")
     sys.exit(1)
@@ -86,11 +88,14 @@ function _step(t)
   text.draw(gutter, font, 0, top)
   if statusto > t then
     gfx.fgcolor(3)
-    gutterw = view.size(scrn)
+    gutterw = scrn:size()
     gutterw = gutterw - text.draw(statustxt, font, gutterw, 0)
     text.draw(statustxt, font, gutterw, 0)
   end
-  screendrag.step(scrn)
+  if input.hotkey() == "\x1b" then
+    sys.exit(0)
+  end
+  scrn:step()
 end
 
 function _shutdown()

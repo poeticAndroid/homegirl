@@ -1,6 +1,7 @@
 module lua_api.view;
 
 import std.string;
+import std.algorithm.searching;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -92,19 +93,27 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_new);
   luaL_dostring(lua, "view.new = _");
 
-  /// view.activate(view)
-  extern (C) int view_activate(lua_State* L) @trusted
+  /// view.active([view]): view
+  extern (C) int view_active(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      auto vp = prog.viewports[cast(uint) vpID];
-      prog.activeViewport = vp;
-      return 0;
+      if (set)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        prog.activeViewport = prog.viewports[cast(uint) vpID];
+      }
+      uint id = countUntil(prog.viewports, prog.activeViewport);
+      if (id < 1)
+        lua_pushnil(L);
+      else
+        lua_pushinteger(L, id);
+      return 1;
     }
     catch (Exception err)
     {
@@ -113,8 +122,8 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &view_activate);
-  luaL_dostring(lua, "view.activate = _");
+  lua_register(lua, "_", &view_active);
+  luaL_dostring(lua, "view.active = _");
 
   /// view.position(view[, left, top]): left, top
   extern (C) int view_position(lua_State* L) @trusted
@@ -209,7 +218,7 @@ void registerFunctions(Program program)
   {
     const vpID = lua_tointeger(L, 1);
     const focused = lua_toboolean(L, 2);
-    const set = lua_isnoneornil(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

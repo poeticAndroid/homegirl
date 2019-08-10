@@ -85,16 +85,12 @@ class Viewport
   */
   bool isInViewport(Viewport vp)
   {
-    Viewport parent = this;
-    while (parent)
-    {
-      if (parent == vp)
-      {
-        return true;
-      }
-      parent = parent.getParent();
-    }
-    return false;
+    if (this == vp)
+      return true;
+    else if (this.parent)
+      return this.parent.isInViewport(vp);
+    else
+      return false;
   }
 
   /**
