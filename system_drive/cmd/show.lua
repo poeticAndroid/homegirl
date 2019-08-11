@@ -12,7 +12,7 @@ function _init(args)
   view.active(scrn.rootvp)
   width, height = image.size(anim[1])
   print(args[1] .. ": " .. width .. " x " .. height .. " pixels")
-  scrnw, scrnh = scrn:size()
+  scrnw, scrnh = view.size(scrn.rootvp)
   while width > scrnw do
     mode = mode + 5
     scrnw = scrnw * 2

@@ -81,6 +81,26 @@ class Viewport
   }
 
   /**
+    send child to back
+  */
+  void sendViewportToBack(Viewport vp)
+  {
+    auto i = countUntil(this.children, vp);
+    if (i != -1)
+      this.children = [vp] ~ this.children.remove(i);
+  }
+
+  /**
+    bring child to front
+  */
+  void bringViewportToFront(Viewport vp)
+  {
+    auto i = countUntil(this.children, vp);
+    if (i != -1)
+      this.children = this.children.remove(i) ~ [vp];
+  }
+
+  /**
     check if this viewport is (in) given viewport
   */
   bool isInViewport(Viewport vp)

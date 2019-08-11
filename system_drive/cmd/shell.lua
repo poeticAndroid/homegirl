@@ -157,7 +157,7 @@ function out(data)
     termbottom = termbottom + fontsize
     sys.stepinterval(16)
   elseif state == 1 then
-    sys.stepinterval(128)
+    sys.stepinterval(64)
   else
     sys.stepinterval(-1)
   end

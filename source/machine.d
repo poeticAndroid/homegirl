@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.9"; /// version of the software
+const VERSION = "0.3.10"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -244,9 +244,30 @@ class Machine
     if (screen != this.mainScreen)
     {
       this.screens = this.screens.remove(i);
-      screen.pixmap.destroyTexture();
       screen.detach();
     }
+  }
+
+  /**
+    send a screen to back
+  */
+  void sendScreenToBack(Viewport screen)
+  {
+    auto i = countUntil(this.screens, screen);
+    if (i < 0)
+      return;
+    this.screens = [cast(Screen) screen] ~ this.screens.remove(i);
+  }
+
+  /**
+    bring a screen to front
+  */
+  void bringScreenToFront(Viewport screen)
+  {
+    auto i = countUntil(this.screens, screen);
+    if (i < 0)
+      return;
+    this.screens = this.screens.remove(i) ~ [cast(Screen) screen];
   }
 
   /**

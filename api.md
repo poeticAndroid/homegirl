@@ -85,4 +85,6 @@
     view.size(view[, width, height]): width, height
     view.visible(view[, isvisible]): isvisible
     view.focused(view[, isfocused]): isfocused
+    view.sendtoback(view)
+    view.bringtofront(view)
     view.remove(view)
