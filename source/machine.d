@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.11"; /// version of the software
+const VERSION = "0.3.12"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -249,25 +249,27 @@ class Machine
   }
 
   /**
-    send a screen to back
+    get z-index of a screen
   */
-  void sendScreenToBack(Viewport screen)
+  int getScreenIndex(Viewport screen)
   {
-    auto i = countUntil(this.screens, screen);
-    if (i < 0)
-      return;
-    this.screens = [cast(Screen) screen] ~ this.screens.remove(i);
+    return countUntil(this.screens, screen);
   }
 
   /**
-    bring a screen to front
+    set z-index of a screen
   */
-  void bringScreenToFront(Viewport screen)
+  void setScreenIndex(Viewport screen, int index)
   {
     auto i = countUntil(this.screens, screen);
     if (i < 0)
       return;
-    this.screens = this.screens.remove(i) ~ [cast(Screen) screen];
+    while (index < 0)
+      index += this.screens.length;
+    if (index >= this.screens.length)
+      index = this.screens.length - 1;
+    this.screens = this.screens.remove(i);
+    this.screens = this.screens[0 .. index] ~ [cast(Screen) screen] ~ this.screens[index .. $];
   }
 
   /**
@@ -425,6 +427,7 @@ class Machine
   private int lastmx = 0;
   private int lastmy = 0;
   private uint lastmb = 0;
+  private ubyte[] gameBtns;
   private ulong lastgmb = 0;
   private uint scale;
   private uint bootupState = 5;
@@ -520,7 +523,6 @@ class Machine
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
-      screen.mouseBtn = 0;
       Viewport _vp = screen.setMouseXY(mx / screen.pixelWidth, (my - screen.top) / screen
           .pixelHeight);
       if (_vp)
@@ -528,14 +530,18 @@ class Machine
       if (screen.containsViewport(this.focusedViewport))
         validFocus = validFocus || true;
     }
-    if ((this.lastmb == 0 && mb == 1) || !validFocus)
+    if (this.lastmb == 0 && mb == 1)
       this.focusViewport(vp);
-    if (this.focusedViewport)
-      this.focusedViewport.setMouseBtn(mb);
+    if (!validFocus && this.screens.length)
+      this.focusViewport(this.screens[$ - 1].getFrontBranch());
+    if (this.focusedViewport && !this.focusedViewport.isVisible())
+      this.focusViewport(this.focusedViewport.getParent());
     if (this.lastmb != mb)
     {
       this.newInput = true;
       this.lastmb = mb;
+      if (this.focusedViewport)
+        this.focusedViewport.setMouseBtn(mb);
     }
     if (mb && (this.lastmx != mx || this.lastmy != my))
     {
@@ -691,7 +697,10 @@ class Machine
   {
     if (!this.focusedViewport)
       return;
-    ubyte[] gameBtns = this.focusedViewport.gameBtn;
+    if (this.focusedViewport.gameBtn.length != gameBtns.length)
+      gameBtns.length = this.focusedViewport.gameBtn.length;
+    for (ubyte i = 0; i < gameBtns.length; i++)
+      gameBtns[i] = 0;
     ubyte* kbdState = SDL_GetKeyboardState(null);
     for (uint i = 0; i < this.gameBindings.length; i++)
       foreach (scancode, btn; this.gameBindings[i])
@@ -753,12 +762,13 @@ class Machine
     {
       neo *= 256;
       neo += gameBtns[i];
-      this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }
     if (this.lastgmb != neo)
     {
       this.lastgmb = neo;
       this.newInput = true;
+      for (uint i = 0; i < gameBtns.length; i++)
+        this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }
   }
 

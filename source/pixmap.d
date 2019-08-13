@@ -225,6 +225,9 @@ class Pixmap
         const c = src.pget(sx + x, sy + y);
         switch (this.copymode)
         {
+        case CopyMode.replace:
+          this.pset(dx + x, dy + y, c);
+          break;
         case CopyMode.matte:
           if (c != src.bgColor)
             this.pset(dx + x, dy + y, c);
@@ -232,9 +235,6 @@ class Pixmap
         case CopyMode.color:
           if (c != src.bgColor)
             this.pset(dx + x, dy + y, this.fgColor);
-          break;
-        case CopyMode.replace:
-          this.pset(dx + x, dy + y, c);
           break;
         default:
         }
@@ -250,6 +250,8 @@ class Pixmap
     uint c = cast(uint) src.palette.length / 3;
     while (c--)
       this.setColor(c, src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]);
+    this.setBGColor(src.bgColor);
+    this.setFGColor(src.fgColor);
   }
 
   /**

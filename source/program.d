@@ -88,7 +88,7 @@ class Program
     if (this.nextStep < timestamp)
       this.nextStep = timestamp;
     if (this.activeViewport)
-      this.activeViewport.clearInput();
+      this.activeViewport.setHotkey(0);
   }
 
   /**

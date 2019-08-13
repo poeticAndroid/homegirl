@@ -77,7 +77,7 @@ do
     elseif view.focused(self.titlevp) then
       self:title(self._title)
       if self._lastmbtn == 1 and x >= btnx then
-        view.sendtoback(self.rootvp)
+        view.zindex(self.rootvp, 0)
         view.focused(self.titlevp, false)
       else
         view.focused(self.mainvp, true)

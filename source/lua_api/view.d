@@ -241,10 +241,12 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_focused);
   luaL_dostring(lua, "view.focused = _");
 
-  /// view.sendtoback(view)
-  extern (C) int view_sendtoback(lua_State* L) @trusted
+  /// view.zindex(view[, index]): index
+  extern (C) int view_zindex(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
+    const index = lua_tonumber(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -253,11 +255,18 @@ void registerFunctions(Program program)
         throw new Exception("Invalid viewport!");
       Viewport vp = prog.viewports[cast(uint) vpID];
       Viewport par = vp.getParent();
+      if (set)
+      {
+        if (par)
+          par.setViewportIndex(vp, cast(int) index);
+        else
+          prog.machine.setScreenIndex(vp, cast(int) index);
+      }
       if (par)
-        par.sendViewportToBack(vp);
+        lua_pushinteger(L, par.getViewportIndex(vp));
       else
-        prog.machine.sendScreenToBack(vp);
-      return 0;
+        lua_pushinteger(L, prog.machine.getScreenIndex(vp));
+      return 1;
     }
     catch (Exception err)
     {
@@ -266,36 +275,8 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &view_sendtoback);
-  luaL_dostring(lua, "view.sendtoback = _");
-
-  /// view.bringtofront(view)
-  extern (C) int view_bringtofront(lua_State* L) @trusted
-  {
-    const vpID = lua_tointeger(L, 1);
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    try
-    {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      Viewport vp = prog.viewports[cast(uint) vpID];
-      Viewport par = vp.getParent();
-      if (par)
-        par.bringViewportToFront(vp);
-      else
-        prog.machine.bringScreenToFront(vp);
-      return 0;
-    }
-    catch (Exception err)
-    {
-      luaL_error(L, toStringz(err.msg));
-      return 0;
-    }
-  }
-
-  lua_register(lua, "_", &view_bringtofront);
-  luaL_dostring(lua, "view.bringtofront = _");
+  lua_register(lua, "_", &view_zindex);
+  luaL_dostring(lua, "view.zindex = _");
 
   /// view.remove(view)
   extern (C) int view_remove(lua_State* L) @trusted

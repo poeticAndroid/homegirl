@@ -81,23 +81,37 @@ class Viewport
   }
 
   /**
-    send child to back
+    get z-index of a child viewport
   */
-  void sendViewportToBack(Viewport vp)
+  int getViewportIndex(Viewport vp)
   {
-    auto i = countUntil(this.children, vp);
-    if (i != -1)
-      this.children = [vp] ~ this.children.remove(i);
+    return countUntil(this.children, vp);
   }
 
   /**
-    bring child to front
+    set z-index of a child viewport
   */
-  void bringViewportToFront(Viewport vp)
+  void setViewportIndex(Viewport vp, int index)
   {
     auto i = countUntil(this.children, vp);
-    if (i != -1)
-      this.children = this.children.remove(i) ~ [vp];
+    if (i < 0)
+      return;
+    while (index < 0)
+      index += this.children.length;
+    if (index >= this.children.length)
+      index = this.children.length - 1;
+    this.children = this.children.remove(i);
+    this.children = this.children[0 .. index] ~ vp ~ this.children[index .. $];
+  }
+
+  /**
+    check to see if this viewport is visible
+  */
+  bool isVisible()
+  {
+    if (this.visible && this.parent)
+      return this.parent.isVisible();
+    return this.visible;
   }
 
   /**
@@ -122,6 +136,16 @@ class Viewport
       return vp.isInViewport(this);
     else
       return false;
+  }
+
+  /**
+    get deepest viewport of frontmost branch
+  */
+  Viewport getFrontBranch()
+  {
+    if (!this.children.length)
+      return this;
+    return this.children[$ - 1].getFrontBranch();
   }
 
   /**
@@ -247,6 +271,7 @@ class Viewport
   */
   void render()
   {
+    this.visible = true;
     foreach (viewport; this.children)
     {
       if (viewport && viewport.visible)
