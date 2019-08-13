@@ -22,12 +22,14 @@ Pixmap loadImage(string filename)
 /**
   load animation from file and return as array of pixmaps
 */
-Pixmap[] loadAnimation(string filename)
+Pixmap[] loadAnimation(string filename, uint maxframes = -1)
 {
   Pixmap[] frames;
   Pixmap canvas = loadImage(filename);
   FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename), false, true, true);
-  const count = FreeImage_GetPageCount(anim);
+  uint count = FreeImage_GetPageCount(anim);
+  if (maxframes < count)
+    count = maxframes;
   for (uint i = 0; i < count; i++)
   {
     FIBITMAP* img = FreeImage_LockPage(anim, i);
@@ -36,6 +38,22 @@ Pixmap[] loadAnimation(string filename)
   }
   FreeImage_CloseMultiBitmap(anim);
   return frames;
+}
+
+/**
+  save animation to file
+*/
+void saveAnimation(string filename, Pixmap[] frames)
+{
+  FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename), true, false, true);
+  const count = frames.length;
+  for (uint i = 0; i < count; i++)
+  {
+    FIBITMAP* img = pixmapToFibitmap(frames[i]);
+    FreeImage_AppendPage(anim, img);
+    FreeImage_Unload(img);
+  }
+  FreeImage_CloseMultiBitmap(anim);
 }
 
 /**
@@ -99,4 +117,45 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
     }
   }
   return pixmap;
+}
+
+/**
+  Convert Pixmap to FIBITMAP
+*/
+FIBITMAP* pixmapToFibitmap(Pixmap pixmap)
+{
+  FIBITMAP* img = FreeImage_Allocate(pixmap.width, pixmap.height, pixmap.colorBits);
+  FITAG* tag = FreeImage_CreateTag();
+  FreeImage_SetTagKey(tag, "FrameTime");
+  FreeImage_SetTagType(tag, FIDT_LONG);
+  FreeImage_SetTagCount(tag, 1);
+  FreeImage_SetTagLength(tag, 4);
+  FreeImage_SetTagValue(tag, &pixmap.duration);
+  FreeImage_SetMetadata(FIMD_ANIMATION, img, "FrameTime", tag);
+  ubyte dismet = 2;
+  FreeImage_SetTagKey(tag, "DisposalMethod");
+  FreeImage_SetTagType(tag, FIDT_BYTE);
+  FreeImage_SetTagCount(tag, 1);
+  FreeImage_SetTagLength(tag, 1);
+  FreeImage_SetTagValue(tag, &dismet);
+  FreeImage_SetMetadata(FIMD_ANIMATION, img, "DisposalMethod", tag);
+  uint colors = pixmap.palette.length / 3;
+  RGBQUAD* palette = FreeImage_GetPalette(img);
+  for (uint c = 0; c < colors; c++)
+  {
+    palette[c].rgbRed = cast(ubyte)(pixmap.palette[c * 3 + 0]);
+    palette[c].rgbGreen = cast(ubyte)(pixmap.palette[c * 3 + 1]);
+    palette[c].rgbBlue = cast(ubyte)(pixmap.palette[c * 3 + 2]);
+  }
+  FreeImage_SetTransparentIndex(img, pixmap.bgColor);
+  for (uint y = 0; y < pixmap.height; y++)
+  {
+    for (uint x = 0; x < pixmap.width; x++)
+    {
+      ubyte c = pixmap.pget(x, y);
+      FreeImage_SetPixelIndex(img, x, pixmap.height - y - 1, &c);
+    }
+  }
+  FreeImage_DeleteTag(tag);
+  return img;
 }

@@ -39,8 +39,8 @@
     gfx.line(x1, y1, x2, y2)
 ##  image
     image.new(width, height, colorbits): img
-    image.load(filename): img
-    image.loadanimation(filename): img[]
+    image.load(filename[, maxframes]): img[]
+    image.save(filename, img[]): success
     image.size(img): width, height
     image.duration(img): milliseconds
     image.copymode([mode]): mode

@@ -303,15 +303,30 @@ class Program
   /**
     load animation from file
   */
-  uint[] loadAnimation(string filename)
+  uint[] loadAnimation(string filename, uint maxframes = -1)
   {
-    Pixmap[] frames = image_loader.loadAnimation(filename);
+    Pixmap[] frames = image_loader.loadAnimation(filename, maxframes);
     uint[] anim;
     foreach (frame; frames)
     {
       anim ~= this.addPixmap(frame);
     }
     return anim;
+  }
+
+  /**
+    save animation to file
+  */
+  void saveAnimation(string filename, uint[] anim)
+  {
+    Pixmap[] frames;
+    foreach (ani; anim)
+    {
+      if (ani >= this.pixmaps.length || !this.pixmaps[ani])
+        throw new Exception("Invalid image!");
+      frames ~= this.pixmaps[ani];
+    }
+    image_loader.saveAnimation(filename, frames);
   }
 
   /**

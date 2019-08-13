@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.10"; /// version of the software
+const VERSION = "0.3.11"; /// version of the software
 
 /**
   Class representing "the machine"!

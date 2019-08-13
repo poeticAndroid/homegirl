@@ -40,36 +40,19 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_new);
   luaL_dostring(lua, "image.new = _");
 
-  /// image.load(filename): img
+  /// image.load(filename[, maxframes]): img[]
   extern (C) int image_load(lua_State* L) @trusted
   {
-    auto filename = to!string(lua_tostring(L, 1));
+    const filename = to!string(lua_tostring(L, 1));
+    auto maxframes = lua_tonumber(L, 2);
+    const maxset = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushinteger(L, prog.loadPixmap(prog.actualFile(filename)));
-      return 1;
-    }
-    catch (Exception err)
-    {
-      lua_pushnil(L);
-      return 1;
-    }
-  }
-
-  lua_register(lua, "_", &image_load);
-  luaL_dostring(lua, "image.load = _");
-
-  /// image.loadanimation(filename): img[]
-  extern (C) int image_loadanimation(lua_State* L) @trusted
-  {
-    auto filename = to!string(lua_tostring(L, 1));
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    try
-    {
-      uint[] anim = prog.loadAnimation(prog.actualFile(filename));
+      if (!maxset)
+        maxframes = -1;
+      uint[] anim = prog.loadAnimation(prog.actualFile(filename), cast(uint) maxframes);
       lua_createtable(L, cast(uint) anim.length, 0);
       for (uint i = 0; i < anim.length; i++)
       {
@@ -85,8 +68,41 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &image_loadanimation);
-  luaL_dostring(lua, "image.loadanimation = _");
+  lua_register(lua, "_", &image_load);
+  luaL_dostring(lua, "image.load = _");
+
+  /// image.save(filename, img[]): success
+  extern (C) int image_save(lua_State* L) @trusted
+  {
+    const filename = to!string(lua_tostring(L, 1));
+    const anim_len = lua_rawlen(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    uint[] anim;
+    if (anim_len)
+    {
+      lua_pushnil(L);
+      while (lua_next(L, 2))
+      {
+        anim ~= cast(uint) lua_tointeger(L, -1);
+        lua_pop(L, 1);
+      }
+    }
+    try
+    {
+      prog.saveAnimation(prog.actualFile(filename), anim);
+      lua_pushboolean(L, true);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &image_save);
+  luaL_dostring(lua, "image.save = _");
 
   /// image.size(img): width, height
   extern (C) int image_size(lua_State* L) @trusted

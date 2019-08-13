@@ -8,9 +8,9 @@ function _init(args)
   scrn = Screen:new("Juggler demo", 10, 5)
   scrn:colors(15, 0)
   if args[1] == nil then
-    anim = image.loadanimation("images/juggler32.gif")
+    anim = image.load("images/juggler32.gif")
   else
-    anim = image.loadanimation(args[1])
+    anim = image.load(args[1])
   end
   ding = audio.load("./sounds/juggler.wav")
   scrn:usepalette(anim[1])

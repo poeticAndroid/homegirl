@@ -2,7 +2,7 @@ Screen = require("sys:libs/screen")
 
 function _init(args)
   mode = 0
-  anim = image.loadanimation(args[1])
+  anim = image.load(args[1])
   if anim == nil then
     print("Couldn't show file " .. args[1])
     return sys.exit(1)
