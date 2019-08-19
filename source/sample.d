@@ -89,7 +89,7 @@ class Sample
     uint[] i;
     auto f = File(filename, "wb");
     f.rawWrite("RIFF");
-    i = [36 + this.data.length];
+    i = [36 + cast(uint) this.data.length];
     f.rawWrite(i);
     f.rawWrite("WAVE");
     f.rawWrite("fmt ");
@@ -102,7 +102,7 @@ class Sample
     s = [1, 8];
     f.rawWrite(s);
     f.rawWrite("data");
-    i = [this.data.length];
+    i = [cast(uint) this.data.length];
     f.rawWrite(i);
     b.length = this.data.length;
     for (uint n = 0; n < b.length; n++)

@@ -139,7 +139,7 @@ FIBITMAP* pixmapToFibitmap(Pixmap pixmap)
   FreeImage_SetTagLength(tag, 1);
   FreeImage_SetTagValue(tag, &dismet);
   FreeImage_SetMetadata(FIMD_ANIMATION, img, "DisposalMethod", tag);
-  uint colors = pixmap.palette.length / 3;
+  uint colors = cast(uint)(pixmap.palette.length / 3);
   RGBQUAD* palette = FreeImage_GetPalette(img);
   for (uint c = 0; c < colors; c++)
   {

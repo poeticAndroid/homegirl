@@ -85,7 +85,7 @@ void registerFunctions(Program program)
   extern (C) int fs_write(lua_State* L) @trusted
   {
     auto filename = to!string(lua_tostring(L, 1));
-    uint len;
+    size_t len;
     auto str = lua_tolstring(L, 2, &len);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

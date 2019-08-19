@@ -85,7 +85,7 @@ class Viewport
   */
   int getViewportIndex(Viewport vp)
   {
-    return countUntil(this.children, vp);
+    return cast(int) countUntil(this.children, vp);
   }
 
   /**
@@ -99,7 +99,7 @@ class Viewport
     while (index < 0)
       index += this.children.length;
     if (index >= this.children.length)
-      index = this.children.length - 1;
+      index = cast(int) this.children.length - 1;
     this.children = this.children.remove(i);
     this.children = this.children[0 .. index] ~ vp ~ this.children[index .. $];
   }

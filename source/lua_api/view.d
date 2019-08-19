@@ -108,7 +108,7 @@ void registerFunctions(Program program)
           throw new Exception("Invalid viewport!");
         prog.activeViewport = prog.viewports[cast(uint) vpID];
       }
-      uint id = countUntil(prog.viewports, prog.activeViewport);
+      uint id = cast(uint) countUntil(prog.viewports, prog.activeViewport);
       if (id < 1)
         lua_pushnil(L);
       else

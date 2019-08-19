@@ -253,7 +253,7 @@ class Machine
   */
   int getScreenIndex(Viewport screen)
   {
-    return countUntil(this.screens, screen);
+    return cast(int) countUntil(this.screens, screen);
   }
 
   /**
@@ -267,7 +267,7 @@ class Machine
     while (index < 0)
       index += this.screens.length;
     if (index >= this.screens.length)
-      index = this.screens.length - 1;
+      index = cast(int) this.screens.length - 1;
     this.screens = this.screens.remove(i);
     this.screens = this.screens[0 .. index] ~ [cast(Screen) screen] ~ this.screens[index .. $];
   }
