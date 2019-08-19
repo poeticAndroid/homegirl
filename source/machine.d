@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.3.12"; /// version of the software
+const VERSION = "0.4.0"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -460,7 +460,7 @@ class Machine
       SDL_Quit();
       throw new Exception(format("SDL_CreateWindow Error: %s", SDL_GetError()));
     }
-    SDL_SetWindowIcon(this.win, SDL_LoadBMP("assets/icon.bmp"));
+    SDL_SetWindowIcon(this.win, SDL_LoadBMP("homegirl.bmp"));
     this.ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (ren == null)
     {

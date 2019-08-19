@@ -71,6 +71,7 @@ function _step(t)
   end
   _lastbtn = btn
   scrn:usepalette(anim[f])
+  gfx.bgcolor(0)
   scrn:autocolor()
   image.draw(anim[f], x, y, 0, 0, width, height)
   if input.hotkey() == "\x1b" then

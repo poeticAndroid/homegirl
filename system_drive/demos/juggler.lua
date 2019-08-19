@@ -5,15 +5,15 @@ _mx = 0
 _my = 0
 
 function _init(args)
-  scrn = Screen:new("Juggler demo", 10, 5)
-  scrn:colors(15, 0)
+  scrn = Screen:new("Juggler demo", 10, 8)
   if args[1] == nil then
-    anim = image.load("images/juggler32.gif")
+    anim = image.load("images/juggler.gif")
   else
     anim = image.load(args[1])
   end
   ding = audio.load("./sounds/juggler.wav")
   scrn:usepalette(anim[1])
+  scrn:autocolor()
 end
 
 function _step(t)
