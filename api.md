@@ -42,7 +42,7 @@
     image.load(filename[, maxframes]): img[]
     image.save(filename, img[]): success
     image.size(img): width, height
-    image.duration(img): milliseconds
+    image.duration(img[, milliseconds]): milliseconds
     image.copymode([mode]): mode
     image.draw(img, x, y, imgx, imgy, width, height)
     image.copy(img, x, y, imgx, imgy, width, height)

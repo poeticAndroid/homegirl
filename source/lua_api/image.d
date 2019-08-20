@@ -128,16 +128,21 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_size);
   luaL_dostring(lua, "image.size = _");
 
-  /// image.duration(img): milliseconds
+  /// image.duration(img[, milliseconds]): milliseconds
   extern (C) int image_duration(lua_State* L) @trusted
   {
     const imgID = lua_tointeger(L, 1);
+    const duration = lua_tonumber(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
+
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
       if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
         throw new Exception("Invalid image!");
+      if (set)
+        prog.pixmaps[cast(uint) imgID].duration = cast(uint) duration;
       lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].duration);
       return 1;
     }
