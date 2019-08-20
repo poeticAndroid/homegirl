@@ -2,6 +2,7 @@ module lua_api.sys;
 
 import std.string;
 import std.conv;
+import std.datetime;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -85,6 +86,34 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &sys_env);
   luaL_dostring(lua, "sys.env = _");
+
+  /// sys.time(): hours, minutes, seconds, UTCoffset
+  extern (C) int sys_time(lua_State* L) @trusted
+  {
+    SysTime now = Clock.currTime();
+    lua_pushinteger(L, now.hour);
+    lua_pushinteger(L, now.minute);
+    lua_pushinteger(L, now.second);
+    lua_pushinteger(L, now.utcOffset.total!"minutes");
+    return 4;
+  }
+
+  lua_register(lua, "_", &sys_time);
+  luaL_dostring(lua, "sys.time = _");
+
+  /// sys.date(): year, month, date, weekday
+  extern (C) int sys_date(lua_State* L) @trusted
+  {
+    SysTime now = Clock.currTime();
+    lua_pushinteger(L, now.year);
+    lua_pushinteger(L, now.month);
+    lua_pushinteger(L, now.day);
+    lua_pushinteger(L, now.dayOfWeek);
+    return 4;
+  }
+
+  lua_register(lua, "_", &sys_date);
+  luaL_dostring(lua, "sys.date = _");
 
   /// sys.exit([code])
   extern (C) int sys_exit(lua_State* L) @trusted

@@ -1,10 +1,10 @@
-![Icon](./homegirl.bmp) Homegirl
+![Icon](./images/homegirl.png) Homegirl
 ========
 It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
 ![Amigaaah!](./images/homegirl_screentitles.gif)
 
-[![Download!](./images/download.gif)![Icon](./images/homegirl.png)](https://github.com/poeticAndroid/homegirl/releases)
+[![Download!](./images/download.gif)![Icon](./images/homegirl.png)](https://github.com/poeticAndroid/homegirl/releases/latest)
 
 It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It has 4 channel 8-bit stereo sound and eventually ability to mount web-servers as drives..
 
@@ -17,7 +17,7 @@ Hopefully I would also get to make some decent tools, like text editor, music ed
 Specs
 -----
  - **Programming language:** Lua ([See API](./api.md))
- - **Screen resolutions:** 4 horizontal * 4 vertical * 2 aspect ratios = 32 resolutions in total!
+ - **Screen resolutions:** 32 screen modes ranging from 80x45 to 640x480 pixels
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
  - **Input:** Text, mouse and game input.. (Perhaps MIDI..?)*

@@ -61,6 +61,8 @@
     sys.stepinterval([milliseconds]): milliseconds
     sys.listenv(): keys[]
     sys.env(key[, value]): value
+    sys.time(): hours, minutes, seconds, UTCoffset
+    sys.date(): year, month, date, weekday
     sys.exit([code])
     sys.exec(filename[, args[][, cwd]]): success
     sys.startchild(filename[, args[]]): child
