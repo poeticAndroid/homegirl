@@ -87,7 +87,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_env);
   luaL_dostring(lua, "sys.env = _");
 
-  /// sys.time(): hours, minutes, seconds, UTCoffset
+  /// sys.time(): hour, minute, second, UTCoffset
   extern (C) int sys_time(lua_State* L) @trusted
   {
     SysTime now = Clock.currTime();

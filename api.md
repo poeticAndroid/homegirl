@@ -21,6 +21,9 @@
 ##  fs
     fs.isfile(filename): confirmed
     fs.isdir(filename): confirmed
+    fs.size(filename): bytes
+    fs.time(filename): hour, minute, second, UTCoffset
+    fs.date(filename): year, month, date, weekday
     fs.read(filename): string
     fs.write(filename, string): success
     fs.delete(filename): success
@@ -61,7 +64,7 @@
     sys.stepinterval([milliseconds]): milliseconds
     sys.listenv(): keys[]
     sys.env(key[, value]): value
-    sys.time(): hours, minutes, seconds, UTCoffset
+    sys.time(): hour, minute, second, UTCoffset
     sys.date(): year, month, date, weekday
     sys.exit([code])
     sys.exec(filename[, args[][, cwd]]): success

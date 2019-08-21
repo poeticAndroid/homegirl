@@ -4,6 +4,7 @@ import std.string;
 import std.file;
 import std.path;
 import std.conv;
+import std.datetime;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -58,6 +59,79 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &fs_isdir);
   luaL_dostring(lua, "fs.isdir = _");
+
+  /// fs.size(filename): bytes
+  extern (C) int fs_size(lua_State* L) @trusted
+  {
+    auto filename = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      lua_pushinteger(L, getSize(prog.actualFile(filename)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_size);
+  luaL_dostring(lua, "fs.size = _");
+
+  /// fs.time(filename): hour, minute, second, UTCoffset
+  extern (C) int fs_time(lua_State* L) @trusted
+  {
+    auto filename = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      SysTime accessed, modified;
+      getTimes(prog.actualFile(filename), accessed, modified);
+      lua_pushinteger(L, modified.hour);
+      lua_pushinteger(L, modified.minute);
+      lua_pushinteger(L, modified.second);
+      lua_pushinteger(L, modified.utcOffset.total!"minutes");
+      return 4;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_time);
+  luaL_dostring(lua, "fs.time = _");
+
+  /// fs.date(filename): year, month, date, weekday
+  extern (C) int fs_date(lua_State* L) @trusted
+  {
+    auto filename = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      SysTime accessed, modified;
+      getTimes(prog.actualFile(filename), accessed, modified);
+      lua_pushinteger(L, modified.year);
+      lua_pushinteger(L, modified.month);
+      lua_pushinteger(L, modified.day);
+      lua_pushinteger(L, modified.dayOfWeek);
+      return 4;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_date);
+  luaL_dostring(lua, "fs.date = _");
 
   /// fs.read(filename): string
   extern (C) int fs_read(lua_State* L) @trusted

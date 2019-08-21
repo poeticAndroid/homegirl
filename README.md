@@ -16,7 +16,7 @@ Hopefully I would also get to make some decent tools, like text editor, music ed
 
 Specs
 -----
- - **Programming language:** Lua ([See API](./api.md))
+ - **Programming language:** Lua ([See wiki for API documentation](https://github.com/poeticAndroid/homegirl/wiki))
  - **Screen resolutions:** 32 screen modes ranging from 80x45 to 640x480 pixels
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
