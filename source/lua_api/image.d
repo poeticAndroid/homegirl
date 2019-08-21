@@ -182,16 +182,18 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_copymode);
   luaL_dostring(lua, "image.copymode = _");
 
-  /// image.draw(img, x, y, imgx, imgy, width, height)
+  /// image.draw(img, x, y, imgx, imgy, width, height[, imgwidth, imgheight])
   extern (C) int image_draw(lua_State* L) @trusted
   {
     const imgID = lua_tointeger(L, 1);
-    const x = lua_tonumber(L, 2);
-    const y = lua_tonumber(L, 3);
-    const imgx = lua_tonumber(L, 4);
-    const imgy = lua_tonumber(L, 5);
-    const width = lua_tonumber(L, 6);
-    const height = lua_tonumber(L, 7);
+    auto x = lua_tonumber(L, 2);
+    auto y = lua_tonumber(L, 3);
+    auto imgx = lua_tonumber(L, 4);
+    auto imgy = lua_tonumber(L, 5);
+    auto width = lua_tonumber(L, 6);
+    auto height = lua_tonumber(L, 7);
+    auto imgwidth = lua_tonumber(L, 8);
+    auto imgheight = lua_tonumber(L, 9);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -200,9 +202,33 @@ void registerFunctions(Program program)
         throw new Exception("No active viewport!");
       if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
         throw new Exception("Invalid image!");
+      if (imgwidth == 0)
+        imgwidth = width;
+      if (imgheight == 0)
+        imgheight = height;
+      if (width < 0)
+      {
+        x += width;
+        width *= -1;
+        imgx += imgwidth;
+        imgwidth *= -1;
+      }
+      if (height < 0)
+      {
+        y += height;
+        height *= -1;
+        imgy += imgheight;
+        imgheight *= -1;
+      }
+      float scaleX = imgwidth / width;
+      float scaleY = imgheight / height;
+      if (scaleX < 0)
+        imgx--;
+      if (scaleY < 0)
+        imgy--;
       prog.activeViewport.pixmap.copyFrom(prog.pixmaps[cast(uint) imgID],
           cast(int) imgx, cast(int) imgy, cast(int) x, cast(int) y,
-          cast(uint) width, cast(uint) height);
+          cast(uint) width, cast(uint) height, scaleX, scaleY);
       return 0;
     }
     catch (Exception err)

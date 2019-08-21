@@ -216,13 +216,14 @@ class Pixmap
   /** 
     copy pixels from another pixmap
   */
-  void copyFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h)
+  void copyFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h,
+      float scalex = 1, float scaley = 1)
   {
     for (uint y = 0; y < h; y++)
     {
       for (uint x = 0; x < w; x++)
       {
-        const c = src.pget(sx + x, sy + y);
+        const c = src.pget(cast(uint)(sx + x * scalex), cast(uint)(sy + y * scaley));
         switch (this.copymode)
         {
         case CopyMode.replace:

@@ -14,17 +14,12 @@ function _init()
   image.copymode(1)
 end
 
-function _step()
+function _step(t)
   local mx, my, mbtn = input.mouse()
-  image.draw(img, 160 - (width / 2), 90 - height / 2, 0, 0, width, height)
-  gfx.bar(x, y, 100, 100)
-  x = x + 1
-  y = y + 1
+  sx = 2 * math.sin(t / 1000)
+  sy = 2 * math.sin(t / 1100)
+  image.draw(img, 160 - (width * sx / 2), 90 - height * sy / 2, 0, 0, width * sx, height * sy, width, height)
   image.draw(pointer, mx, my, 0, 0, 16, 16)
-  if y > 320 then
-    x = -100
-    y = -170
-  end
   if input.hotkey() == "\x1b" then
     sys.exit(0)
   end

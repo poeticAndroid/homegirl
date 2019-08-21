@@ -47,7 +47,7 @@
     image.size(img): width, height
     image.duration(img[, milliseconds]): milliseconds
     image.copymode([mode]): mode
-    image.draw(img, x, y, imgx, imgy, width, height)
+    image.draw(img, x, y, imgx, imgy, width, height[, imgwidth, imgheight])
     image.copy(img, x, y, imgx, imgy, width, height)
     image.usepalette(img)
     image.copypalette(img)
