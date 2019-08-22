@@ -1,4 +1,4 @@
-Screen = require("sys:libs/screen")
+Screen = require(_DRIVE .. "libs/screen")
 
 function _init(args)
   snd = audio.load(args[1])

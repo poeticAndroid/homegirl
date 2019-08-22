@@ -4,6 +4,7 @@ import std.stdio;
 import std.string;
 import std.path;
 import std.conv;
+import std.file;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -65,7 +66,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (luaL_dofile(L, toStringz(prog.actualFile(filename))))
+      auto path = prog.actualFile(filename);
+      if (luaL_dostring(L,
+          toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
         throw new Exception("Cannot do file " ~ filename);
       return 1;
     }
@@ -86,7 +89,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (luaL_loadfile(L, toStringz(prog.actualFile(filename))))
+      auto path = prog.actualFile(filename);
+      if (luaL_loadstring(L,
+          toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
         throw new Exception("Cannot load file " ~ filename);
       return 1;
     }
@@ -115,22 +120,23 @@ void registerFunctions(Program program)
   /// require(filename): module
   extern (C) int require(lua_State* L) @trusted
   {
-    const filename = to!string(lua_tostring(L, 1));
+    const filename = to!string(lua_tostring(L, 1)) ~ ".lua";
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      auto path = toStringz(prog.actualFile(filename));
+      auto path = prog.actualFile(filename);
       lua_getglobal(L, "package");
       lua_getfield(L, -1, "loaded");
-      lua_getfield(L, -1, path);
+      lua_getfield(L, -1, toStringz(path));
       if (lua_isnoneornil(L, -1))
       {
         lua_pop(L, 1);
-        if (luaL_dofile(L, toStringz(to!string(path) ~ ".lua")))
+        if (luaL_dostring(L,
+            toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
           throw new Exception("Cannot require file " ~ filename);
-        lua_setfield(L, -2, path);
-        lua_getfield(L, -1, path);
+        lua_setfield(L, -2, toStringz(path));
+        lua_getfield(L, -1, toStringz(path));
       }
       return 1;
     }

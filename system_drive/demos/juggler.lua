@@ -1,4 +1,4 @@
-Screen = require("sys:libs/screen")
+Screen = require(_DRIVE .. "libs/screen")
 
 frame = 0
 _mx = 0

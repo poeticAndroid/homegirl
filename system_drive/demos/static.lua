@@ -1,4 +1,4 @@
-Screen = require("sys:libs/screen")
+Screen = require(_DRIVE .. "libs/screen")
 
 function _init()
   sys.stepinterval(0)

@@ -1,4 +1,4 @@
-Screen = require("sys:libs/screen")
+Screen = require(_DRIVE .. "libs/screen")
 players = {
   {
     x = -8,
@@ -16,7 +16,7 @@ players = {
 
 function _init()
   sys.stepinterval(1000 / 60)
-  font = text.loadfont("sys:fonts/Victoria.8b.gif")
+  font = text.loadfont(_DRIVE .. "fonts/Victoria.8b.gif")
   scrn = Screen:new("Game input demo", 5, 2)
   gfx.bgcolor(0)
   scrn:palette(1, 0, 7, 15)

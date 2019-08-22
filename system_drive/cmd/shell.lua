@@ -1,4 +1,4 @@
-Screen = require("sys:libs/screen")
+Screen = require(_DRIVE .. "libs/screen")
 
 fontsize = 8
 fontw = 8
@@ -13,7 +13,7 @@ function _init()
   scrn = Screen:new((sys.env("ENGINE") or "System") .. " Shell", 11, 2)
   scrnw, scrnh = view.size(scrn.mainvp)
   spare = image.new(scrnw, scrnh, 4)
-  font = text.loadfont("sys:fonts/Victoria.8b.gif")
+  font = text.loadfont(_DRIVE .. "fonts/Victoria.8b.gif")
 
   scrn:palette(0, 0, 5, 10)
   scrn:palette(1, 15, 15, 15)
@@ -108,7 +108,7 @@ function submit(line)
       out("\n")
     elseif (cmd == "help") then
       out("Builtin commands: cd, clear, endcli, help\n\nsys:cmd/\n")
-      task = sys.startchild("sys:cmd/dir.lua", {"sys:cmd/"})
+      task = sys.startchild(_DRIVE .. "cmd/dir.lua", {_DRIVE .. "cmd/"})
     elseif cmd and cmd ~= "" then
       if task == nil then
         task = sys.startchild(cmd, args)
@@ -117,10 +117,10 @@ function submit(line)
         task = sys.startchild(cmd .. ".lua", args)
       end
       if task == nil then
-        task = sys.startchild("sys:cmd/" .. cmd, args)
+        task = sys.startchild(_DRIVE .. "cmd/" .. cmd, args)
       end
       if task == nil then
-        task = sys.startchild("sys:cmd/" .. cmd .. ".lua", args)
+        task = sys.startchild(_DRIVE .. "cmd/" .. cmd .. ".lua", args)
       end
       if task == nil then
         out("Unknown command " .. cmd .. "\n")

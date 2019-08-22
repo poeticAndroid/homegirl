@@ -66,7 +66,8 @@ class Program
     this.lua = luaL_newstate();
     luaL_openlibs(this.lua);
     registerFunctions(this);
-    string luacode = readText(this.actualFile(this.filename));
+    string luacode = this.machine.luaFilepathVars(this.filename) ~ readText(
+        this.actualFile(this.filename));
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(this.filename)))
       this.croak();
   }
