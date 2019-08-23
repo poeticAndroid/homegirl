@@ -182,6 +182,44 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_copymode);
   luaL_dostring(lua, "image.copymode = _");
 
+  /// image.tri(img, x1,y1, x2,y2, x3,y3, imgx1,imgy1, imgx2,imgy2, imgx3,imgy3)
+  extern (C) int image_tri(lua_State* L) @trusted
+  {
+    const imgID = lua_tointeger(L, 1);
+    const x1 = lua_tonumber(L, 2);
+    const y1 = lua_tonumber(L, 3);
+    const x2 = lua_tonumber(L, 4);
+    const y2 = lua_tonumber(L, 5);
+    const x3 = lua_tonumber(L, 6);
+    const y3 = lua_tonumber(L, 7);
+    const imgx1 = lua_tonumber(L, 8);
+    const imgy1 = lua_tonumber(L, 9);
+    const imgx2 = lua_tonumber(L, 10);
+    const imgy2 = lua_tonumber(L, 11);
+    const imgx3 = lua_tonumber(L, 12);
+    const imgy3 = lua_tonumber(L, 13);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+        throw new Exception("Invalid image!");
+      prog.activeViewport.pixmap.copyTriFrom(prog.pixmaps[cast(uint) imgID],
+          imgx1, imgy1, imgx2, imgy2, imgx3, imgy3, x1, y1, x2, y2, x3, y3);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &image_tri);
+  luaL_dostring(lua, "image.tri = _");
+
   /// image.draw(img, x, y, imgx, imgy, width, height[, imgwidth, imgheight])
   extern (C) int image_draw(lua_State* L) @trusted
   {

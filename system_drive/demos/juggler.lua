@@ -7,11 +7,11 @@ _my = 0
 function _init(args)
   scrn = Screen:new("Juggler demo", 10, 8)
   if args[1] == nil then
-    anim = image.load("images/juggler.gif")
+    anim = image.load(_DIR .. "images/juggler.gif")
   else
     anim = image.load(args[1])
   end
-  ding = audio.load("./sounds/juggler.wav")
+  ding = audio.load(_DIR .. "sounds/juggler.wav")
   scrn:usepalette(anim[1])
   scrn:autocolor()
 end

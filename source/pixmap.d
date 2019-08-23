@@ -204,12 +204,42 @@ class Pixmap
   */
   void line(int x1, int y1, int x2, int y2)
   {
-    auto dx = x2 - x1;
-    auto dy = y2 - y1;
-    auto l = fmax(abs(dx), abs(dy));
-    for (auto i = 0; i <= l; i++)
+    this.plot(x1, y1);
+    if (abs(x2 - x1) > abs(y2 - y1))
     {
-      plot(cast(int) round(x1 + dx * (i / l)), cast(int) round(y1 + dy * (i / l)));
+      int d = x1 < x2 ? 1 : -1;
+      for (double x = x1; x != x2; x += d)
+        this.plot(cast(int) x, cast(int) this.interpolate(x1, x2, x, y1, y2));
+    }
+    else
+    {
+      int d = y1 < y2 ? 1 : -1;
+      for (double y = y1; y != y2; y += d)
+        this.plot(cast(int) this.interpolate(y1, y2, y, x1, x2), cast(int) y);
+    }
+    this.plot(x2, y2);
+  }
+
+  /** 
+    copy pixels from another pixmap
+  */
+  void copyPixFrom(Pixmap src, uint sx, uint sy, uint dx, uint dy)
+  {
+    const c = src.pget(cast(uint)(sx), cast(uint)(sy));
+    switch (this.copymode)
+    {
+    case CopyMode.replace:
+      this.pset(dx, dy, c);
+      break;
+    case CopyMode.matte:
+      if (c != src.bgColor)
+        this.pset(dx, dy, c);
+      break;
+    case CopyMode.color:
+      if (c != src.bgColor)
+        this.pset(dx, dy, this.fgColor);
+      break;
+    default:
     }
   }
 
@@ -223,22 +253,116 @@ class Pixmap
     {
       for (uint x = 0; x < w; x++)
       {
-        const c = src.pget(cast(uint)(sx + x * scalex), cast(uint)(sy + y * scaley));
-        switch (this.copymode)
-        {
-        case CopyMode.replace:
-          this.pset(dx + x, dy + y, c);
-          break;
-        case CopyMode.matte:
-          if (c != src.bgColor)
-            this.pset(dx + x, dy + y, c);
-          break;
-        case CopyMode.color:
-          if (c != src.bgColor)
-            this.pset(dx + x, dy + y, this.fgColor);
-          break;
-        default:
-        }
+        this.copyPixFrom(src, cast(uint)(sx + x * scalex), cast(uint)(sy + y * scaley),
+            dx + x, dy + y);
+      }
+    }
+  }
+
+  /** 
+    copy a triangle of pixels from another pixmap
+  */
+  void copyTriFrom(Pixmap src, double sx1, double sy1, double sx2, double sy2,
+      double sx3, double sy3, double dx1, double dy1, double dx2, double dy2, double dx3, double dy3)
+  {
+    double swp;
+    if (dy1 > dy2)
+    {
+      swp = dx1;
+      dx1 = dx2;
+      dx2 = swp;
+      swp = dy1;
+      dy1 = dy2;
+      dy2 = swp;
+      swp = sx1;
+      sx1 = sx2;
+      sx2 = swp;
+      swp = sy1;
+      sy1 = sy2;
+      sy2 = swp;
+    }
+    if (dy1 > dy3)
+    {
+      swp = dx1;
+      dx1 = dx3;
+      dx3 = swp;
+      swp = dy1;
+      dy1 = dy3;
+      dy3 = swp;
+      swp = sx1;
+      sx1 = sx3;
+      sx3 = swp;
+      swp = sy1;
+      sy1 = sy3;
+      sy3 = swp;
+    }
+    if (dy2 > dy3)
+    {
+      swp = dx2;
+      dx2 = dx3;
+      dx3 = swp;
+      swp = dy2;
+      dy2 = dy3;
+      dy3 = swp;
+      swp = sx2;
+      sx2 = sx3;
+      sx3 = swp;
+      swp = sy2;
+      sy2 = sy3;
+      sy3 = swp;
+    }
+    for (double _dy = dy1; _dy < dy2; _dy++)
+    {
+      double _dx1 = this.interpolate(dy1, dy2, _dy, dx1, dx2);
+      double _sx1 = this.interpolate(dy1, dy2, _dy, sx1, sx2);
+      double _sy1 = this.interpolate(dy1, dy2, _dy, sy1, sy2);
+      double _dx2 = this.interpolate(dy1, dy3, _dy, dx1, dx3);
+      double _sx2 = this.interpolate(dy1, dy3, _dy, sx1, sx3);
+      double _sy2 = this.interpolate(dy1, dy3, _dy, sy1, sy3);
+      if (_dx1 > _dx2)
+      {
+        swp = _dx1;
+        _dx1 = _dx2;
+        _dx2 = swp;
+        swp = _sx1;
+        _sx1 = _sx2;
+        _sx2 = swp;
+        swp = _sy1;
+        _sy1 = _sy2;
+        _sy2 = swp;
+      }
+      for (double _dx = _dx1; _dx <= _dx2; _dx++)
+      {
+        double _sx = this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2);
+        double _sy = this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2);
+        this.copyPixFrom(src, cast(uint)(_sx), cast(uint)(_sy), cast(uint) _dx, cast(uint) _dy);
+      }
+    }
+    for (double _dy = dy2; _dy <= dy3; _dy++)
+    {
+      double _dx1 = this.interpolate(dy2, dy3, _dy, dx2, dx3);
+      double _sx1 = this.interpolate(dy2, dy3, _dy, sx2, sx3);
+      double _sy1 = this.interpolate(dy2, dy3, _dy, sy2, sy3);
+      double _dx2 = this.interpolate(dy1, dy3, _dy, dx1, dx3);
+      double _sx2 = this.interpolate(dy1, dy3, _dy, sx1, sx3);
+      double _sy2 = this.interpolate(dy1, dy3, _dy, sy1, sy3);
+      if (_dx1 > _dx2)
+      {
+        swp = _dx1;
+        _dx1 = _dx2;
+        _dx2 = swp;
+        swp = _sx1;
+        _sx1 = _sx2;
+        _sx2 = swp;
+        swp = _sy1;
+        _sy1 = _sy2;
+        _sy2 = swp;
+      }
+      for (double _dx = _dx1; _dx <= _dx2; _dx++)
+      {
+        double _sx = this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2);
+        double _sy = this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2);
+        this.copyPixFrom(src, cast(uint)(_sx), cast(uint)(_sy), cast(uint) _dx, cast(uint) _dy);
       }
     }
   }
@@ -326,6 +450,13 @@ class Pixmap
   // --- _privates --- //
   private ubyte pixelMask;
 
+  private double interpolate(double a1, double a2, double n, double b1, double b2)
+  {
+    double da = a2 - a1;
+    double db = b2 - b1;
+    double np = (n - a1) / (da == 0 ? 1 : da);
+    return b1 + np * db;
+  }
 }
 
 /**

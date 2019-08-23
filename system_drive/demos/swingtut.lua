@@ -6,9 +6,9 @@ y = -170
 function _init()
   sys.stepinterval(1000 / 60)
   scrn = Screen:new("Swing Tut", 10, 5)
-  pointer = image.load("./images/pointer.gif", 1)[1]
+  pointer = image.load(_DIR .. "images/pointer.gif", 1)[1]
 
-  img = image.load("./images/Pharao.gif", 1)[1]
+  img = image.load(_DIR .. "images/Pharao.gif", 1)[1]
   width, height = image.size(img)
   scrn:usepalette(img)
   image.copymode(1)
