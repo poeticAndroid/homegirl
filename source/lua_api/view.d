@@ -1,6 +1,7 @@
 module lua_api.view;
 
 import std.string;
+import std.conv;
 import std.algorithm.searching;
 import riverd.lua;
 import riverd.lua.types;
@@ -277,6 +278,35 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &view_zindex);
   luaL_dostring(lua, "view.zindex = _");
+
+  /// view.attribute(view, name[, value]): value
+  extern (C) int view_attribute(lua_State* L) @trusted
+  {
+    const vpID = lua_tointeger(L, 1);
+    const name = to!string(lua_tostring(L, 2));
+    const value = to!string(lua_tostring(L, 3));
+    const set = 1 - lua_isnoneornil(L, 3);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+        throw new Exception("Invalid viewport!");
+      Viewport vp = prog.viewports[cast(uint) vpID];
+      if (set)
+        vp.attributes[name] = value;
+      lua_pushstring(L, toStringz(vp.attributes.get(name, null)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &view_attribute);
+  luaL_dostring(lua, "view.attribute = _");
 
   /// view.remove(view)
   extern (C) int view_remove(lua_State* L) @trusted

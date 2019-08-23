@@ -21,7 +21,8 @@ class Viewport
   ubyte mouseBtn; /// Mouse button state if this viewport has focus
   char hotkey; /// hotkey just pressed if this viewport has focus
   ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
-  TextEditor textinput; ///text editor
+  TextEditor textinput; /// text editor
+  string[string] attributes; /// attributes
 
   /**
     create a new Viewport

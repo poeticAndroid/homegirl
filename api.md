@@ -91,4 +91,5 @@
     view.visible(view[, isvisible]): isvisible
     view.focused(view[, isfocused]): isfocused
     view.zindex(view[, index]): index
+    view.attribute(view, name[, value]): value
     view.remove(view)

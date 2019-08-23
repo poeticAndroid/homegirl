@@ -242,6 +242,7 @@ class Program
       parent = this.viewports[parentId];
     Viewport vp = parent.createViewport(left, top, width, height);
     vp.program = this;
+    vp.attributes["title"] = this.machine.baseName(this.filename);
     this.viewports ~= vp;
     this.activeViewport = vp;
     this.machine.focusViewport(vp);

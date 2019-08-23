@@ -44,7 +44,7 @@ do
 
   function Screen:title(title)
     if title then
-      self._title = title
+      self._title = view.attribute(self.rootvp, "title", title)
       local prevvp = view.active()
       view.active(self.titlevp)
       gfx.bgcolor(self._bgcolor)

@@ -5,7 +5,7 @@ y = -170
 
 function _init()
   sys.stepinterval(1000 / 60)
-  scrn = Screen:new("showimage.lua", 10, 5)
+  scrn = Screen:new("Swing Tut", 10, 5)
   pointer = image.load("./images/pointer.gif", 1)[1]
 
   img = image.load("./images/Pharao.gif", 1)[1]
