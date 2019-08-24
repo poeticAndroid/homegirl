@@ -56,7 +56,7 @@ int main(string[] args)
   catch (Exception e)
   {
     writeln("no config!");
-    config = parseJSON("{}");
+    config = parseJSON("{}"); 
   }
   if ("window" in config && config["window"].type == JSONType.object)
   {

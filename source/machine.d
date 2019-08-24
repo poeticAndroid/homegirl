@@ -18,7 +18,7 @@ import soundchip;
 import pixmap;
 import image_loader;
 
-const VERSION = "0.4.6"; /// version of the software
+const VERSION = "0.4.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -425,9 +425,9 @@ class Machine
   */
   string luaFilepathVars(string path)
   {
-    string code = "local _DRIVE = \"" ~ this.getDrive(path) ~ "\"\n";
-    code ~= "local _DIR   = \"" ~ this.dirName(path) ~ "\"\n";
-    code ~= "local _FILE  = \"" ~ this.baseName(path) ~ "\"\n";
+    string code = "local _DRIVE = \"" ~ this.getDrive(path) ~ "\" ";
+    code ~= "local _DIR   = \"" ~ this.dirName(path) ~ "\" ";
+    code ~= "local _FILE  = \"" ~ this.baseName(path) ~ "\" ";
     return code;
   }
 
