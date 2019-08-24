@@ -1,4 +1,5 @@
 # Lua API overview
+[See wiki for details.](https://github.com/poeticAndroid/homegirl/wiki)
 ##  _basic_
     dofile(filename): result
     loadfile(filename): function
