@@ -4,6 +4,7 @@
 		"bindbc-freeimage": "0.2.0",
 		"bindbc-loader": "0.2.1",
 		"bindbc-sdl": "0.10.1",
-		"riverd-loader": "1.0.2"
+		"riverd-loader": "1.0.2",
+		"riverd-lua": "1.0.3"
 	}
 }

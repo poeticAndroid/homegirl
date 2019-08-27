@@ -1,25 +1,6 @@
 {
-	"name": "homegirl",
-	"description": "A fantasy console inspired by the Amiga.",
 	"authors": [
 		"poeticAndroid"
-	],
-	"copyright": "Copyright © 2019, poeticAndroid",
-	"dependencies": {
-		"bindbc-freeimage": "~>0.2.0",
-		"bindbc-sdl": "~>0.10.0",
-		"riverd-loader": "~>1.0.2"
-	},
-	"license": "MIT",
-	"subConfigurations": {
-		"riverd-lua": "dynamic"
-	},
-	"sourceFiles-windows": [
-		"./homegirl.res"
-	],
-	"versions": [
-		"SDL_208",
-		"FI_318"
 	],
 	"buildTypes": {
 		"release": {
@@ -34,7 +15,27 @@
 	"copyFiles-windows-x86_64": [
 		"dlls/x86_64/*.dll"
 	],
+	"copyright": "Copyright © 2019, poeticAndroid",
+	"dependencies": {
+		"bindbc-freeimage": "~>0.2.0",
+		"bindbc-sdl": "~>0.11.0",
+		"riverd-loader": "~>1.0.2",
+		"riverd-lua": "~>1.0.3"
+	},
+	"description": "A fantasy console inspired by the Amiga.",
+	"license": "MIT",
+	"name": "homegirl",
 	"preBuildCommands": [
 		"sh build_api_doc.sh"
+	],
+	"sourceFiles-windows": [
+		"./homegirl.res"
+	],
+	"subConfigurations": {
+		"riverd-lua": "dynamic"
+	},
+	"versions": [
+		"SDL_208",
+		"FI_318"
 	]
 }
