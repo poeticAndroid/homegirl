@@ -14,6 +14,8 @@ Once the console is somewhat complete, I plan on writing an "operating system" f
 
 Hopefully I would also get to make some decent tools, like text editor, music editor and paint program, so that you could make games or apps on the platform itself..!
 
+[**Join the community on Discord!**](https://discord.gg/ND4FErK)
+
 Specs
 -----
  - **Programming language:** Lua ([See wiki for API documentation](https://github.com/poeticAndroid/homegirl/wiki))
@@ -25,3 +27,4 @@ Specs
  - **Native filetypes:** GIF for images and animations, WAV for sound samples
 
 _*Work in progress_
+

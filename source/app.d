@@ -56,8 +56,32 @@ int main(string[] args)
   catch (Exception e)
   {
     writeln("no config!");
-    config = parseJSON("{}"); 
+    config = parseJSON("{}");
   }
+  if (!("drives" in config))
+  {
+    config["drives"] = parseJSON("{}");
+    config["drives"].object["sys"] = "./system_drive/";
+    version (Windows)
+    {
+      config["drives"].object["user"] = buildNormalizedPath(environment["APPDATA"],
+          "Homegirl/user_drive/");
+    }
+    else
+    {
+      if ("HOME" in environment)
+        config["drives"].object["user"] = buildNormalizedPath(environment["HOME"],
+            ".config/Homegirl/user_drive/");
+      else
+        config["drives"].object["user"] = buildNormalizedPath("./user_drive/");
+    }
+    auto configFile = File(configFileName, "w");
+    configFile.write(toJSON(config, true));
+    configFile.close();
+  }
+  string[] drives = config["drives"].object.keys();
+  for (uint i = 0; i < drives.length; i++)
+    machine.mountDrive(drives[i], config["drives"].object[drives[i]].str);
   if ("window" in config && config["window"].type == JSONType.object)
   {
     if ("left" in config["window"] && "top" in config["window"])
@@ -70,29 +94,6 @@ int main(string[] args)
       SDL_MaximizeWindow(machine.win);
     if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
       machine.toggleFullscren();
-  }
-  if ("drives" in config && config["drives"].type == JSONType.object)
-  {
-    string[] drives = config["drives"].object.keys();
-    for (uint i = 0; i < drives.length; i++)
-      machine.mountDrive(drives[i], config["drives"].object[drives[i]].str);
-  }
-  else
-  {
-    machine.mountDrive("sys", "./system_drive/");
-    version (Windows)
-    {
-      machine.mountDrive("user", buildNormalizedPath(environment["APPDATA"],
-          "Homegirl/user_drive/"));
-    }
-    else
-    {
-      if ("HOME" in environment)
-        machine.mountDrive("user", buildNormalizedPath(environment["HOME"],
-            ".config/Homegirl/user_drive/"));
-      else
-        machine.mountDrive("user", buildNormalizedPath("./user_drive/"));
-    }
   }
   if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
   {
@@ -118,8 +119,6 @@ int main(string[] args)
   }
   if (!("window" in config))
     config["window"] = parseJSON("{}");
-  config["drives"] = parseJSON("{}");
-  // config["gameBindings"] = parseJSON("{}");
   int x;
   int y;
   x = SDL_GetWindowFlags(machine.win);
@@ -135,8 +134,6 @@ int main(string[] args)
     config["window"].object["width"] = JSONValue(x);
     config["window"].object["height"] = JSONValue(y);
   }
-  for (uint i = 0; i < machine.drives.keys().length; i++)
-    config["drives"].object[machine.drives.keys()[i]] = machine.drives[machine.drives.keys()[i]];
 
   auto configFile = File(configFileName, "w");
   configFile.write(toJSON(config, true));

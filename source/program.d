@@ -55,6 +55,7 @@ class Program
     this.cwd = cwd;
     if (!this.cwd)
       this.cwd = this.machine.dirName(this.filename);
+    this.cwd = this.resolve("./");
     this.children ~= null;
     this.viewports ~= null;
     this.pixmaps ~= null;

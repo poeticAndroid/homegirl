@@ -1,1 +1,1 @@
-dofile("/cmd/shell.lua")
+sys.exec("/cmd/shell.lua", {}, "user:")
