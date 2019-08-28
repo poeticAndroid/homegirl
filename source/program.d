@@ -50,12 +50,11 @@ class Program
   this(Machine machine, string filename, string[] args = [], string cwd = null)
   {
     this.machine = machine;
-    this.filename = filename;
+    this.filename = this.resolve(filename);
     this.args = args;
-    this.cwd = cwd;
+    this.cwd = this.resolve(cwd);
     if (!this.cwd)
       this.cwd = this.machine.dirName(this.filename);
-    this.cwd = this.resolve("./");
     this.children ~= null;
     this.viewports ~= null;
     this.pixmaps ~= null;
@@ -163,9 +162,9 @@ class Program
   /**
     resolve relative path to host path
   */
-  string actualFile(string path)
+  string actualFile(string path, bool dir = false)
   {
-    string str = this.machine.actualPath(this.resolve(path));
+    string str = this.machine.actualPath(this.resolve(path), dir);
     return str;
   }
 

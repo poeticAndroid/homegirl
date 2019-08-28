@@ -19,6 +19,8 @@
 	"dependencies": {
 		"bindbc-freeimage": "~>0.2.0",
 		"bindbc-sdl": "~>0.11.0",
+		"htmld": "~>0.3.7",
+		"requests": "~>1.0.9",
 		"riverd-loader": "~>1.0.2"
 	},
 	"description": "A fantasy console inspired by the Amiga.",

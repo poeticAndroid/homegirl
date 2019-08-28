@@ -8,6 +8,7 @@ import bindbc.freeimage;
 
 import machine;
 import program;
+import network;
 
 int main(string[] args)
 {
@@ -15,6 +16,7 @@ int main(string[] args)
   Machine machine;
   JSONValue config;
   string configFileName;
+  bool writeConfig;
 
   version (Windows)
   {
@@ -73,12 +75,35 @@ int main(string[] args)
         config["drives"].object["user"] = buildNormalizedPath(environment["HOME"],
             ".config/Homegirl/user_drive/");
       else
-        config["drives"].object["user"] = buildNormalizedPath("./user_drive/");
+        config["drives"].object["user"] = "./user_drive/";
     }
+    writeConfig = true;
+  }
+  if (!("network" in config))
+  {
+    config["network"] = parseJSON("{}");
+    version (Windows)
+    {
+      config["network"].object["cache"] = buildNormalizedPath(environment["APPDATA"],
+          "Homegirl/network_cache/");
+    }
+    else
+    {
+      if ("HOME" in environment)
+        config["network"].object["cache"] = buildNormalizedPath(environment["HOME"],
+            ".config/Homegirl/network_cache/");
+      else
+        config["network"].object["cache"] = "./network_cache/";
+    }
+    writeConfig = true;
+  }
+  if (writeConfig)
+  {
     auto configFile = File(configFileName, "w");
     configFile.write(toJSON(config, true));
     configFile.close();
   }
+  machine.net = new Network(config["network"].object["cache"].str);
   string[] drives = config["drives"].object.keys();
   for (uint i = 0; i < drives.length; i++)
     machine.mountDrive(drives[i], config["drives"].object[drives[i]].str);

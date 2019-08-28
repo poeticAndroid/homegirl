@@ -17,6 +17,7 @@ import texteditor;
 import soundchip;
 import pixmap;
 import image_loader;
+import network;
 
 const VERSION = "0.4.9"; /// version of the software
 
@@ -36,6 +37,7 @@ class Machine
   bool hasGamepad = false; /// has a gamepad been used?
   uint cursorBlank = 0; /// when to hide the cursor if idle
   SoundChip audio; /// audio output
+  Network net; /// networking system
   string[string] drives; /// a table of all the console drives and their corresponding host folder
   string[string] env; /// environment variables
   Pixmap[][string] fonts; /// fonts loaded
@@ -320,6 +322,11 @@ class Machine
   */
   void mountDrive(string name, string path)
   {
+    if (this.net.isUrl(path))
+    {
+      this.mountWebDrive(name, path);
+      return;
+    }
     name = toUpper(name);
     path = absolutePath(path);
     if (this.drives.get(name, null))
@@ -335,6 +342,23 @@ class Machine
     if (path[$ - 1 .. $] != dirSeparator)
       path ~= dirSeparator;
     this.drives[name] = path;
+  }
+
+  /**
+    mount an internet drive
+  */
+  void mountWebDrive(string name, string url)
+  {
+    if (!this.net.isUrl(url))
+      throw new Exception("Invalid URL!");
+    name = toUpper(name);
+    if (url[$ - 1 .. $] != "/")
+      url ~= "/";
+    if (this.drives.get(name, null))
+      throw new Exception("Drive '" ~ name ~ "' already mounted!");
+    if (!exists(this.net.get(url)))
+      throw new Exception("Could not mount drive '" ~ name ~ "'!");
+    this.drives[name] = url;
   }
 
   /**
@@ -371,15 +395,23 @@ class Machine
   /**
     resolve console path to host path
   */
-  string actualPath(string consolePath)
+  string actualPath(string consolePath, bool dir = false)
   {
     string drive = this.getDrive(consolePath, "");
     if (!drive)
-      return null;
+      throw new Exception("Path is not absolute!");
     if (!this.drives.get(drive, null))
-      return null;
+      throw new Exception("Drive '" ~ drive ~ "' does not exist!");
     string path = consolePath[drive.length + 1 .. $];
-    return buildNormalizedPath(this.drives[drive], path);
+    if (this.net.isUrl(this.drives[drive]))
+    {
+      if (dir)
+        return this.net.get(this.drives[drive] ~ path)[0 .. $ - 6] ~ ".~dir/";
+      else
+        return this.net.get(this.drives[drive] ~ path);
+    }
+    else
+      return buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
   }
 
   /**

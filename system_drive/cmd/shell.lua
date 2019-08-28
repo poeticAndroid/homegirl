@@ -245,6 +245,9 @@ function searchhistory(line)
 end
 
 function tabcomplete(line, options)
+  if not options then
+    return line
+  end
   local tabpos = string.find(line, "\t")
   if not tabpos then
     return line

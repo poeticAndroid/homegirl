@@ -1,10 +1,13 @@
 module lua_api.fs;
 
+import std.stdio;
 import std.string;
+import std.algorithm;
 import std.file;
 import std.path;
 import std.conv;
 import std.datetime;
+import std.uri;
 import riverd.lua;
 import riverd.lua.types;
 
@@ -47,7 +50,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      lua_pushboolean(L, exists(prog.actualFile(filename)) && isDir(prog.actualFile(filename)));
+      lua_pushboolean(L, exists(prog.actualFile(filename, true))
+          && isDir(prog.actualFile(filename, true)));
       return 1;
     }
     catch (Exception err)
@@ -169,7 +173,7 @@ void registerFunctions(Program program)
       bin.length = len;
       for (uint i = 0; i < len; i++)
         bin[i] = cast(ubyte) str[i];
-      write(prog.actualFile(filename), bin);
+      std.file.write(prog.actualFile(filename), bin);
       lua_pushboolean(L, true);
       return 1;
     }
@@ -221,15 +225,29 @@ void registerFunctions(Program program)
     try
     {
       string[] entries;
-      foreach (string name; dirEntries(prog.actualFile(dirname), SpanMode.shallow))
-        entries ~= name;
+      foreach (string name; dirEntries(prog.actualFile(dirname, true), SpanMode.shallow))
+      {
+        if (name[$ - 5 .. $] == ".~dir")
+        {
+          auto _i = entries.countUntil(name[0 .. $ - 5] ~ ".~file");
+          if (_i >= 0)
+            entries = entries.remove(_i);
+        }
+        if (name[$ - 6 .. $] == ".~file")
+        {
+          if (entries.countUntil(name[0 .. $ - 6] ~ ".~dir") < 0)
+            entries ~= name;
+        }
+        else
+          entries ~= name;
+      }
       lua_createtable(L, cast(uint) entries.length, 0);
       for (uint i = 0; i < entries.length; i++)
       {
         if (isDir(entries[i]))
-          entries[i] = baseName(entries[i]) ~ "/";
+          entries[i] = baseName(decodeComponent(entries[i]), ".~dir") ~ "/";
         else
-          entries[i] = baseName(entries[i]);
+          entries[i] = baseName(decodeComponent(entries[i]), ".~file");
         lua_pushstring(L, toStringz(entries[i]));
         lua_rawseti(L, -2, i + 1);
       }
@@ -282,7 +300,8 @@ void registerFunctions(Program program)
     {
       if (set)
       {
-        if (!exists(prog.actualFile(dirname)) || !isDir(prog.actualFile(dirname)))
+        std.stdio.writeln(dirname, "\t", prog.actualFile(dirname, true));
+        if (!exists(prog.actualFile(dirname, true)) || !isDir(prog.actualFile(dirname, true)))
         {
           lua_pushnil(L);
           return 1;
