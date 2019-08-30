@@ -174,7 +174,7 @@ void registerFunctions(Program program)
       for (uint i = 0; i < len; i++)
         bin[i] = cast(ubyte) str[i];
       std.file.write(prog.actualFile(filename), bin);
-      lua_pushboolean(L, true);
+      lua_pushboolean(L, prog.machine.syncPath(prog.resolve(filename)));
       return 1;
     }
     catch (Exception err)
@@ -195,15 +195,13 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      string path = prog.actualFile(filename);
+      string path = prog.actualFile(filename, true);
+      if (exists(path) && isDir(path))
+        rmdirRecurse(path);
+      path = prog.actualFile(filename, false);
       if (exists(path))
-      {
-        if (isDir(path))
-          rmdirRecurse(path);
-        else
-          remove(path);
-      }
-      lua_pushboolean(L, true);
+        remove(path);
+      lua_pushboolean(L, prog.machine.syncPath(prog.resolve(filename)));
       return 1;
     }
     catch (Exception err)
@@ -300,7 +298,6 @@ void registerFunctions(Program program)
     {
       if (set)
       {
-        std.stdio.writeln(dirname, "\t", prog.actualFile(dirname, true));
         if (!exists(prog.actualFile(dirname, true)) || !isDir(prog.actualFile(dirname, true)))
         {
           lua_pushnil(L);
@@ -331,8 +328,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      mkdirRecurse(prog.actualFile(dirname));
-      lua_pushboolean(L, true);
+      mkdirRecurse(prog.actualFile(dirname, true));
+      lua_pushboolean(L, prog.machine.syncPath(prog.resolve(dirname)));
       return 1;
     }
     catch (Exception err)

@@ -19,7 +19,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.4.9"; /// version of the software
+const VERSION = "0.4.10"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -320,7 +320,7 @@ class Machine
   /**
     mount a drive
   */
-  void mountDrive(string name, string path)
+  void mountDrive(string name, string path, uint perms = 0)
   {
     if (this.net.isUrl(path))
     {
@@ -347,7 +347,7 @@ class Machine
   /**
     mount an internet drive
   */
-  void mountWebDrive(string name, string url)
+  void mountWebDrive(string name, string url, uint perms = 0)
   {
     if (!this.net.isUrl(url))
       throw new Exception("Invalid URL!");
@@ -412,6 +412,22 @@ class Machine
     }
     else
       return buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
+  }
+
+  /**
+    sync console path to network
+  */
+  bool syncPath(string consolePath, bool dir = false)
+  {
+    string drive = this.getDrive(consolePath, "");
+    if (!drive)
+      throw new Exception("Path is not absolute!");
+    if (!this.drives.get(drive, null))
+      throw new Exception("Drive '" ~ drive ~ "' does not exist!");
+    string path = consolePath[drive.length + 1 .. $];
+    if (this.net.isUrl(this.drives[drive]))
+      return this.net.sync(this.drives[drive] ~ path);
+    return true;
   }
 
   /**

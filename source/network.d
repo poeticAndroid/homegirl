@@ -2,7 +2,6 @@ module network;
 
 import std.file;
 import std.path;
-import std.digest.md;
 import std.conv;
 import std.uri;
 import std.algorithm;
@@ -26,7 +25,6 @@ class Network
     if (!exists(this.cacheDir))
       mkdirRecurse(this.cacheDir);
     this.req = Request();
-    this.req.sslSetCaCert("./cacert.pem");
   }
 
   bool isUrl(string url)
@@ -35,8 +33,8 @@ class Network
       return false;
     if (url[0 .. 7] == "http://")
       return true;
-    if (url[0 .. 8] == "https://")
-      return true;
+    // if (url[0 .. 8] == "https://")
+    //   return true;
     return false;
   }
 
@@ -50,7 +48,6 @@ class Network
       filename ~= encodeComponent(decodeComponent(seg)) ~ ".~dir/";
     }
     filename = filename[0 .. $ - 6] ~ ".~file";
-    // string filename = this.cacheDir ~ to!string(hexDigest!MD5(url)) ~ suff;
     return filename;
   }
 
@@ -73,9 +70,41 @@ class Network
       {
       }
     }
-    else if (exists(filename))
-      remove(filename);
+    else
+    {
+      if (exists(filename))
+        remove(filename);
+      string dirname = filename[0 .. $ - 6] ~ ".~dir";
+      if (exists(dirname))
+        rmdirRecurse(dirname);
+    }
     return filename;
+  }
+
+  bool sync(string url)
+  {
+    url = onlyPath(url);
+    string filename = this.actualFile(url);
+    string dirname = filename[0 .. $ - 6] ~ ".~dir";
+    if (exists(dirname))
+    {
+      if (url[$ - 1 .. $] != "/")
+        url ~= "/";
+      auto res = this.req.exec!"PUT"(url ~ "~empty", "delete me!", "application/octet-stream");
+      this.req.exec!"DELETE"(url ~ "~empty");
+      return res.code < 300;
+    }
+    else if (exists(filename))
+    {
+      auto res = this.req.exec!"PUT"(url,
+          cast(ubyte[]) std.file.read(filename), "application/octet-stream");
+      return res.code < 300;
+    }
+    else
+    {
+      auto res = this.req.exec!"DELETE"(url);
+      return res.code < 300;
+    }
   }
 
   /* --- _privates --- */
