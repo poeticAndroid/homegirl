@@ -1,6 +1,5 @@
 module network;
 
-import std.stdio;
 import std.file;
 import std.path;
 import std.conv;
@@ -55,19 +54,19 @@ class Network
 
   string get(string url)
   {
+    SysTime accessTime, modificationTime, now;
     url = onlyPath(url);
     string filename = this.actualFile(url);
     bool getit = true;
     if (exists(filename) && getSize(filename))
     {
-      SysTime accessTime, modificationTime, now;
       getTimes(filename, accessTime, modificationTime);
-      now = SysTime();
-      getit = now.toUnixTime() > accessTime.toUnixTime() + 60;
+      now = Clock.currTime();
+      const age = now.toUnixTime() - accessTime.toUnixTime();
+      getit = age > 600;
     }
     if (getit)
     {
-      writeln("GETTING ", url);
       Response res = req.get(url);
       url = res.finalURI.recalc_uri();
       if (res.code < 300)
@@ -75,6 +74,15 @@ class Network
         if (!exists(dirName(filename)))
           mkdirRecurse(dirName(filename));
         std.file.write(filename, res.responseBody.data);
+        try
+        {
+          getTimes(filename, accessTime, modificationTime);
+          modificationTime = parseRFC822DateTime(res.responseHeaders.get("last-modified", ""));
+          setTimes(filename, accessTime, modificationTime);
+        }
+        catch (Exception err)
+        {
+        }
         try
         {
           this.crawl(url);
@@ -146,7 +154,7 @@ class Network
       dir = dir[0 .. $ - 1];
     string filename = this.actualFile(url);
     string htmlcode = readText(filename);
-    if (htmlcode[0 .. 1] != "<")
+    if (htmlcode.length < 1 || htmlcode[0 .. 1] != "<")
       return;
     auto doc = createDocument(htmlcode);
     Node[] links;
