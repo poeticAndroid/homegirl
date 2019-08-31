@@ -5,6 +5,7 @@ import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 
 /**
@@ -35,6 +36,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       lua_pushinteger(L, prog.loadSample(prog.actualFile(filename)));
       return 1;
     }
@@ -57,6 +60,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
         throw new Exception("Invalid sample!");
       prog.samples[cast(uint) smplID].saveWav(prog.actualFile(filename));
@@ -65,7 +70,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }

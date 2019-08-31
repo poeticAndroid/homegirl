@@ -25,6 +25,7 @@ class Program
 {
   bool running = true; /// is the program running?
   int exitcode = 0; /// exit code
+  string drive; /// the drive this program originates from
   string filename; /// filename of the Lua script currently running
   string[] args; /// program arguments
   string cwd; /// current working directory
@@ -51,6 +52,7 @@ class Program
   {
     this.machine = machine;
     this.filename = this.resolve(filename);
+    this.drive = this.machine.getDrive(this.filename, "");
     this.args = args;
     this.cwd = this.resolve(cwd);
     if (!this.cwd)
@@ -123,6 +125,22 @@ class Program
       while (i)
         this.removeSample(cast(uint)--i);
     }
+  }
+
+  /**
+    check if this program has a certain permission
+  */
+  bool hasPermission(uint perm)
+  {
+    return (this.machine.perms[this.drive] & perm) > 0;
+  }
+
+  /**
+    check if given path is on origin drive
+  */
+  bool isOnOriginDrive(string path)
+  {
+    return this.drive == this.machine.getDrive(this.resolve(path), "");
   }
 
   /**

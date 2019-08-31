@@ -39,6 +39,8 @@ class Machine
   SoundChip audio; /// audio output
   Network net; /// networking system
   string[string] drives; /// a table of all the console drives and their corresponding host folder
+  uint[string] perms; /// a table of all the console drives and their corresponding permissions
+  uint[string] reqPerms; /// a table of all the console drives and their corresponding requested permissions
   string[string] env; /// environment variables
   Pixmap[][string] fonts; /// fonts loaded
 
@@ -318,16 +320,15 @@ class Machine
   }
 
   /**
-    mount a drive
+    mount a local drive
   */
-  void mountDrive(string name, string path, uint perms = 0)
+  void mountLocalDrive(string name, string path, uint perms = 0)
   {
     if (this.net.isUrl(path))
-    {
-      this.mountWebDrive(name, path);
-      return;
-    }
-    name = toUpper(name);
+      throw new Exception("Invalid path!");
+    if (!isValidPath(path))
+      throw new Exception("Invalid path!");
+    name = toUpper(this.getDrive(name ~ ":", ""));
     path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Exception("Drive '" ~ name ~ "' already mounted!");
@@ -342,16 +343,17 @@ class Machine
     if (path[$ - 1 .. $] != dirSeparator)
       path ~= dirSeparator;
     this.drives[name] = path;
+    this.perms[name] = perms;
   }
 
   /**
-    mount an internet drive
+    mount a remote drive
   */
-  void mountWebDrive(string name, string url, uint perms = 0)
+  void mountRemoteDrive(string name, string url, uint perms = 0)
   {
     if (!this.net.isUrl(url))
       throw new Exception("Invalid URL!");
-    name = toUpper(name);
+    name = toUpper(this.getDrive(name ~ ":", ""));
     if (url[$ - 1 .. $] != "/")
       url ~= "/";
     if (this.drives.get(name, null))
@@ -359,14 +361,15 @@ class Machine
     if (!exists(this.net.get(url)))
       throw new Exception("Could not mount drive '" ~ name ~ "'!");
     this.drives[name] = url;
+    this.perms[name] = perms;
   }
 
   /**
     unmount a drive
   */
-  void unmountDrive(string name)
+  void unmountDrive(string name, bool force = false)
   {
-    name = toUpper(name);
+    name = toUpper(this.getDrive(name ~ ":", ""));
     if (!this.drives.get(name, null))
       return;
     uint inUse = 0;
@@ -375,11 +378,18 @@ class Machine
       Program program = this.programs[i];
       if (program && (this.getDrive(program.filename, "") == name
           || this.getDrive(program.cwd, "") == name))
-        inUse++;
+      {
+        if (force)
+          program.shutdown(-1);
+        else
+          inUse++;
+      }
     }
     if (inUse)
       throw new Exception("Drive '" ~ name ~ "' is in use!");
     this.drives[name] = null;
+    this.perms[name] = 0;
+    this.reqPerms[name] = 0;
   }
 
   /**
@@ -846,4 +856,21 @@ enum GameBtns
   b = 32,
   x = 64,
   y = 128
+}
+
+/**
+  all the permissions
+*/
+enum Permissions
+{
+  managePermissions = 1,
+  mountLocalDrives = 2,
+  mountRemoteDrives = 4,
+  unmountDrives = 8,
+  manageMainScreen = 16,
+
+  readOtherDrives = 256,
+  writeOtherDrives = 512,
+  readEnv = 1024,
+  writeEnv = 2048
 }

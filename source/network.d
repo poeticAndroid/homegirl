@@ -1,10 +1,12 @@
 module network;
 
+import std.stdio;
 import std.file;
 import std.path;
 import std.conv;
 import std.uri;
 import std.algorithm;
+import std.datetime;
 import requests;
 import html;
 
@@ -55,28 +57,40 @@ class Network
   {
     url = onlyPath(url);
     string filename = this.actualFile(url);
-    Response res = req.get(url);
-    url = res.finalURI.recalc_uri();
-    if (res.code < 300)
+    bool getit = true;
+    if (exists(filename) && getSize(filename))
     {
-      if (!exists(dirName(filename)))
-        mkdirRecurse(dirName(filename));
-      std.file.write(filename, res.responseBody.data);
-      try
-      {
-        this.crawl(url);
-      }
-      catch (Exception err)
-      {
-      }
+      SysTime accessTime, modificationTime, now;
+      getTimes(filename, accessTime, modificationTime);
+      now = SysTime();
+      getit = now.toUnixTime() > accessTime.toUnixTime() + 60;
     }
-    else
+    if (getit)
     {
-      if (exists(filename))
-        remove(filename);
-      string dirname = filename[0 .. $ - 6] ~ ".~dir";
-      if (exists(dirname))
-        rmdirRecurse(dirname);
+      writeln("GETTING ", url);
+      Response res = req.get(url);
+      url = res.finalURI.recalc_uri();
+      if (res.code < 300)
+      {
+        if (!exists(dirName(filename)))
+          mkdirRecurse(dirName(filename));
+        std.file.write(filename, res.responseBody.data);
+        try
+        {
+          this.crawl(url);
+        }
+        catch (Exception err)
+        {
+        }
+      }
+      else
+      {
+        if (exists(filename))
+          remove(filename);
+        string dirname = filename[0 .. $ - 6] ~ ".~dir";
+        if (exists(dirname))
+          rmdirRecurse(dirname);
+      }
     }
     return filename;
   }

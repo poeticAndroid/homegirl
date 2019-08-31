@@ -5,6 +5,7 @@ import std.conv;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 import pixmap;
 
@@ -50,6 +51,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       if (!maxset)
         maxframes = -1;
       uint[] anim = prog.loadAnimation(prog.actualFile(filename), cast(uint) maxframes);
@@ -78,25 +81,27 @@ void registerFunctions(Program program)
     const anim_len = lua_rawlen(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    uint[] anim;
-    if (anim_len)
-    {
-      lua_pushnil(L);
-      while (lua_next(L, 2))
-      {
-        anim ~= cast(uint) lua_tointeger(L, -1);
-        lua_pop(L, 1);
-      }
-    }
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
+      uint[] anim;
+      if (anim_len)
+      {
+        lua_pushnil(L);
+        while (lua_next(L, 2))
+        {
+          anim ~= cast(uint) lua_tointeger(L, -1);
+          lua_pop(L, 1);
+        }
+      }
       prog.saveAnimation(prog.actualFile(filename), anim);
       lua_pushboolean(L, true);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }

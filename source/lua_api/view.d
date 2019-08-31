@@ -6,6 +6,7 @@ import std.algorithm.searching;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 import viewport;
 
@@ -52,6 +53,8 @@ void registerFunctions(Program program)
       if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
         throw new Exception("Invalid viewport!");
       Viewport vp = prog.viewports[cast(uint) vpID];
+      if (vp == prog.machine.mainScreen && !prog.hasPermission(Permissions.manageMainScreen))
+        throw new Exception("no permission to manage the main screen!");
       vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
       return 0;
     }

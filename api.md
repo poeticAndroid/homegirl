@@ -20,6 +20,9 @@
     audio.sampleloop(sampl[, start, end]): start, end
     audio.forget(sampl)
 ##  fs
+    fs.drives(): drivenames[]
+    fs.mount(drive, path): success
+    fs.unmount(drive[, force]): success
     fs.isfile(filename): confirmed
     fs.isdir(filename): confirmed
     fs.size(filename): bytes
@@ -29,7 +32,6 @@
     fs.write(filename, string): success
     fs.delete(filename): success
     fs.list(dirname): entries[]
-    fs.drives(): drivenames[]
     fs.cd([dirname]): dirname
     fs.mkdir(dirname): success
 ##  gfx
@@ -69,6 +71,8 @@
     sys.time(): hour, minute, second, UTCoffset
     sys.date(): year, month, date, weekday
     sys.exit([code])
+    sys.permissions(drive[, perms]): perms
+    sys.requestedpermissions(drive[, perms]): perms
     sys.exec(filename[, args[][, cwd]]): success
     sys.startchild(filename[, args[]]): child
     sys.childrunning(child): bool

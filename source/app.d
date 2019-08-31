@@ -79,6 +79,13 @@ int main(string[] args)
     }
     writeConfig = true;
   }
+  if (!("permissions" in config))
+  {
+    config["permissions"] = parseJSON("{}");
+    config["permissions"].object["sys"] = cast(long)(uint.max);
+    config["permissions"].object["user"] = cast(long)(ushort.max - ubyte.max);
+    writeConfig = true;
+  }
   if (!("network" in config))
   {
     config["network"] = parseJSON("{}");
@@ -106,7 +113,18 @@ int main(string[] args)
   machine.net = new Network(config["network"].object["cache"].str);
   string[] drives = config["drives"].object.keys();
   for (uint i = 0; i < drives.length; i++)
-    machine.mountDrive(drives[i], config["drives"].object[drives[i]].str);
+  {
+    if (machine.net.isUrl(config["drives"].object[drives[i]].str))
+      machine.mountRemoteDrive(drives[i],
+          config["drives"].object[drives[i]].str,
+          cast(uint)(drives[i] in config["permissions"].object
+            ? config["permissions"].object[drives[i]].integer : 0));
+    else
+      machine.mountLocalDrive(drives[i],
+          config["drives"].object[drives[i]].str,
+          cast(uint)(drives[i] in config["permissions"].object
+            ? config["permissions"].object[drives[i]].integer : 0));
+  }
   if ("window" in config && config["window"].type == JSONType.object)
   {
     if ("left" in config["window"] && "top" in config["window"])

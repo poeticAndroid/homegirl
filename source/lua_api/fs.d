@@ -11,6 +11,7 @@ import std.uri;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 
 /**
@@ -21,6 +22,95 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "fs = {}");
 
+  /// fs.drives(): drivenames[]
+  extern (C) int fs_drives(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
+      string[] entries = prog.machine.drives.keys();
+      lua_createtable(L, cast(uint) entries.length, 0);
+      for (uint i = 0; i < entries.length; i++)
+      {
+        lua_pushstring(L, toStringz(entries[i]));
+        lua_rawseti(L, -2, i + 1);
+      }
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_drives);
+  luaL_dostring(lua, "fs.drives = _");
+
+  /// fs.mount(drive, path): success
+  extern (C) int fs_mount(lua_State* L) @trusted
+  {
+    auto drive = to!string(lua_tostring(L, 1));
+    const path = to!string(lua_tostring(L, 2));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+      if (prog.machine.net.isUrl(path))
+      {
+        if (!prog.hasPermission(Permissions.mountRemoteDrives))
+          throw new Exception("no permission to mount remote drives!");
+        prog.machine.mountRemoteDrive(drive, path);
+      }
+      else
+      {
+        if (!prog.hasPermission(Permissions.mountLocalDrives))
+          throw new Exception("no permission to mount local drives!");
+        prog.machine.mountLocalDrive(drive, path);
+      }
+      lua_pushboolean(L, true);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushboolean(L, false);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_mount);
+  luaL_dostring(lua, "fs.mount = _");
+
+  /// fs.unmount(drive[, force]): success
+  extern (C) int fs_unmount(lua_State* L) @trusted
+  {
+    auto drive = to!string(lua_tostring(L, 1));
+    const force = lua_toboolean(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+      if (prog.drive != drive && !prog.hasPermission(Permissions.unmountDrives))
+        throw new Exception("no permission to unmount drives!");
+      prog.machine.unmountDrive(drive, force != 0);
+      lua_pushboolean(L, true);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushboolean(L, false);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_unmount);
+  luaL_dostring(lua, "fs.unmount = _");
+
   /// fs.isfile(filename): confirmed
   extern (C) int fs_isfile(lua_State* L) @trusted
   {
@@ -29,6 +119,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       lua_pushboolean(L, exists(prog.actualFile(filename)) && isFile(prog.actualFile(filename)));
       return 1;
     }
@@ -50,6 +142,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       lua_pushboolean(L, exists(prog.actualFile(filename, true))
           && isDir(prog.actualFile(filename, true)));
       return 1;
@@ -72,6 +166,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       lua_pushinteger(L, getSize(prog.actualFile(filename)));
       return 1;
     }
@@ -93,6 +189,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       SysTime accessed, modified;
       getTimes(prog.actualFile(filename), accessed, modified);
       lua_pushinteger(L, modified.hour);
@@ -119,6 +217,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       SysTime accessed, modified;
       getTimes(prog.actualFile(filename), accessed, modified);
       lua_pushinteger(L, modified.year);
@@ -145,6 +245,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       ubyte[] bin = cast(ubyte[]) read(prog.actualFile(filename));
       lua_pushlstring(L, cast(char*) bin, bin.length);
       return 1;
@@ -169,6 +271,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
       ubyte[] bin;
       bin.length = len;
       for (uint i = 0; i < len; i++)
@@ -179,7 +283,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }
@@ -195,6 +299,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
       string path = prog.actualFile(filename, true);
       if (exists(path) && isDir(path))
         rmdirRecurse(path);
@@ -206,7 +312,7 @@ void registerFunctions(Program program)
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }
@@ -222,6 +328,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       string[] entries;
       foreach (string name; dirEntries(prog.actualFile(dirname, true), SpanMode.shallow))
       {
@@ -261,32 +369,6 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &fs_list);
   luaL_dostring(lua, "fs.list = _");
 
-  /// fs.drives(): drivenames[]
-  extern (C) int fs_drives(lua_State* L) @trusted
-  {
-    lua_getglobal(L, "__program");
-    auto prog = cast(Program*) lua_touserdata(L, -1);
-    try
-    {
-      string[] entries = prog.machine.drives.keys();
-      lua_createtable(L, cast(uint) entries.length, 0);
-      for (uint i = 0; i < entries.length; i++)
-      {
-        lua_pushstring(L, toStringz(entries[i]));
-        lua_rawseti(L, -2, i + 1);
-      }
-      return 1;
-    }
-    catch (Exception err)
-    {
-      lua_pushnil(L);
-      return 1;
-    }
-  }
-
-  lua_register(lua, "_", &fs_drives);
-  luaL_dostring(lua, "fs.drives = _");
-
   /// fs.cd([dirname]): dirname
   extern (C) int fs_cd(lua_State* L) @trusted
   {
@@ -298,6 +380,8 @@ void registerFunctions(Program program)
     {
       if (set)
       {
+        if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.readOtherDrives))
+          throw new Exception("no permission to read other drives!");
         if (!exists(prog.actualFile(dirname, true)) || !isDir(prog.actualFile(dirname, true)))
         {
           lua_pushnil(L);
@@ -328,13 +412,15 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
       mkdirRecurse(prog.actualFile(dirname, true));
       lua_pushboolean(L, prog.machine.syncPath(prog.resolve(dirname)));
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }

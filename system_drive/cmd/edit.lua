@@ -58,8 +58,11 @@ function _step(t)
     pos, sel = input.cursor()
   end
   if input.hotkey() == "s" then
-    fs.write(filename, input.text())
-    setstatus("saved " .. filename, t)
+    if fs.write(filename, input.text()) then
+      setstatus("saved " .. filename, t)
+    else
+      setstatus("could not save " .. filename, t)
+    end
   end
   lasttxt = txt
 

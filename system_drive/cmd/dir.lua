@@ -1,6 +1,10 @@
 function _init(args)
   local line = ""
   list = fs.list(args[1])
+  if not list then
+    print("Could not list '" .. (args[1] or fs.cd()) .. "'")
+    return sys.exit(1)
+  end
   table.sort(list)
   for i, entry in pairs(list) do
     if string.sub(entry, -1) == "/" then

@@ -6,6 +6,7 @@ import std.datetime;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 
 /**
@@ -47,6 +48,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.hasPermission(Permissions.readEnv))
+        throw new Exception("no permission to read environment variables!");
       string[] entries = prog.machine.env.keys();
       lua_createtable(L, cast(uint) entries.length, 0);
       for (uint i = 0; i < entries.length; i++)
@@ -74,10 +77,10 @@ void registerFunctions(Program program)
     const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
-    if (set)
+    if (set && prog.hasPermission(Permissions.writeEnv))
       prog.machine.env[key] = value;
     string val = prog.machine.env.get(key, null);
-    if (val)
+    if (val && prog.hasPermission(Permissions.readEnv))
       lua_pushstring(L, toStringz(val));
     else
       lua_pushnil(L);
@@ -128,6 +131,62 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_exit);
   luaL_dostring(lua, "sys.exit = _");
 
+  /// sys.permissions(drive[, perms]): perms
+  extern (C) int sys_permissions(lua_State* L) @trusted
+  {
+    auto drive = to!string(lua_tostring(L, 1));
+    const perms = lua_tointeger(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+      if ((set || prog.drive != drive) && !prog.hasPermission(Permissions.managePermissions))
+        throw new Exception("no permission to manage permissions!");
+      if (set)
+        prog.machine.perms[drive] = cast(uint) perms;
+      lua_pushinteger(L, prog.machine.perms.get(drive, 0));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_permissions);
+  luaL_dostring(lua, "sys.permissions = _");
+
+  /// sys.requestedpermissions(drive[, perms]): perms
+  extern (C) int sys_requestedpermissions(lua_State* L) @trusted
+  {
+    auto drive = to!string(lua_tostring(L, 1));
+    const perms = lua_tointeger(L, 2);
+    const set = 1 - lua_isnoneornil(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+      if (prog.drive != drive && !prog.hasPermission(Permissions.managePermissions))
+        throw new Exception("no permission to manage permissions!");
+      if (set)
+        prog.machine.reqPerms[drive] = cast(uint) perms;
+      lua_pushinteger(L, prog.machine.reqPerms.get(drive, 0));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_requestedpermissions);
+  luaL_dostring(lua, "sys.requestedpermissions = _");
+
   /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted
   {
@@ -148,13 +207,15 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       prog.machine.startProgram(prog.resolve(filename), args, cwd);
       lua_pushboolean(L, true);
       return 1;
     }
     catch (Exception err)
     {
-      lua_pushnil(L);
+      lua_pushboolean(L, false);
       return 1;
     }
   }
@@ -181,6 +242,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       lua_pushinteger(L, prog.startChild(prog.resolve(filename), args));
       return 1;
     }

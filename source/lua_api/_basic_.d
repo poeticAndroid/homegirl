@@ -8,6 +8,7 @@ import std.file;
 import riverd.lua;
 import riverd.lua.types;
 
+import machine;
 import program;
 import viewport;
 import pixmap;
@@ -66,6 +67,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       auto path = prog.actualFile(filename);
       if (luaL_dostring(L,
           toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
@@ -89,6 +92,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       auto path = prog.actualFile(filename);
       if (luaL_loadstring(L,
           toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
@@ -125,6 +130,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
       auto path = prog.actualFile(filename);
       lua_getglobal(L, "package");
       lua_getfield(L, -1, "loaded");
