@@ -441,6 +441,22 @@ class Machine
   }
 
   /**
+    post to console path 
+  */
+  string postPath(string consolePath, string payload, string type)
+  {
+    string drive = this.getDrive(consolePath, "");
+    if (!drive)
+      throw new Exception("Path is not absolute!");
+    if (!this.drives.get(drive, null))
+      throw new Exception("Drive '" ~ drive ~ "' does not exist!");
+    string path = consolePath[drive.length + 1 .. $];
+    if (this.net.isUrl(this.drives[drive]))
+      return this.net.post(this.drives[drive] ~ path, payload, type);
+    return "";
+  }
+
+  /**
     get drive name of path
   */
   string getDrive(string path, string end = ":")

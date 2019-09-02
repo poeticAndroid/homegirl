@@ -129,6 +129,13 @@ class Network
     }
   }
 
+  string post(string url, string payload, string type)
+  {
+    url = onlyPath(url);
+    auto res = this.req.post(url, payload, type);
+    return to!string(res.responseBody.data);
+  }
+
   /* --- _privates --- */
 
   private string onlyPath(string url)

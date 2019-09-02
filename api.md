@@ -30,6 +30,7 @@
     fs.date(filename): year, month, date, weekday
     fs.read(filename): string
     fs.write(filename, string): success
+    fs.post(filename, request, type): response
     fs.delete(filename): success
     fs.list(dirname): entries[]
     fs.cd([dirname]): dirname

@@ -291,6 +291,31 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &fs_write);
   luaL_dostring(lua, "fs.write = _");
 
+  /// fs.post(filename, request, type): response
+  extern (C) int fs_post(lua_State* L) @trusted
+  {
+    auto filename = to!string(lua_tostring(L, 1));
+    auto request = to!string(lua_tostring(L, 2));
+    auto type = to!string(lua_tostring(L, 3));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
+      lua_pushstring(L, toStringz(prog.machine.postPath(prog.resolve(filename), request, type)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_post);
+  luaL_dostring(lua, "fs.post = _");
+
   /// fs.delete(filename): success
   extern (C) int fs_delete(lua_State* L) @trusted
   {

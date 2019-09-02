@@ -179,7 +179,7 @@ int main(string[] args)
   }
 
   auto configFile = File(configFileName, "w");
-  configFile.write(toJSON(config, true));
+  configFile.write(toJSON(config, true, JSONOptions.doNotEscapeSlashes));
   configFile.close();
 
   //shutdown machine
