@@ -146,17 +146,14 @@ function out(data)
   w, h = text.draw(termline, font, 0, termbottom - fontsize)
   h = termbottom - fontsize + h
   if h > scrnh then
-    if h - scrnh < fontsize then
-      scroll(h - scrnh)
-    else
-      scroll(fontsize)
-    end
+    scroll(h - scrnh)
+    text.draw(termline, font, 0, termbottom - fontsize)
   end
-  if string.find(termline, "\n") ~= nil then
+  while string.find(termline, "\n") ~= nil do
     termline = string.sub(termline, string.find(termline, "\n") + 1)
     termbottom = termbottom + fontsize
-    sys.stepinterval(16)
-  elseif state == 1 then
+  end
+  if state == 1 then
     sys.stepinterval(64)
   else
     sys.stepinterval(-1)

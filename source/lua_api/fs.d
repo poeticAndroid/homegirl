@@ -50,7 +50,7 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &fs_drives);
   luaL_dostring(lua, "fs.drives = _");
 
-  /// fs.mount(drive, path): success
+  /// fs.mount(drive, url): success
   extern (C) int fs_mount(lua_State* L) @trusted
   {
     auto drive = to!string(lua_tostring(L, 1));
@@ -96,7 +96,7 @@ void registerFunctions(Program program)
     {
       drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
       if (prog.drive != drive && !prog.hasPermission(Permissions.unmountDrives))
-        throw new Exception("no permission to unmount drives!");
+        throw new Exception("no permission to unmount other drives!");
       prog.machine.unmountDrive(drive, force != 0);
       lua_pushboolean(L, true);
       return 1;

@@ -19,7 +19,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.4.11"; /// version of the software
+const VERSION = "0.4.12"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -554,6 +554,7 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
+    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
   }
 
   private void destroyWindow()

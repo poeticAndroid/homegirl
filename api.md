@@ -21,7 +21,7 @@
     audio.forget(sampl)
 ##  fs
     fs.drives(): drivenames[]
-    fs.mount(drive, path): success
+    fs.mount(drive, url): success
     fs.unmount(drive[, force]): success
     fs.isfile(filename): confirmed
     fs.isdir(filename): confirmed
