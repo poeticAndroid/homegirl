@@ -303,7 +303,8 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
-      lua_pushstring(L, toStringz(prog.machine.postPath(prog.resolve(filename), request, type)));
+      ubyte[] bin = prog.machine.postPath(prog.resolve(filename), request, type);
+      lua_pushlstring(L, cast(char*) bin, bin.length);
       return 1;
     }
     catch (Exception err)

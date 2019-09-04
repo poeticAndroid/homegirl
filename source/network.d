@@ -1,13 +1,15 @@
 module network;
 
+import std.stdio;
 import std.file;
 import std.path;
 import std.conv;
 import std.uri;
 import std.algorithm;
 import std.datetime;
-import requests;
+import std.net.curl;
 import html;
+import machine;
 
 /**
   Networking system
@@ -15,7 +17,6 @@ import html;
 class Network
 {
   string cacheDir; /// path to cache folder
-  Request req; /// request
 
   /**
     create network
@@ -25,7 +26,41 @@ class Network
     this.cacheDir = buildNormalizedPath(cacheDir) ~ "/";
     if (!exists(this.cacheDir))
       mkdirRecurse(this.cacheDir);
-    this.req = Request();
+    this.res = new Response();
+    this.httpReq = HTTP();
+    this.httpReq.setCookieJar(this.cacheDir ~ "cookiejar.txt");
+    this.httpReq.onSend = delegate size_t(void[] data) {
+      auto m = cast(void[]) upload;
+      size_t length = m.length > data.length ? data.length : m.length;
+      if (length == 0)
+        return 0;
+      data[0 .. length] = m[0 .. length];
+      upload = upload[length .. $];
+      return length;
+    };
+    this.httpReq.onReceiveStatusLine = (HTTP.StatusLine line) {
+      this.res.code = line.code;
+      this.res.headers.clear();
+      this.res.data.length = 0;
+    };
+    this.httpReq.onReceiveHeader = (in char[] key, in char[] value) {
+      this.res.headers[key] = to!string(value);
+      if (key == "Location")
+        this.url = this.rel(this.url, to!string(value));
+    };
+    this.httpReq.onReceive = (ubyte[] data) {
+      this.res.data ~= data;
+      return data.length;
+    };
+    this.httpReq.setUserAgent("Homegirl " ~ VERSION);
+    this.httpReq.dataTimeout = dur!"seconds"(10);
+    this.httpReq.operationTimeout = dur!"seconds"(60);
+  }
+
+  void shutdown()
+  {
+    this.httpReq.flushCookieJar();
+    this.httpReq.shutdown();
   }
 
   bool isUrl(string url)
@@ -67,17 +102,18 @@ class Network
     }
     if (getit)
     {
-      Response res = req.get(url);
-      url = res.finalURI.recalc_uri();
+      this.exec(HTTP.Method.get, url);
+      url = this.url;
       if (res.code < 300)
       {
         if (!exists(dirName(filename)))
           mkdirRecurse(dirName(filename));
-        std.file.write(filename, res.responseBody.data);
+        std.file.write(filename, res.data);
+        this.httpReq.flushCookieJar();
         try
         {
           getTimes(filename, accessTime, modificationTime);
-          modificationTime = parseRFC822DateTime(res.responseHeaders.get("last-modified", ""));
+          modificationTime = parseRFC822DateTime(res.headers.get("last-modified", ""));
           setTimes(filename, accessTime, modificationTime);
         }
         catch (Exception err)
@@ -112,31 +148,51 @@ class Network
     {
       if (url[$ - 1 .. $] != "/")
         url ~= "/";
-      auto res = this.req.exec!"PUT"(url ~ "~empty", "delete me!", "application/octet-stream");
-      this.req.exec!"DELETE"(url ~ "~empty");
-      return res.code < 300;
+      this.exec(HTTP.Method.put, url ~ "~empty", cast(ubyte[]) "delete me!",
+          "application/octet-stream");
+      uint code = res.code;
+      this.exec(HTTP.Method.del, url ~ "~empty");
+      return code < 300;
     }
     else if (exists(filename))
     {
-      auto res = this.req.exec!"PUT"(url,
-          cast(ubyte[]) std.file.read(filename), "application/octet-stream");
+      this.exec(HTTP.Method.put, url, cast(ubyte[]) std.file.read(filename),
+          "application/octet-stream");
       return res.code < 300;
     }
     else
     {
-      auto res = this.req.exec!"DELETE"(url);
+      this.exec(HTTP.Method.del, url);
       return res.code < 300;
     }
   }
 
-  string post(string url, string payload, string type)
+  ubyte[] post(string url, string payload, string type)
   {
     url = onlyPath(url);
-    auto res = this.req.post(url, payload, type);
-    return to!string(res.responseBody.data);
+    this.exec(HTTP.Method.post, url, cast(ubyte[]) payload, type);
+    return res.data;
   }
 
   /* --- _privates --- */
+  private string url; /// url of last request
+  private ubyte[] upload; /// data to upload
+  private HTTP httpReq; /// HTTP requester
+  private Response res; /// response from last request
+
+  private void exec(HTTP.Method meth, string url, ubyte[] payload = null, string type = null)
+  {
+    httpReq.method = meth;
+    httpReq.url = url;
+    this.url = url;
+    httpReq.addRequestHeader("Content-Type", type);
+    if (payload)
+    {
+      httpReq.contentLength = payload.length;
+      upload = cast(ubyte[]) payload;
+    }
+    httpReq.perform();
+  }
 
   private string onlyPath(string url)
   {
@@ -151,6 +207,20 @@ class Network
     if (countUntil(url, ";") >= 0)
       url = url[0 .. countUntil(url, ";")];
     return url;
+  }
+
+  private string rel(string base, string href)
+  {
+    string root = url[0 .. countUntil(url[8 .. $] ~ "/", "/") + 8] ~ "/";
+    string dir = url;
+    if (href.length >= 2 && href[0 .. 2] == "//")
+      href = root[0 .. countUntil(root, ":") + 1] ~ href;
+    if (href.length >= 1 && href[0 .. 1] == "/")
+      href = root[0 .. $ - 1] ~ href;
+    if (!this.isUrl(href))
+      href = dir ~ href;
+    href = this.onlyPath(href);
+    return href;
   }
 
   private void crawl(string url)
@@ -188,4 +258,11 @@ class Network
         std.file.write(href, "");
     }
   }
+}
+
+class Response
+{
+  uint code;
+  string[string] headers;
+  ubyte[] data;
 }
