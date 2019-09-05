@@ -43,6 +43,7 @@ int main(string[] args)
   try
   {
     machine = new Machine();
+    machine.configFile = configFileName;
   }
   catch (Exception e)
   {

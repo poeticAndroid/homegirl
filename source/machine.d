@@ -8,6 +8,7 @@ import std.algorithm.mutation;
 import std.path;
 import std.file;
 import std.conv;
+import std.process;
 import bindbc.sdl;
 
 import viewport;
@@ -43,6 +44,7 @@ class Machine
   uint[string] reqPerms; /// a table of all the console drives and their corresponding requested permissions
   string[string] env; /// environment variables
   Pixmap[][string] fonts; /// fonts loaded
+  string configFile; /// path of the config file
 
   /**
     Create a new machine
@@ -109,6 +111,16 @@ class Machine
           break;
         case SDLK_F11:
           this.toggleFullscren();
+          break;
+        case SDLK_F12:
+          version (Windows)
+          {
+            executeShell("start " ~ escapeWindowsArgument(std.path.dirName(this.configFile)));
+          }
+          else
+          {
+            executeShell("xdg-open " ~ escapeShellFileName(std.path.dirName(this.configFile)));
+          }
           break;
         default:
         }
