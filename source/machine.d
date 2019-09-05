@@ -115,11 +115,11 @@ class Machine
         case SDLK_F12:
           version (Windows)
           {
-            executeShell("start " ~ escapeWindowsArgument(std.path.dirName(this.configFile)));
+            spawnShell("start " ~ escapeWindowsArgument(std.path.dirName(this.configFile)));
           }
           else
           {
-            executeShell("xdg-open " ~ escapeShellFileName(std.path.dirName(this.configFile)));
+            spawnShell("xdg-open " ~ escapeShellFileName(std.path.dirName(this.configFile)));
           }
           break;
         default:
