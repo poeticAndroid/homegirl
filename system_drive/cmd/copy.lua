@@ -1,3 +1,6 @@
+local queue = {}
+local indent = ""
+
 function _init(args)
   local src = args[1]
   local dest = args[#args]
@@ -20,28 +23,57 @@ function _init(args)
       return sys.exit(1)
     end
   end
+  sys.stepinterval(0)
+end
+
+function _step()
+  if #queue == 0 then
+    return sys.exit()
+  end
+  local task = table.remove(queue, 1)
+  local src = task.src
+  local dest = task.dest
+  local indent = task.indent
+  if fs.isdir(src) then
+    if not fs.mkdir(dest) then
+      print("Could not create dir '" .. dest .. "'!")
+      return sys.exit(1)
+    end
+    print(indent .. src .. " -> " .. dest)
+  else
+    local data = fs.read(src)
+    if not data then
+      print("Could not read '" .. src .. "'!")
+      return sys.exit(1)
+    end
+    if not fs.write(dest, data) then
+      print("Could not write to '" .. dest .. "'!")
+      return sys.exit(1)
+    end
+    print(indent .. basename(src) .. " copied!")
+  end
 end
 
 function copyfile(src, dest)
-  local data = fs.read(src)
-  if not data then
-    print("Could not read '" .. src .. "'!")
-    return false
-  end
-  if not fs.write(dest, data) then
-    print("Could not write to '" .. dest .. "'!")
-    return false
-  end
+  local task = {
+    src = src,
+    dest = dest,
+    indent = indent
+  }
+  table.insert(queue, task)
   return true
 end
 
 function copydir(src, dest)
   src = trailslash(src)
   dest = trailslash(dest)
-  if not fs.mkdir(dest) then
-    print("Could not create dir '" .. dest .. "'!")
-    return false
-  end
+  local task = {
+    src = src,
+    dest = dest,
+    indent = indent
+  }
+  table.insert(queue, task)
+  indent = indent .. "  "
   local entries = fs.list(src)
   for i, entry in pairs(entries) do
     if fs.isdir(src .. entry) then
@@ -54,6 +86,7 @@ function copydir(src, dest)
       end
     end
   end
+  indent = task.indent
   return true
 end
 
