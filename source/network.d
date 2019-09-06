@@ -1,6 +1,5 @@
 module network;
 
-import std.stdio;
 import std.file;
 import std.path;
 import std.conv;
@@ -45,7 +44,7 @@ class Network
     };
     this.httpReq.onReceiveHeader = (in char[] key, in char[] value) {
       this.res.headers[key] = to!string(value);
-      if (key == "Location")
+      if (key == "location")
         this.url = this.rel(this.url, to!string(value));
     };
     this.httpReq.onReceive = (ubyte[] data) {
@@ -55,10 +54,13 @@ class Network
     this.httpReq.setUserAgent("Homegirl " ~ VERSION);
     this.httpReq.dataTimeout = dur!"seconds"(10);
     this.httpReq.operationTimeout = dur!"seconds"(60);
+    // this.httpReq.maxRedirects = 0;
+    // this.httpReq.verbose = true;
   }
 
   void shutdown()
   {
+    this.httpReq.clearSessionCookies();
     this.httpReq.flushCookieJar();
     this.httpReq.shutdown();
   }
@@ -185,6 +187,7 @@ class Network
     httpReq.method = meth;
     httpReq.url = url;
     this.url = url;
+    httpReq.clearRequestHeaders();
     httpReq.addRequestHeader("Content-Type", type);
     if (payload)
     {

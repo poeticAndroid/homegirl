@@ -20,7 +20,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.4.13"; /// version of the software
+const VERSION = "0.4.14"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -116,6 +116,10 @@ class Machine
           version (Windows)
           {
             spawnShell("start " ~ escapeWindowsArgument(std.path.dirName(this.configFile)));
+          }
+          else version (OSX)
+          {
+            spawnShell("open " ~ escapeShellFileName(std.path.dirName(this.configFile)));
           }
           else
           {

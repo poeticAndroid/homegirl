@@ -1,3 +1,5 @@
 function _init(args)
-  fs.mkdir(args[1])
+  if not fs.mkdir(args[1]) then
+    print("Could not make directory '" .. args[1] .. "'!")
+  end
 end
