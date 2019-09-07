@@ -444,16 +444,21 @@ class Machine
   /**
     sync console path to network
   */
-  bool syncPath(string consolePath, bool dir = false)
+  bool syncPath(string consolePath, string rename = null)
   {
+    string drive2, path2;
     string drive = this.getDrive(consolePath, "");
+    if (rename)
+      drive2 = this.getDrive(rename, "");
     if (!drive)
       throw new Exception("Path is not absolute!");
     if (!this.drives.get(drive, null))
       throw new Exception("Drive '" ~ drive ~ "' does not exist!");
     string path = consolePath[drive.length + 1 .. $];
+    if (rename)
+      path2 = rename[drive2.length + 1 .. $];
     if (this.net.isUrl(this.drives[drive]))
-      return this.net.sync(this.drives[drive] ~ path);
+      return this.net.sync(this.drives[drive] ~ path, rename ? this.drives[drive2] ~ path2 : null);
     return true;
   }
 

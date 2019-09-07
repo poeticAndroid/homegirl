@@ -141,12 +141,27 @@ class Network
     return filename;
   }
 
-  bool sync(string url)
+  bool sync(string url, string rename = null)
   {
     url = onlyPath(url);
     string filename = this.actualFile(url);
     string dirname = filename[0 .. $ - 6] ~ ".~dir";
-    if (exists(dirname))
+    if (rename)
+    {
+      if (this.isUrl(rename))
+      {
+        rename = rename[8 .. $];
+        rename = rename[countUntil(rename, "/") .. $];
+      }
+      httpReq.method = HTTP.Method.patch;
+      httpReq.url = url;
+      this.url = url;
+      httpReq.clearRequestHeaders();
+      httpReq.addRequestHeader("Location", rename);
+      httpReq.perform();
+      return res.code < 300;
+    }
+    else if (exists(dirname))
     {
       if (url[$ - 1 .. $] != "/")
         url ~= "/";
@@ -188,7 +203,8 @@ class Network
     httpReq.url = url;
     this.url = url;
     httpReq.clearRequestHeaders();
-    httpReq.addRequestHeader("Content-Type", type);
+    if (type)
+      httpReq.addRequestHeader("Content-Type", type);
     if (payload)
     {
       httpReq.contentLength = payload.length;

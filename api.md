@@ -31,6 +31,7 @@
     fs.read(filename): string
     fs.write(filename, string): success
     fs.post(filename, request, type): response
+    fs.rename(filename, newname): success
     fs.delete(filename): success
     fs.list(dirname): entries[]
     fs.cd([dirname]): dirname

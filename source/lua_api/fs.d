@@ -317,6 +317,51 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &fs_post);
   luaL_dostring(lua, "fs.post = _");
 
+  /// fs.rename(filename, newname): success
+  extern (C) int fs_rename(lua_State* L) @trusted
+  {
+    auto filename = to!string(lua_tostring(L, 1));
+    auto newname = to!string(lua_tostring(L, 2));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      filename = prog.resolve(filename);
+      newname = prog.resolve(newname);
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
+        throw new Exception("no permission to write to other drives!");
+      if (prog.machine.getDrive(filename) != prog.machine.getDrive(newname))
+        throw new Exception("cannot rename across drives!");
+      string path = prog.actualFile(filename, true);
+      string newpath = prog.actualFile(newname, true);
+      bool found = false;
+      if (exists(path) && isDir(path))
+      {
+        rename(path, newpath);
+        found = true;
+      }
+      path = prog.actualFile(filename, false);
+      newpath = prog.actualFile(newname, false);
+      if (exists(path))
+      {
+        rename(path, newpath);
+        found = true;
+      }
+      if (!found)
+        throw new Exception("file not found!");
+      lua_pushboolean(L, prog.machine.syncPath(filename, newname));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushboolean(L, false);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &fs_rename);
+  luaL_dostring(lua, "fs.rename = _");
+
   /// fs.delete(filename): success
   extern (C) int fs_delete(lua_State* L) @trusted
   {

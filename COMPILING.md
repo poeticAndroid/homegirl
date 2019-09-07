@@ -7,4 +7,5 @@ How to compile Homegirl
     - SDL2 2.0.8
     - Lua 5.3 
     - FreeImage 3.18
+    - libcurl
 
