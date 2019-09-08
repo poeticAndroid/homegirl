@@ -107,6 +107,8 @@ int main(string[] args)
   }
   if (writeConfig)
   {
+    if (!exists(dirName(configFileName)))
+      mkdirRecurse(dirName(configFileName));
     auto configFile = File(configFileName, "w");
     configFile.write(toJSON(config, true));
     configFile.close();
