@@ -277,20 +277,19 @@ class Program
       return;
     if (this.activeViewport == vp)
       this.activeViewport = null;
-    if (vp.getParent())
+    if (vp.program == this)
     {
-      vp.getParent().removeViewport(vp);
-    }
-    else
-    {
-      this.machine.removeScreen(vp);
+      if (vp.getParent())
+        vp.getParent().removeViewport(vp);
+      else
+        this.machine.removeScreen(vp);
     }
     this.viewports[vpid] = null;
     auto i = this.viewports.length;
     while (i > 0)
     {
       i--;
-      if (this.viewports[i] && this.viewports[i].containsViewport(vp))
+      if (this.viewports[i] && this.viewports[i].isInViewport(vp))
         this.removeViewport(cast(uint) i);
     }
   }

@@ -11,6 +11,7 @@ import texteditor;
 */
 class Viewport
 {
+  ubyte mode; /// screen mode
   Pixmap pixmap; /// pixmap of the viewport
   int left; /// position of left side of viewport relative to parent
   int top; /// position of top of viewport relative to parent
@@ -79,6 +80,16 @@ class Viewport
       this.children = this.children.remove(i);
       vp.detach();
     }
+  }
+
+  /**
+    get a child viewport by its z-index
+  */
+  Viewport getViewportByIndex(uint index)
+  {
+    if (index >= this.children.length || !this.children[cast(uint) index])
+      return null;
+    return this.children[index];
   }
 
   /**
@@ -277,11 +288,18 @@ class Viewport
     {
       if (viewport && viewport.visible)
       {
+        if (this.mode != viewport.mode)
+          viewport.mode = this.mode;
         if (this.pixmap.colorBits != viewport.pixmap.colorBits)
         {
           viewport.pixmap.destroyTexture();
-          viewport.pixmap = new Pixmap(viewport.pixmap.width,
-              viewport.pixmap.height, this.pixmap.colorBits);
+          Pixmap oldpix = viewport.pixmap;
+          viewport.pixmap = new Pixmap(oldpix.width, oldpix.height, this.pixmap.colorBits);
+          viewport.pixmap.copyFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+          viewport.pixmap.setFGColor(oldpix.fgColor);
+          viewport.pixmap.setBGColor(oldpix.bgColor);
+          viewport.pixmap.copymode = oldpix.copymode;
+          viewport.pixmap.textCopymode = oldpix.textCopymode;
         }
         viewport.render();
         this.pixmap.copyFrom(viewport.pixmap, 0, 0, viewport.left,

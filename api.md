@@ -94,7 +94,7 @@
     text.forgetfont(font)
 ##  view
     view.newscreen(mode, colorbits): view
-    view.screenmode(view, mode, colorbits)
+    view.screenmode(view[, mode, colorbits]): mode, colorbits
     view.new(parentview, left, top, width, height): view
     view.active([view]): view
     view.position(view[, left, top]): left, top
@@ -102,5 +102,7 @@
     view.visible(view[, isvisible]): isvisible
     view.focused(view[, isfocused]): isfocused
     view.zindex(view[, index]): index
+    view.child(view, index): view
+    view.program(view): programname
     view.attribute(view, name[, value]): value
     view.remove(view)

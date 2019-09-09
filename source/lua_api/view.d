@@ -40,23 +40,35 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_newscreen);
   luaL_dostring(lua, "view.newscreen = _");
 
-  /// view.screenmode(view, mode, colorbits)
+  /// view.screenmode(view[, mode, colorbits]): mode, colorbits
   extern (C) int view_screenmode(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
     const mode = lua_tointeger(L, 2);
     const colorBits = lua_tointeger(L, 3);
+    const set = 1 - lua_isnoneornil(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      Viewport vp = prog.viewports[cast(uint) vpID];
-      if (vp == prog.machine.mainScreen && !prog.hasPermission(Permissions.manageMainScreen))
-        throw new Exception("no permission to manage the main screen!");
-      vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
-      return 0;
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
+      if (set)
+        vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
+      lua_pushinteger(L, vp.mode);
+      lua_pushinteger(L, vp.pixmap.colorBits);
+      return 2;
     }
     catch (Exception err)
     {
@@ -108,9 +120,20 @@ void registerFunctions(Program program)
     {
       if (set)
       {
-        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-          throw new Exception("Invalid viewport!");
-        prog.activeViewport = prog.viewports[cast(uint) vpID];
+        Viewport vp;
+        if (vpID)
+        {
+          if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+            throw new Exception("Invalid viewport!");
+          vp = prog.viewports[cast(uint) vpID];
+        }
+        else
+        {
+          if (!prog.hasPermission(Permissions.manageMainScreen))
+            throw new Exception("no permission to manage the main screen!");
+          vp = prog.machine.mainScreen;
+        }
+        prog.activeViewport = vp;
       }
       uint id = cast(uint) countUntil(prog.viewports, prog.activeViewport);
       if (id < 1)
@@ -140,9 +163,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      auto vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       if (set)
         vp.move(cast(int) left, cast(int) top);
       lua_pushinteger(L, vp.left);
@@ -170,9 +203,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      auto vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       if (set)
         vp.resize(cast(uint) width, cast(uint) height);
       lua_pushinteger(L, vp.pixmap.width);
@@ -199,9 +242,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      auto vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       if (set)
         vp.visible = cast(bool) visible;
       lua_pushboolean(L, vp.visible);
@@ -227,9 +280,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      auto vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       if (set)
         prog.machine.focusViewport(focused ? vp : null);
       lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
@@ -255,9 +318,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      Viewport vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       Viewport par = vp.getParent();
       if (set)
       {
@@ -282,6 +355,92 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_zindex);
   luaL_dostring(lua, "view.zindex = _");
 
+  /// view.child(view, index): view
+  extern (C) int view_child(lua_State* L) @trusted
+  {
+    const vpID = lua_tointeger(L, 1);
+    const index = lua_tonumber(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (!prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
+      vp = vp.getViewportByIndex(cast(uint) index);
+      if (vp)
+      {
+        int id = cast(int) countUntil(prog.viewports, vp);
+        if (id >= 0)
+        {
+          lua_pushinteger(L, id);
+        }
+        else
+        {
+          prog.viewports ~= vp;
+          lua_pushinteger(L, prog.viewports.length - 1);
+        }
+      }
+      else
+      {
+        lua_pushnil(L);
+      }
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &view_child);
+  luaL_dostring(lua, "view.child = _");
+
+  /// view.program(view): programname
+  extern (C) int view_program(lua_State* L) @trusted
+  {
+    const vpID = lua_tointeger(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (!prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
+      lua_pushstring(L, toStringz(vp.program.filename));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &view_program);
+  luaL_dostring(lua, "view.program = _");
+
   /// view.attribute(view, name[, value]): value
   extern (C) int view_attribute(lua_State* L) @trusted
   {
@@ -293,9 +452,19 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
-        throw new Exception("Invalid viewport!");
-      Viewport vp = prog.viewports[cast(uint) vpID];
+      Viewport vp;
+      if (vpID)
+      {
+        if (vpID >= prog.viewports.length || !prog.viewports[cast(uint) vpID])
+          throw new Exception("Invalid viewport!");
+        vp = prog.viewports[cast(uint) vpID];
+      }
+      else
+      {
+        if (set && !prog.hasPermission(Permissions.manageMainScreen))
+          throw new Exception("no permission to manage the main screen!");
+        vp = prog.machine.mainScreen;
+      }
       if (set)
         vp.attributes[name] = value;
       lua_pushstring(L, toStringz(vp.attributes.get(name, null)));
