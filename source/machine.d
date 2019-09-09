@@ -20,7 +20,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.5.2"; /// version of the software
+const VERSION = "0.5.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -393,8 +393,7 @@ class Machine
     for (uint i = 0; i < this.programs.length; i++)
     {
       Program program = this.programs[i];
-      if (program && (this.getDrive(program.filename, "") == name
-          || this.getDrive(program.cwd, "") == name))
+      if (program && this.getDrive(program.filename, "") == name)
       {
         if (force)
           program.shutdown(-1);
@@ -404,9 +403,9 @@ class Machine
     }
     if (inUse)
       throw new Exception("Drive '" ~ name ~ "' is in use!");
-    this.drives[name] = null;
-    this.perms[name] = 0;
-    this.reqPerms[name] = 0;
+    this.drives.remove(name);
+    this.perms.remove(name);
+    this.reqPerms.remove(name);
   }
 
   /**
@@ -907,6 +906,7 @@ enum Permissions
   mountRemoteDrives = 4,
   unmountDrives = 8,
   manageMainScreen = 16,
+  managePrograms = 32,
 
   readOtherDrives = 256,
   writeOtherDrives = 512,
