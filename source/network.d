@@ -159,7 +159,15 @@ class Network
       httpReq.clearRequestHeaders();
       httpReq.addRequestHeader("Location", rename);
       httpReq.perform();
-      return res.code < 300;
+      if (res.code >= 300)
+      {
+        this.get(url);
+        rename = this.rel(url, rename);
+        remove(this.actualFile(rename));
+        this.get(rename);
+        return false;
+      }
+      return true;
     }
     else if (exists(dirname))
     {
@@ -169,18 +177,34 @@ class Network
           "application/octet-stream");
       uint code = res.code;
       this.exec(HTTP.Method.del, url ~ "~empty");
-      return code < 300;
+      if (code >= 300)
+      {
+        this.get(url);
+        return false;
+      }
+      return true;
     }
     else if (exists(filename))
     {
       this.exec(HTTP.Method.put, url, cast(ubyte[]) std.file.read(filename),
           "application/octet-stream");
-      return res.code < 300;
+      if (res.code >= 300)
+      {
+        remove(filename);
+        this.get(url);
+        return false;
+      }
+      return true;
     }
     else
     {
       this.exec(HTTP.Method.del, url);
-      return res.code < 300;
+      if (res.code >= 300)
+      {
+        this.get(url);
+        return false;
+      }
+      return true;
     }
   }
 
