@@ -67,6 +67,9 @@
     input.mouse(): x, y, btn
     input.gamepad([player]): btn
 ##  sys
+    sys.read(): string
+    sys.write(string)
+    sys.err(string)
     sys.stepinterval([milliseconds]): milliseconds
     sys.listenv(): keys[]
     sys.env(key[, value]): value

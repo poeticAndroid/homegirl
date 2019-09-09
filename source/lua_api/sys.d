@@ -17,6 +17,68 @@ void registerFunctions(Program program)
   auto lua = program.lua;
   luaL_dostring(lua, "sys = {}");
 
+  /// sys.read(): string
+  extern (C) int sys_read(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      lua_pushstring(L, toStringz(prog.read(0)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_read);
+  luaL_dostring(lua, "sys.read = _");
+
+  /// sys.write(string)
+  extern (C) int sys_write(lua_State* L) @trusted
+  {
+    const str = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      prog.write(1, str);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_write);
+  luaL_dostring(lua, "sys.write = _");
+
+  /// sys.err(string)
+  extern (C) int sys_err(lua_State* L) @trusted
+  {
+    const str = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      prog.write(2, str);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &sys_err);
+  luaL_dostring(lua, "sys.err = _");
+
   /// sys.stepinterval([milliseconds]): milliseconds
   extern (C) int sys_stepinterval(lua_State* L) @trusted
   {
