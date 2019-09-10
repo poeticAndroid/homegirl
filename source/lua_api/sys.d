@@ -285,6 +285,29 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_exec);
   luaL_dostring(lua, "sys.exec = _");
 
+  /// sys.killall(programname): count
+  extern (C) int sys_killall(lua_State* L) @trusted
+  {
+    const filename = to!string(lua_tostring(L, 1));
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.managePrograms))
+        throw new Exception("no permission to manage other programs!");
+      lua_pushinteger(L, prog.machine.killAll(prog.resolve(filename)));
+      return 1;
+    }
+    catch (Exception err)
+    {
+      lua_pushnil(L);
+      return 1;
+    }
+  }
+
+  lua_register(lua, "_", &sys_killall);
+  luaL_dostring(lua, "sys.killall = _");
+
   /// sys.startchild(filename[, args[]]): child
   extern (C) int sys_startchild(lua_State* L) @trusted
   {

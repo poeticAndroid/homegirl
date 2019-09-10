@@ -79,6 +79,7 @@
     sys.permissions(drive[, perms]): perms
     sys.requestedpermissions(drive[, perms]): perms
     sys.exec(filename[, args[][, cwd]]): success
+    sys.killall(programname): count
     sys.startchild(filename[, args[]]): child
     sys.childrunning(child): bool
     sys.childexitcode(child): int

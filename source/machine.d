@@ -243,6 +243,24 @@ class Machine
   }
 
   /**
+    kill all programs matching programname
+  */
+  uint killAll(string programname)
+  {
+    uint count = 0;
+    for (uint i = 0; i < this.programs.length; i++)
+    {
+      Program prog = this.programs[i];
+      if (prog && prog.filename == programname)
+      {
+        prog.shutdown(-1);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
     create new screen
   */
   Screen createScreen(ubyte mode, ubyte colorBits)
