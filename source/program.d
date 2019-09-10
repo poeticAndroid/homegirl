@@ -212,16 +212,16 @@ class Program
   */
   uint addChild(Program prog)
   {
-    int i = countUntil(this.children, prog);
+    auto i = countUntil(this.children, prog);
     if (i >= 0)
-      return i;
+      return cast(uint) i;
     i = this.children.length - 1;
     while (i && this.children[i])
       i--;
     if (i)
     {
       this.children[i] = prog;
-      return i;
+      return cast(uint) i;
     }
     else
     {
@@ -255,16 +255,16 @@ class Program
   */
   uint addViewport(Viewport vp)
   {
-    int i = countUntil(this.viewports, vp);
+    auto i = countUntil(this.viewports, vp);
     if (i >= 0)
-      return i;
+      return cast(uint) i;
     i = this.viewports.length - 1;
     while (i && this.viewports[i])
       i--;
     if (i)
     {
       this.viewports[i] = vp;
-      return i;
+      return cast(uint) i;
     }
     else
     {
@@ -352,16 +352,16 @@ class Program
   */
   uint addPixmap(Pixmap pixmap)
   {
-    int i = countUntil(this.pixmaps, pixmap);
+    auto i = countUntil(this.pixmaps, pixmap);
     if (i >= 0)
-      return i;
+      return cast(uint) i;
     i = this.pixmaps.length - 1;
     while (i && this.pixmaps[i])
       i--;
     if (i)
     {
       this.pixmaps[i] = pixmap;
-      return i;
+      return cast(uint) i;
     }
     else
     {
@@ -432,16 +432,16 @@ class Program
   */
   uint addSample(Sample sample)
   {
-    int i = countUntil(this.samples, sample);
+    auto i = countUntil(this.samples, sample);
     if (i >= 0)
-      return i;
+      return cast(uint) i;
     i = this.samples.length - 1;
     while (i && this.samples[i])
       i--;
     if (i)
     {
       this.samples[i] = sample;
-      return i;
+      return cast(uint) i;
     }
     else
     {
@@ -485,16 +485,16 @@ class Program
   */
   uint addFont(Pixmap[] font)
   {
-    int i = countUntil(this.fonts, font);
+    auto i = countUntil(this.fonts, font);
     if (i >= 0)
-      return i;
+      return cast(uint) i;
     i = this.fonts.length - 1;
     while (i && this.fonts[i])
       i--;
     if (i)
     {
       this.fonts[i] = font;
-      return i;
+      return cast(uint) i;
     }
     else
     {
