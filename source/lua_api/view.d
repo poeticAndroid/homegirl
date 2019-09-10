@@ -355,11 +355,10 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &view_zindex);
   luaL_dostring(lua, "view.zindex = _");
 
-  /// view.child(view, index): view
-  extern (C) int view_child(lua_State* L) @trusted
+  /// view.children(view): views[]
+  extern (C) int view_children(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
-    const index = lua_tonumber(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
@@ -377,23 +376,12 @@ void registerFunctions(Program program)
           throw new Exception("no permission to manage the main screen!");
         vp = prog.machine.mainScreen;
       }
-      vp = vp.getViewportByIndex(cast(uint) index);
-      if (vp)
+      Viewport[] entries = vp.getChildren();
+      lua_createtable(L, cast(uint) entries.length, 0);
+      for (uint i = 0; i < entries.length; i++)
       {
-        int id = cast(int) countUntil(prog.viewports, vp);
-        if (id >= 0)
-        {
-          lua_pushinteger(L, id);
-        }
-        else
-        {
-          prog.viewports ~= vp;
-          lua_pushinteger(L, prog.viewports.length - 1);
-        }
-      }
-      else
-      {
-        lua_pushnil(L);
+        lua_pushinteger(L, prog.addViewport(entries[i]));
+        lua_rawseti(L, -2, i + 1);
       }
       return 1;
     }
@@ -404,11 +392,11 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &view_child);
-  luaL_dostring(lua, "view.child = _");
+  lua_register(lua, "_", &view_children);
+  luaL_dostring(lua, "view.children = _");
 
-  /// view.program(view): programname
-  extern (C) int view_program(lua_State* L) @trusted
+  /// view.owner(view): programname
+  extern (C) int view_owner(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
     lua_getglobal(L, "__program");
@@ -438,8 +426,8 @@ void registerFunctions(Program program)
     }
   }
 
-  lua_register(lua, "_", &view_program);
-  luaL_dostring(lua, "view.program = _");
+  lua_register(lua, "_", &view_owner);
+  luaL_dostring(lua, "view.owner = _");
 
   /// view.attribute(view, name[, value]): value
   extern (C) int view_attribute(lua_State* L) @trusted

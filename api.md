@@ -102,7 +102,7 @@
     view.visible(view[, isvisible]): isvisible
     view.focused(view[, isfocused]): isfocused
     view.zindex(view[, index]): index
-    view.child(view, index): view
-    view.program(view): programname
+    view.children(view): views[]
+    view.owner(view): programname
     view.attribute(view, name[, value]): value
     view.remove(view)

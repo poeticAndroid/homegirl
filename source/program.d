@@ -79,6 +79,7 @@ class Program
   */
   void step(uint timestamp)
   {
+    this.purgeDeadViewports();
     if (this.nextStep == 0 && this.running && lua_pcall(this.lua, 0, LUA_MULTRET, 0))
       this.croak();
     if (this.nextStep == 0 && this.running)
@@ -211,8 +212,22 @@ class Program
   */
   uint addChild(Program prog)
   {
-    this.children ~= prog;
-    return cast(uint) this.children.length - 1;
+    int i = countUntil(this.children, prog);
+    if (i >= 0)
+      return i;
+    i = this.children.length - 1;
+    while (i && this.children[i])
+      i--;
+    if (i)
+    {
+      this.children[i] = prog;
+      return i;
+    }
+    else
+    {
+      this.children ~= prog;
+      return cast(uint) this.children.length - 1;
+    }
   }
 
   /**
@@ -236,16 +251,39 @@ class Program
   }
 
   /**
+    add viewport
+  */
+  uint addViewport(Viewport vp)
+  {
+    int i = countUntil(this.viewports, vp);
+    if (i >= 0)
+      return i;
+    i = this.viewports.length - 1;
+    while (i && this.viewports[i])
+      i--;
+    if (i)
+    {
+      this.viewports[i] = vp;
+      return i;
+    }
+    else
+    {
+      this.viewports ~= vp;
+      return cast(uint) this.viewports.length - 1;
+    }
+  }
+
+  /**
     create a new screen
   */
   uint createScreen(ubyte mode, ubyte colorBits)
   {
     Screen screen = this.machine.createScreen(mode, colorBits);
     screen.program = this;
-    this.viewports ~= screen;
+    const i = this.addViewport(screen);
     this.activeViewport = screen;
     this.machine.focusViewport(screen);
-    return cast(uint) this.viewports.length - 1;
+    return i;
   }
 
   /**
@@ -261,10 +299,10 @@ class Program
     Viewport vp = parent.createViewport(left, top, width, height);
     vp.program = this;
     vp.attributes["title"] = this.machine.baseName(this.filename);
-    this.viewports ~= vp;
+    const i = this.addViewport(vp);
     this.activeViewport = vp;
     this.machine.focusViewport(vp);
-    return cast(uint) this.viewports.length - 1;
+    return i;
   }
 
   /**
@@ -283,6 +321,7 @@ class Program
         vp.getParent().removeViewport(vp);
       else
         this.machine.removeScreen(vp);
+      vp.program = null;
     }
     this.viewports[vpid] = null;
     auto i = this.viewports.length;
@@ -295,12 +334,40 @@ class Program
   }
 
   /**
+    remove all dead viewports
+  */
+  void purgeDeadViewports()
+  {
+    auto i = this.viewports.length;
+    while (i > 0)
+    {
+      i--;
+      if (this.viewports[i] && !this.viewports[i].program)
+        this.viewports[i] = null;
+    }
+  }
+
+  /**
     add pixmap
   */
   uint addPixmap(Pixmap pixmap)
   {
-    this.pixmaps ~= pixmap;
-    return cast(uint) this.pixmaps.length - 1;
+    int i = countUntil(this.pixmaps, pixmap);
+    if (i >= 0)
+      return i;
+    i = this.pixmaps.length - 1;
+    while (i && this.pixmaps[i])
+      i--;
+    if (i)
+    {
+      this.pixmaps[i] = pixmap;
+      return i;
+    }
+    else
+    {
+      this.pixmaps ~= pixmap;
+      return cast(uint) this.pixmaps.length - 1;
+    }
   }
 
   /**
@@ -365,8 +432,22 @@ class Program
   */
   uint addSample(Sample sample)
   {
-    this.samples ~= sample;
-    return cast(uint) this.samples.length - 1;
+    int i = countUntil(this.samples, sample);
+    if (i >= 0)
+      return i;
+    i = this.samples.length - 1;
+    while (i && this.samples[i])
+      i--;
+    if (i)
+    {
+      this.samples[i] = sample;
+      return i;
+    }
+    else
+    {
+      this.samples ~= sample;
+      return cast(uint) this.samples.length - 1;
+    }
   }
 
   /**
@@ -404,8 +485,22 @@ class Program
   */
   uint addFont(Pixmap[] font)
   {
-    this.fonts ~= font;
-    return cast(uint) this.fonts.length - 1;
+    int i = countUntil(this.fonts, font);
+    if (i >= 0)
+      return i;
+    i = this.fonts.length - 1;
+    while (i && this.fonts[i])
+      i--;
+    if (i)
+    {
+      this.fonts[i] = font;
+      return i;
+    }
+    else
+    {
+      this.fonts ~= font;
+      return cast(uint) this.fonts.length - 1;
+    }
   }
 
   /**

@@ -85,11 +85,9 @@ class Viewport
   /**
     get a child viewport by its z-index
   */
-  Viewport getViewportByIndex(uint index)
+  Viewport[] getChildren()
   {
-    if (index >= this.children.length || !this.children[cast(uint) index])
-      return null;
-    return this.children[index];
+    return this.children;
   }
 
   /**
