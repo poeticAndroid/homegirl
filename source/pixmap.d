@@ -2,6 +2,7 @@ module pixmap;
 
 import std.utf;
 import std.math;
+import std.algorithm.comparison;
 import bindbc.sdl;
 
 /**
@@ -225,7 +226,7 @@ class Pixmap
   */
   void copyPixFrom(Pixmap src, uint sx, uint sy, uint dx, uint dy)
   {
-    const c = src.pget(cast(uint)(sx), cast(uint)(sy));
+    const c = src.pget(sx, sy);
     switch (this.copymode)
     {
     case CopyMode.replace:
@@ -238,6 +239,18 @@ class Pixmap
     case CopyMode.color:
       if (c != src.bgColor)
         this.pset(dx, dy, this.fgColor);
+      break;
+    case CopyMode.xor:
+      this.pset(dx, dy, this.pget(dx, dy) ^ c);
+      break;
+    case CopyMode.min:
+      this.pset(dx, dy, min(this.pget(dx, dy), c));
+      break;
+    case CopyMode.max:
+      this.pset(dx, dy, max(this.pget(dx, dy), c));
+      break;
+    case CopyMode.add:
+      this.pset(dx, dy, cast(ubyte)(this.pget(dx, dy) + c));
       break;
     default:
     }
@@ -466,5 +479,9 @@ enum CopyMode
 {
   replace,
   matte,
-  color
+  color,
+  xor,
+  min,
+  max,
+  add
 }
