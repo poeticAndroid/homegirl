@@ -222,6 +222,71 @@ class Pixmap
   }
 
   /** 
+    draw a filled triangle with foreground color
+  */
+  void triangle(double dx1, double dy1, double dx2, double dy2, double dx3, double dy3)
+  {
+    double swp;
+    if (dy1 > dy2)
+    {
+      swp = dx1;
+      dx1 = dx2;
+      dx2 = swp;
+      swp = dy1;
+      dy1 = dy2;
+      dy2 = swp;
+    }
+    if (dy1 > dy3)
+    {
+      swp = dx1;
+      dx1 = dx3;
+      dx3 = swp;
+      swp = dy1;
+      dy1 = dy3;
+      dy3 = swp;
+    }
+    if (dy2 > dy3)
+    {
+      swp = dx2;
+      dx2 = dx3;
+      dx3 = swp;
+      swp = dy2;
+      dy2 = dy3;
+      dy3 = swp;
+    }
+    for (double _dy = dy1; _dy < dy2; _dy++)
+    {
+      double _dx1 = round(this.interpolate(dy1, dy2, _dy, dx1, dx2));
+      double _dx2 = round(this.interpolate(dy1, dy3, _dy, dx1, dx3));
+      if (_dx1 > _dx2)
+      {
+        swp = _dx1;
+        _dx1 = _dx2;
+        _dx2 = swp;
+      }
+      for (double _dx = _dx1; _dx <= _dx2; _dx++)
+      {
+        this.plot(cast(uint) _dx, cast(uint) _dy);
+      }
+    }
+    for (double _dy = dy2; _dy <= dy3; _dy++)
+    {
+      double _dx1 = round(this.interpolate(dy2, dy3, _dy, dx2, dx3));
+      double _dx2 = round(this.interpolate(dy1, dy3, _dy, dx1, dx3));
+      if (_dx1 > _dx2)
+      {
+        swp = _dx1;
+        _dx1 = _dx2;
+        _dx2 = swp;
+      }
+      for (double _dx = _dx1; _dx <= _dx2; _dx++)
+      {
+        this.plot(cast(uint) _dx, cast(uint) _dy);
+      }
+    }
+  }
+
+  /** 
     copy pixels from another pixmap
   */
   void copyPixFrom(Pixmap src, uint sx, uint sy, uint dx, uint dy)
@@ -259,7 +324,7 @@ class Pixmap
   /** 
     copy pixels from another pixmap
   */
-  void copyFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h,
+  void copyRectFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h,
       float scalex = 1, float scaley = 1)
   {
     for (uint y = 0; y < h; y++)
@@ -434,7 +499,7 @@ class Pixmap
           glyph = font[code - 32];
         else
           glyph = font[font.length - 1];
-        this.copyFrom(glyph, 0, 0, x, y, glyph.width, glyph.height);
+        this.copyRectFrom(glyph, 0, 0, x, y, glyph.width, glyph.height);
         x += glyph.duration / 10;
       }
       if ((x - margin) > width)
@@ -453,7 +518,7 @@ class Pixmap
     pixmap.fgColor = this.bgColor;
     pixmap.bar(0, 0, pixmap.width, pixmap.height);
     pixmap.copyPaletteFrom(this);
-    pixmap.copyFrom(this, 0, 0, 0, 0, pixmap.width, pixmap.height);
+    pixmap.copyRectFrom(this, 0, 0, 0, 0, pixmap.width, pixmap.height);
     pixmap.fgColor = this.fgColor;
     pixmap.bgColor = this.bgColor;
     pixmap.duration = this.duration;

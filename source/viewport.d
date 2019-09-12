@@ -293,14 +293,14 @@ class Viewport
           viewport.pixmap.destroyTexture();
           Pixmap oldpix = viewport.pixmap;
           viewport.pixmap = new Pixmap(oldpix.width, oldpix.height, this.pixmap.colorBits);
-          viewport.pixmap.copyFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+          viewport.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
           viewport.pixmap.setFGColor(oldpix.fgColor);
           viewport.pixmap.setBGColor(oldpix.bgColor);
           viewport.pixmap.copymode = oldpix.copymode;
           viewport.pixmap.textCopymode = oldpix.textCopymode;
         }
         viewport.render();
-        this.pixmap.copyFrom(viewport.pixmap, 0, 0, viewport.left,
+        this.pixmap.copyRectFrom(viewport.pixmap, 0, 0, viewport.left,
             viewport.top, viewport.pixmap.width, viewport.pixmap.height);
       }
     }

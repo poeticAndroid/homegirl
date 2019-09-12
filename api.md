@@ -45,6 +45,7 @@
     gfx.plot(x, y)
     gfx.bar(x, y, width, height)
     gfx.line(x1, y1, x2, y2)
+    gfx.tri(x1, y1, x2, y2, x3, y3)
 ##  image
     image.new(width, height, colorbits): img
     image.load(filename[, maxframes]): img[]

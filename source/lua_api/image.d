@@ -269,7 +269,7 @@ void registerFunctions(Program program)
         imgx--;
       if (scaleY < 0)
         imgy--;
-      prog.activeViewport.pixmap.copyFrom(prog.pixmaps[cast(uint) imgID],
+      prog.activeViewport.pixmap.copyRectFrom(prog.pixmaps[cast(uint) imgID],
           cast(int) imgx, cast(int) imgy, cast(int) x, cast(int) y,
           cast(uint) width, cast(uint) height, scaleX, scaleY);
       return 0;
@@ -302,7 +302,7 @@ void registerFunctions(Program program)
         throw new Exception("No active viewport!");
       if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
         throw new Exception("Invalid image!");
-      prog.pixmaps[cast(uint) imgID].copyFrom(prog.activeViewport.pixmap,
+      prog.pixmaps[cast(uint) imgID].copyRectFrom(prog.activeViewport.pixmap,
           cast(int) x, cast(int) y, cast(int) imgx, cast(int) imgy,
           cast(uint) width, cast(uint) height);
       return 0;

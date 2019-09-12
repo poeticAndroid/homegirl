@@ -224,4 +224,33 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &gfx_line);
   luaL_dostring(lua, "gfx.line = _");
+
+  /// gfx.tri(x1, y1, x2, y2, x3, y3)
+  extern (C) int gfx_tri(lua_State* L) @trusted
+  {
+    const x1 = lua_tonumber(L, 1);
+    const y1 = lua_tonumber(L, 2);
+    const x2 = lua_tonumber(L, 3);
+    const y2 = lua_tonumber(L, 4);
+    const x3 = lua_tonumber(L, 5);
+    const y3 = lua_tonumber(L, 6);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      prog.activeViewport.pixmap.triangle(cast(int) x1, cast(int) y1,
+          cast(int) x2, cast(int) y2, cast(int) x3, cast(int) y3);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &gfx_tri);
+  luaL_dostring(lua, "gfx.tri = _");
 }
