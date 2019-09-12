@@ -210,13 +210,13 @@ class Pixmap
     {
       int d = x1 < x2 ? 1 : -1;
       for (double x = x1; x != x2; x += d)
-        this.plot(cast(int) x, cast(int) this.interpolate(x1, x2, x, y1, y2));
+        this.plot(cast(int) x, cast(int) round(this.interpolate(x1, x2, x, y1, y2)));
     }
     else
     {
       int d = y1 < y2 ? 1 : -1;
       for (double y = y1; y != y2; y += d)
-        this.plot(cast(int) this.interpolate(y1, y2, y, x1, x2), cast(int) y);
+        this.plot(cast(int) round(this.interpolate(y1, y2, y, x1, x2)), cast(int) y);
     }
     this.plot(x2, y2);
   }
@@ -326,12 +326,12 @@ class Pixmap
     }
     for (double _dy = dy1; _dy < dy2; _dy++)
     {
-      double _dx1 = this.interpolate(dy1, dy2, _dy, dx1, dx2);
-      double _sx1 = this.interpolate(dy1, dy2, _dy, sx1, sx2);
-      double _sy1 = this.interpolate(dy1, dy2, _dy, sy1, sy2);
-      double _dx2 = this.interpolate(dy1, dy3, _dy, dx1, dx3);
-      double _sx2 = this.interpolate(dy1, dy3, _dy, sx1, sx3);
-      double _sy2 = this.interpolate(dy1, dy3, _dy, sy1, sy3);
+      double _dx1 = round(this.interpolate(dy1, dy2, _dy, dx1, dx2));
+      double _sx1 = round(this.interpolate(dy1, dy2, _dy, sx1, sx2));
+      double _sy1 = round(this.interpolate(dy1, dy2, _dy, sy1, sy2));
+      double _dx2 = round(this.interpolate(dy1, dy3, _dy, dx1, dx3));
+      double _sx2 = round(this.interpolate(dy1, dy3, _dy, sx1, sx3));
+      double _sy2 = round(this.interpolate(dy1, dy3, _dy, sy1, sy3));
       if (_dx1 > _dx2)
       {
         swp = _dx1;
@@ -346,19 +346,19 @@ class Pixmap
       }
       for (double _dx = _dx1; _dx <= _dx2; _dx++)
       {
-        double _sx = this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2);
-        double _sy = this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2);
+        double _sx = round(this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2));
+        double _sy = round(this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2));
         this.copyPixFrom(src, cast(uint)(_sx), cast(uint)(_sy), cast(uint) _dx, cast(uint) _dy);
       }
     }
     for (double _dy = dy2; _dy <= dy3; _dy++)
     {
-      double _dx1 = this.interpolate(dy2, dy3, _dy, dx2, dx3);
-      double _sx1 = this.interpolate(dy2, dy3, _dy, sx2, sx3);
-      double _sy1 = this.interpolate(dy2, dy3, _dy, sy2, sy3);
-      double _dx2 = this.interpolate(dy1, dy3, _dy, dx1, dx3);
-      double _sx2 = this.interpolate(dy1, dy3, _dy, sx1, sx3);
-      double _sy2 = this.interpolate(dy1, dy3, _dy, sy1, sy3);
+      double _dx1 = round(this.interpolate(dy2, dy3, _dy, dx2, dx3));
+      double _sx1 = round(this.interpolate(dy2, dy3, _dy, sx2, sx3));
+      double _sy1 = round(this.interpolate(dy2, dy3, _dy, sy2, sy3));
+      double _dx2 = round(this.interpolate(dy1, dy3, _dy, dx1, dx3));
+      double _sx2 = round(this.interpolate(dy1, dy3, _dy, sx1, sx3));
+      double _sy2 = round(this.interpolate(dy1, dy3, _dy, sy1, sy3));
       if (_dx1 > _dx2)
       {
         swp = _dx1;
@@ -373,8 +373,8 @@ class Pixmap
       }
       for (double _dx = _dx1; _dx <= _dx2; _dx++)
       {
-        double _sx = this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2);
-        double _sy = this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2);
+        double _sx = round(this.interpolate(_dx1, _dx2, _dx, _sx1, _sx2));
+        double _sy = round(this.interpolate(_dx1, _dx2, _dx, _sy1, _sy2));
         this.copyPixFrom(src, cast(uint)(_sx), cast(uint)(_sy), cast(uint) _dx, cast(uint) _dy);
       }
     }
