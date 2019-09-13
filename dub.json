@@ -5,7 +5,8 @@
 	"buildTypes": {
 		"release": {
 			"lflags-windows": [
-				"/SUBSYSTEM:WINDOWS"
+				"/SUBSYSTEM:WINDOWS",
+				"/ENTRY:mainCRTStartup"
 			]
 		}
 	},
