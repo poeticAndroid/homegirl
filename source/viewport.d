@@ -24,6 +24,9 @@ class Viewport
   ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
   TextEditor textinput; /// text editor
   string[string] attributes; /// attributes
+  Pixmap pointer; /// mouse pointer
+  int pointerX; /// mouse pointer anchor
+  int pointerY; /// mouse pointer anchor
 
   /**
     create a new Viewport

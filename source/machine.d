@@ -9,6 +9,7 @@ import std.path;
 import std.file;
 import std.conv;
 import std.process;
+import std.algorithm;
 import bindbc.sdl;
 
 import viewport;
@@ -20,7 +21,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.5.5"; /// version of the software
+const VERSION = "0.5.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -82,7 +83,6 @@ class Machine
         break;
       case SDL_MOUSEMOTION:
         this.cursorBlank = SDL_GetTicks() + 8192;
-        SDL_ShowCursor(SDL_ENABLE);
         break;
       case SDL_TEXTINPUT:
         this.newInput = true;
@@ -267,8 +267,17 @@ class Machine
   {
     Screen screen = new Screen(mode, colorBits);
     this.screens ~= screen;
-    if (!this.mainScreen)
+    if (this.mainScreen)
+    {
+      screen.pointer = this.mainScreen.pointer;
+      screen.pointerX = this.mainScreen.pointerX;
+      screen.pointerY = this.mainScreen.pointerY;
+    }
+    else
+    {
       this.mainScreen = screen;
+      screen.defaultPointer();
+    }
     return screen;
   }
 
@@ -558,6 +567,9 @@ class Machine
   private uint nextBootup;
   private bool newInput;
   private bool oldAspect;
+  private Pixmap pointer;
+  private int pointerX;
+  private int pointerY;
 
   private void initWindow()
   {
@@ -606,11 +618,6 @@ class Machine
 
   private void trackMouse()
   {
-    if (SDL_GetTicks() > this.cursorBlank)
-    {
-      SDL_ShowCursor(SDL_DISABLE);
-      this.cursorBlank += 1024;
-    }
     const width = 640;
     uint height = 360;
     if (this.oldAspect)
@@ -654,6 +661,28 @@ class Machine
         vp = _vp;
       if (screen.containsViewport(this.focusedViewport))
         validFocus = validFocus || true;
+    }
+    if (SDL_GetTicks() > this.cursorBlank)
+    {
+      SDL_ShowCursor(SDL_DISABLE);
+      this.pointer = null;
+    }
+    else
+    {
+      Viewport pvp = vp;
+      while (pvp && !pvp.pointer)
+        pvp = pvp.getParent();
+      if (pvp)
+      {
+        this.pointer = pvp.pointer;
+        this.pointerX = pvp.pointerX;
+        this.pointerY = pvp.pointerY;
+        SDL_ShowCursor(SDL_DISABLE);
+      }
+      else
+      {
+        SDL_ShowCursor(SDL_ENABLE);
+      }
     }
     if (this.lastmb == 0 && mb == 1)
       this.focusViewport(vp);
@@ -741,7 +770,10 @@ class Machine
       screen.render();
       if (!pixmap.texture)
         pixmap.initTexture(this.ren);
-      pixmap.updateTexture();
+      uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
+      uint sy = screen.pixelWidth / min(screen.pixelWidth, screen.pixelHeight);
+      pixmap.updateTexture(this.pointer, screen.mouseX - this.pointerX * sx,
+          screen.mouseY - this.pointerY * sy, sx, sy);
       SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
       rect2.y = dy + height * scale;
       SDL_RenderFillRect(ren, rect2);

@@ -367,6 +367,35 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &image_copypalette);
   luaL_dostring(lua, "image.copypalette = _");
 
+  /// image.pointer(img, Xoffset, Yoffset)
+  extern (C) int image_pointer(lua_State* L) @trusted
+  {
+    const imgID = lua_tointeger(L, 1);
+    const px = lua_tonumber(L, 2);
+    const py = lua_tonumber(L, 3);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      if (imgID >= prog.pixmaps.length)
+        throw new Exception("Invalid image!");
+      prog.activeViewport.pointer = prog.pixmaps[cast(uint) imgID];
+      prog.activeViewport.pointerX = cast(int) px;
+      prog.activeViewport.pointerY = cast(int) py;
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &image_pointer);
+  luaL_dostring(lua, "image.pointer = _");
+
   /// image.forget(img)
   extern (C) int image_forget(lua_State* L) @trusted
   {

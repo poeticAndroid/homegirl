@@ -113,7 +113,7 @@ void registerFunctions(Program program)
   extern (C) int view_active(lua_State* L) @trusted
   {
     const vpID = lua_tointeger(L, 1);
-    const set = 1 - lua_isnoneornil(L, 1);
+    const set = 1 - lua_isnone(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

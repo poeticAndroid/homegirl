@@ -18,6 +18,7 @@ class Screen : Viewport
   {
     super(null, 0, 0, 0, 0, 0);
     this.changeMode(mode, colorBits);
+    // this.defaultPointer();
   }
 
   override
@@ -52,5 +53,18 @@ class Screen : Viewport
     void resize(uint width, uint height)
     {
     }
+  }
+
+  void defaultPointer()
+  {
+    this.pointer = new Pixmap(11, 11, 2);
+    this.pointer.pixels = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2,
+      1, 0, 0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0,
+      0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 1, 3, 3, 2, 1, 0, 0,
+      0, 0, 1, 1, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0,
+      0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 0, 0];
+    this.pointerX = 0;
+    this.pointerY = 0;
   }
 }

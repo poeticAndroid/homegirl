@@ -58,7 +58,7 @@ class Pixmap
   /**
     refresh all pixels in texture to represent pixmap
   */
-  void updateTexture()
+  void updateTexture(Pixmap pointer = null, int px = 0, int py = 0, uint sx = 1, uint sy = 1)
   {
     ubyte* texdata = null;
     int pitch;
@@ -72,6 +72,20 @@ class Pixmap
       texdata[dest++] = this.palette[src++];
       texdata[dest++] = this.palette[src++];
       texdata[dest++] = 255;
+    }
+    if (pointer)
+    {
+      if (!this.uicolors[0])
+        this.findUIcolors();
+      for (uint y = 0; y < pointer.height * sy; y++)
+        for (uint x = 0; x < pointer.width * sx; x++)
+        {
+          {
+            if (pointer.pget(x / sx, y / sy))
+              this.psetTexture(texdata, px + x, py + y,
+                  this.uicolors[pointer.pget(x / sx, y / sy) % this.uicolors.length]);
+          }
+        }
     }
     SDL_UnlockTexture(this.texture);
   }
@@ -106,6 +120,7 @@ class Pixmap
     this.palette[i++] = (red % 16) * 17;
     this.palette[i++] = (green % 16) * 17;
     this.palette[i++] = (blue % 16) * 17;
+    this.uicolors[0] = 0;
   }
 
   /**
@@ -527,6 +542,7 @@ class Pixmap
 
   // --- _privates --- //
   private ubyte pixelMask;
+  private ubyte[4] uicolors;
 
   private double interpolate(double a1, double a2, double n, double b1, double b2)
   {
@@ -534,6 +550,49 @@ class Pixmap
     double db = b2 - b1;
     double np = (n - a1) / (da == 0 ? 1 : da);
     return b1 + np * db;
+  }
+
+  private void psetTexture(ubyte* texdata, uint x, uint y, ubyte c)
+  {
+    if (x >= this.width || y >= this.height)
+      return;
+    const i = y * this.width + x;
+    uint dest = i * 4;
+    uint src = c * 3 % this.palette.length;
+    texdata[dest++] = this.palette[src++];
+    texdata[dest++] = this.palette[src++];
+    texdata[dest++] = this.palette[src++];
+    texdata[dest++] = 255;
+  }
+
+  private void findUIcolors()
+  {
+    int darkest = 1024;
+    int lightest = -1;
+    int satest = -1;
+    uint i = 0;
+    for (uint c = 0; c < this.palette.length / 3; c++)
+    {
+      ubyte r = this.palette[i++];
+      ubyte g = this.palette[i++];
+      ubyte b = this.palette[i++];
+      if (r + g + b < darkest)
+      {
+        this.uicolors[1] = cast(ubyte) c;
+        darkest = r + g + b;
+      }
+      if (r + g + b > lightest)
+      {
+        this.uicolors[2] = cast(ubyte) c;
+        lightest = r + g + b;
+      }
+      if (max(r, g, b) - min(r, g, b) > satest)
+      {
+        this.uicolors[3] = cast(ubyte) c;
+        satest = max(r, g, b) - min(r, g, b);
+      }
+    }
+    this.uicolors[0] = 1;
   }
 }
 

@@ -58,6 +58,7 @@
     image.copy(img, x, y, imgx, imgy, width, height)
     image.usepalette(img)
     image.copypalette(img)
+    image.pointer(img, Xoffset, Yoffset)
     image.forget(img)
 ##  input
     input.text([text]): text
