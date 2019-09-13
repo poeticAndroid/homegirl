@@ -68,6 +68,7 @@
     input.hotkey(): hotkey
     input.mouse(): x, y, btn
     input.gamepad([player]): btn
+    input.midi(): byte
 ##  sys
     sys.read(): string
     sys.write(string)

@@ -1,5 +1,6 @@
 module machine;
 
+import std.stdio;
 import std.string;
 import std.format;
 import std.math;
@@ -11,6 +12,7 @@ import std.conv;
 import std.process;
 import std.algorithm;
 import bindbc.sdl;
+import minuit;
 
 import viewport;
 import screen;
@@ -21,7 +23,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.5.6"; /// version of the software
+const VERSION = "0.5.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -59,6 +61,7 @@ class Machine
 
     this.initWindow();
     this.audio = new SoundChip();
+    this.initMidi();
     this.env["ENGINE"] = "Homegirl";
     this.env["ENGINE_VERSION"] = VERSION;
   }
@@ -138,6 +141,8 @@ class Machine
     }
     // read game controller
     this.handleGameCtrl();
+    // read midi input
+    this.handleMidi();
 
     // advance the programs
     uint runningPrograms = 0;
@@ -213,6 +218,8 @@ class Machine
         this.shutdownProgram(program);
     }
     this.net.shutdown();
+    foreach (MnInput input; this.midiDevs)
+      input.close();
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
@@ -553,6 +560,27 @@ class Machine
     return code;
   }
 
+  /**
+    get a byte of midi data
+  */
+  ubyte getMidi()
+  {
+    this.midiTimeout = SDL_GetTicks() + 1024;
+    if (!this.midiData.length)
+      return 0;
+    ubyte byt = this.midiData[0];
+    this.midiData = this.midiData.remove(0);
+    return byt;
+  }
+
+  /**
+    check if there is pending midi data
+  */
+  bool hasMidi()
+  {
+    return this.midiData.length > 0;
+  }
+
   // === _privates === //
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
@@ -562,6 +590,9 @@ class Machine
   private uint lastmb = 0;
   private ubyte[] gameBtns;
   private ulong lastgmb = 0;
+  private MnInput[] midiDevs;
+  private ubyte[] midiData;
+  private uint midiTimeout;
   private uint scale;
   private uint bootupState = 5;
   private uint nextBootup;
@@ -929,6 +960,34 @@ class Machine
     }
   }
 
+  private void initMidi()
+  {
+    MnInputPort[] inputPorts = mnFetchInputs();
+
+    foreach (MnInputPort port; inputPorts)
+    {
+      auto input = new MnInput();
+      input.open(port);
+      this.midiDevs ~= input;
+    }
+  }
+
+  private void handleMidi()
+  {
+    if (SDL_GetTicks() > this.midiTimeout)
+    {
+      if (this.midiData.length)
+        this.midiData = [];
+    }
+    foreach (MnInput input; this.midiDevs)
+    {
+      while (input.canReceive())
+      {
+        this.midiData ~= input.receive();
+      }
+    }
+    this.newInput = this.newInput || this.hasMidi();
+  }
 }
 
 /**

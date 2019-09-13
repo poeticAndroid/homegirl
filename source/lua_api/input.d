@@ -188,4 +188,27 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &input_gamepad);
   luaL_dostring(lua, "input.gamepad = _");
+
+  /// input.midi(): byte
+  extern (C) int input_midi(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (prog.machine.hasMidi())
+        lua_pushinteger(L, prog.machine.getMidi());
+      else
+        lua_pushnil(L);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_midi);
+  luaL_dostring(lua, "input.midi = _");
 }
