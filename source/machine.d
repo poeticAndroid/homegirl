@@ -962,13 +962,19 @@ class Machine
 
   private void initMidi()
   {
-    MnInputPort[] inputPorts = mnFetchInputs();
-
-    foreach (MnInputPort port; inputPorts)
+    version (Win32)
     {
-      auto input = new MnInput();
-      input.open(port);
-      this.midiDevs ~= input;
+      return;
+    }
+    else
+    {
+      MnInputPort[] inputPorts = mnFetchInputs();
+      foreach (MnInputPort port; inputPorts)
+      {
+        auto input = new MnInput();
+        input.open(port);
+        this.midiDevs ~= input;
+      }
     }
   }
 
