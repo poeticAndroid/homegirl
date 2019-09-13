@@ -28,3 +28,11 @@ Specs
 
 _*Work in progress_
 
+Installation
+------------
+Download and extract [latest release](https://github.com/poeticAndroid/homegirl/releases/latest) for your OS and run the `homegirl` executable from the same folder.. If it doesn't work, make sure you have the following libraries installed:
+
+  - [SDL2 2.0.8](https://www.libsdl.org/)
+  - [Lua 5.3](https://www.lua.org/)
+  - [FreeImage 3.18](http://freeimage.sourceforge.net/)
+  - libcurl ([Windows](http://downloads.dlang.org/other/index.html) | [other](https://curl.haxx.se/libcurl/))
