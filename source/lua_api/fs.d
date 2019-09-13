@@ -59,6 +59,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!drive)
+        throw new Exception("illegal drive name!");
       drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
       if (prog.machine.net.isUrl(path))
       {
@@ -94,6 +96,8 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!drive)
+        throw new Exception("illegal drive name!");
       drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
       if (prog.drive != drive && !prog.hasPermission(Permissions.unmountDrives))
         throw new Exception("no permission to unmount other drives!");
