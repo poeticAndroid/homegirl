@@ -1,4 +1,4 @@
-Screen = require(_DRIVE .. "libs/screen")
+Screen = require("screen")
 
 fontsize = 8
 fontw = 8
@@ -13,7 +13,7 @@ function _init()
   scrn = Screen:new((sys.env("ENGINE") or "System") .. " Shell", 11, 2)
   scrnw, scrnh = view.size(scrn.mainvp)
   spare = image.new(scrnw, scrnh, 4)
-  font = text.loadfont(_DRIVE .. "fonts/Victoria.8b.gif")
+  font = text.loadfont("Victoria.8b")
 
   scrn:palette(0, 0, 5, 10)
   scrn:palette(1, 15, 15, 15)

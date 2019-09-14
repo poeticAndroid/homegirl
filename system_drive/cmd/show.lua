@@ -1,4 +1,4 @@
-Screen = require(_DRIVE .. "libs/screen")
+Screen = require("screen")
 
 function _init(args)
   mode = 0

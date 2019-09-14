@@ -125,13 +125,14 @@ void registerFunctions(Program program)
   /// require(filename): module
   extern (C) int require(lua_State* L) @trusted
   {
-    const filename = to!string(lua_tostring(L, 1)) ~ ".lua";
+    auto filename = to!string(lua_tostring(L, 1));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      filename = prog.resolveResource("libs", filename, ".lua");
       auto path = prog.actualFile(filename);
       lua_getglobal(L, "package");
       lua_getfield(L, -1, "loaded");

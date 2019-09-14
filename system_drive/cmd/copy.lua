@@ -92,7 +92,7 @@ end
 
 function basename(path)
   local i = string.find(string.reverse(path), "/") or string.find(string.reverse(path), ":") or #path
-  return string.sub(path, -i - 1)
+  return string.sub(path, -i + 1)
 end
 
 function trailslash(path)

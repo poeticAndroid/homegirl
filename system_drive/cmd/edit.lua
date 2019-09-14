@@ -1,4 +1,4 @@
-Screen = require(_DRIVE .. "libs/screen")
+Screen = require("screen")
 
 filename = nil
 lasttxt = ""
@@ -7,7 +7,7 @@ statusto = 0
 
 function _init(args)
   scrn = Screen:new("Edit", 11, 2)
-  font = text.loadfont(_DRIVE .. "fonts/Victoria.8b.gif")
+  font = text.loadfont("Victoria.8b")
   scrn:palette(0, 0, 0, 0)
   scrn:palette(1, 13, 14, 15)
   scrn:palette(2, 0, 0, 5)

@@ -7,6 +7,7 @@ import riverd.lua.types;
 
 import program;
 import pixmap;
+import machine;
 
 /**
   register text functions for a lua program
@@ -24,6 +25,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
+      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+        throw new Exception("no permission to read other drives!");
+      filename = prog.resolveResource("fonts", filename, ".gif");
       lua_pushinteger(L, prog.loadFont(prog.actualFile(filename)));
       return 1;
     }

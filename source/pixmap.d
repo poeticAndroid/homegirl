@@ -592,6 +592,23 @@ class Pixmap
         satest = max(r, g, b) - min(r, g, b);
       }
     }
+    if (satest == 0)
+    {
+      int grayest = 1024;
+      int gray = (darkest + lightest) / 2;
+      i = 0;
+      for (uint c = 0; c < this.palette.length / 3; c++)
+      {
+        ubyte r = this.palette[i++];
+        ubyte g = this.palette[i++];
+        ubyte b = this.palette[i++];
+        if (abs(r + g + b - gray) < grayest)
+        {
+          this.uicolors[3] = cast(ubyte) c;
+          grayest = abs(r + g + b - gray);
+        }
+      }
+    }
     this.uicolors[0] = 1;
   }
 }

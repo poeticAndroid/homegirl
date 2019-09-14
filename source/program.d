@@ -54,8 +54,11 @@ class Program
     this.filename = this.resolve(filename);
     this.drive = this.machine.getDrive(this.filename, "");
     this.args = args;
-    this.cwd = this.resolve(cwd);
-    if (!this.cwd)
+    if (cwd)
+      this.cwd = this.resolve(cwd);
+    else
+      this.cwd = this.machine.dirName(this.filename);
+    if (!this.isOnOriginDrive(this.cwd) && !this.hasPermission(Permissions.readOtherDrives))
       this.cwd = this.machine.dirName(this.filename);
     this.children ~= null;
     this.viewports ~= null;
@@ -185,6 +188,24 @@ class Program
   {
     string str = this.machine.actualPath(this.resolve(path), dir);
     return str;
+  }
+
+  /**
+    resolve path to resource
+  */
+  string resolveResource(string dir, string filename, string suf)
+  {
+    if (filename.length < suf.length || filename[$ - suf.length .. $] != suf[0 .. $])
+      filename ~= suf;
+    if (filename != this.machine.baseName(filename))
+      return filename;
+    if (exists(this.actualFile(this.machine.dirName(this.filename) ~ filename)))
+      return this.machine.dirName(this.filename) ~ filename;
+    if (exists(this.actualFile(this.drive ~ ":" ~ dir ~ "/" ~ filename)))
+      return this.drive ~ ":" ~ dir ~ "/" ~ filename;
+    if (exists(this.actualFile("SYS:" ~ dir ~ "/" ~ filename)))
+      return "SYS:" ~ dir ~ "/" ~ filename;
+    return filename;
   }
 
   /**

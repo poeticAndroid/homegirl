@@ -1,4 +1,4 @@
-local defaultfont = text.loadfont(_DRIVE .. "fonts/Victoria.8b.gif")
+local defaultfont = text.loadfont("Victoria.8b")
 
 local Screen = {}
 do
