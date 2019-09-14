@@ -12,7 +12,11 @@ import std.conv;
 import std.process;
 import std.algorithm;
 import bindbc.sdl;
-import minuit;
+
+version (Win64)
+{
+  import minuit;
+}
 
 import viewport;
 import screen;
@@ -218,8 +222,11 @@ class Machine
         this.shutdownProgram(program);
     }
     this.net.shutdown();
-    foreach (MnInput input; this.midiDevs)
-      input.close();
+    version (Win64)
+    {
+      foreach (MnInput input; this.midiDevs)
+        input.close();
+    }
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
@@ -590,7 +597,10 @@ class Machine
   private uint lastmb = 0;
   private ubyte[] gameBtns;
   private ulong lastgmb = 0;
-  private MnInput[] midiDevs;
+  version (Win64)
+  {
+    private MnInput[] midiDevs;
+  }
   private ubyte[] midiData;
   private uint midiTimeout;
   private uint scale;
@@ -962,11 +972,7 @@ class Machine
 
   private void initMidi()
   {
-    version (Win32)
-    {
-      return;
-    }
-    else
+    version (Win64)
     {
       MnInputPort[] inputPorts = mnFetchInputs();
       foreach (MnInputPort port; inputPorts)
@@ -980,19 +986,22 @@ class Machine
 
   private void handleMidi()
   {
-    if (SDL_GetTicks() > this.midiTimeout)
+    version (Win64)
     {
-      if (this.midiData.length)
-        this.midiData = [];
-    }
-    foreach (MnInput input; this.midiDevs)
-    {
-      while (input.canReceive())
+      if (SDL_GetTicks() > this.midiTimeout)
       {
-        this.midiData ~= input.receive();
+        if (this.midiData.length)
+          this.midiData = [];
       }
+      foreach (MnInput input; this.midiDevs)
+      {
+        while (input.canReceive())
+        {
+          this.midiData ~= input.receive();
+        }
+      }
+      this.newInput = this.newInput || this.hasMidi();
     }
-    this.newInput = this.newInput || this.hasMidi();
   }
 }
 
