@@ -1,6 +1,10 @@
 Screen = require("screen")
 
 function _init(args)
+  if #args < 1 then
+    print("Usage: play <path>")
+    return sys.exit(1)
+  end
   snd = audio.load(args[1])
   if snd == nil then
     print("Couldn't play file " .. args[1])

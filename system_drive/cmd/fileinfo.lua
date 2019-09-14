@@ -1,6 +1,10 @@
 wdays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
 months = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
 function _init(args)
+  if #args < 1 then
+    print("Usage: fileinfo <path>")
+    return sys.exit(1)
+  end
   print("Filename: " .. args[1])
   size = fs.size(args[1])
   print("Size: " .. size .. " bytes")

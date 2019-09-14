@@ -2,6 +2,10 @@ local queue = {}
 local indent = ""
 
 function _init(args)
+  if #args < 2 then
+    print("Usage: copy <source> <destination>")
+    return sys.exit(1)
+  end
   local src = args[1]
   local dest = args[#args]
   if fs.isdir(dest) then
