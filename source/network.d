@@ -71,8 +71,8 @@ class Network
       return false;
     if (url[0 .. 7] == "http://")
       return true;
-    // if (url[0 .. 8] == "https://")
-    //   return true;
+    if (url[0 .. 8] == "https://")
+      return true;
     return false;
   }
 
