@@ -22,13 +22,13 @@ Specs
  - **Screen resolutions:** 32 screen modes ranging from 80x45 to 640x480 pixels
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
- - **Input:** Text, mouse, game input and MIDI..
+ - **Input:** Text, mouse, game input and MIDI(Windows only)..
  - **Filesystem:** Named drives which can be mapped to local folders or websites
  - **Native filetypes:** GIF for images and animations, WAV for sound samples
 
 Installation
 ------------
-Download and extract [latest release](https://github.com/poeticAndroid/homegirl/releases/latest) for your OS and run the `homegirl` executable from the same folder.. If it doesn't work, make sure you have the following libraries installed:
+Download and extract [latest release](https://github.com/poeticAndroid/homegirl/releases/latest) for your OS and run the `homegirl` executable from the same folder.. If it doesn't work, make sure you have the following libraries installed (a setup script may be provided):
 
   - [SDL2 2.0.8](https://www.libsdl.org/)
   - [Lua 5.3](https://www.lua.org/)
