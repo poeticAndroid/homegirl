@@ -1,0 +1,18 @@
+[[actions]]
+platform = "windows"
+name = "play"
+path = "homegirl_windows.exe"
+
+[[actions]]
+platform = "linux"
+name = "play"
+path = "homegirl.sh"
+
+[[actions]]
+platform = "osx"
+name = "play"
+path = "homegirl.sh"
+
+[[actions]]
+name = "manual"
+path = "https://github.com/poeticAndroid/homegirl/wiki"
