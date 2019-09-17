@@ -6,6 +6,8 @@ It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
 [![Download!](./images/download.gif)![Icon](./images/homegirl.png)](https://github.com/poeticAndroid/homegirl/releases/latest)
 
+<iframe frameborder="0" src="//itch.io/embed/483586" width="552" height="167"></iframe>
+
 It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It has 4 channel 8-bit stereo sound and ability to mount web-servers as drives..
 
 The software for it, is based on Lua, which is a pretty simple and fast scripting language..
@@ -13,6 +15,8 @@ The software for it, is based on Lua, which is a pretty simple and fast scriptin
 Once the console is somewhat complete, I plan on writing an "operating system" for it in Lua, which would resemble Workbench.. or you could even make your own, if you wanted..
 
 Hopefully I would also get to make some decent tools, like text editor, music editor and paint program, so that you could make games or apps on the platform itself..!
+
+[Follow #HomegirlFC on Twitter!](https://twitter.com/hashtag/HomegirlFC)
 
 [**Join the community on Discord!**](https://discord.gg/ND4FErK)
 
