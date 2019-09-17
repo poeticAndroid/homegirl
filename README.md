@@ -4,9 +4,7 @@ It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
 
 ![Amigaaah!](./images/homegirl_screentitles.gif)
 
-[![Download!](./images/download.gif)![Icon](./images/homegirl.png)](https://github.com/poeticAndroid/homegirl/releases/latest)
-
-<iframe frameborder="0" src="//itch.io/embed/483586" width="552" height="167"></iframe>
+[![Download!](./images/itch.png) ![Icon](./images/homegirl.png)](https://poeticandroid.itch.io/homegirl)
 
 It has graphic resolutions similar to the OCS Amigas, multitasking, multiple screens and windows etc.. It has 4 channel 8-bit stereo sound and ability to mount web-servers as drives..
 
