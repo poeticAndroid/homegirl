@@ -69,10 +69,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
-      auto path = prog.actualFile(filename);
-      if (luaL_dostring(L,
-          toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
-        throw new Exception("Cannot do file " ~ filename);
+      prog.doFile(filename);
       return 1;
     }
     catch (Exception err)
@@ -136,13 +133,11 @@ void registerFunctions(Program program)
       auto path = prog.actualFile(filename);
       lua_getglobal(L, "package");
       lua_getfield(L, -1, "loaded");
-      lua_getfield(L, -1, toStringz(path));
+      lua_getfield(L, -1, toStringz(prog.resolve(path)));
       if (lua_isnoneornil(L, -1))
       {
         lua_pop(L, 1);
-        if (luaL_dostring(L,
-            toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
-          throw new Exception("Cannot require file " ~ filename);
+        prog.doFile(filename);
         lua_setfield(L, -2, toStringz(path));
         lua_getfield(L, -1, toStringz(path));
       }

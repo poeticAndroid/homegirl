@@ -27,6 +27,7 @@ class Program
   int exitcode = 0; /// exit code
   string drive; /// the drive this program originates from
   string filename; /// filename of the Lua script currently running
+  string url; /// program url if on web drive
   string[] args; /// program arguments
   string cwd; /// current working directory
   string[3] io; /// input/output/error buffers
@@ -129,6 +130,20 @@ class Program
       while (i)
         this.removeSample(cast(uint)--i);
     }
+  }
+
+  /**
+    do a lua file
+  */
+  void doFile(string filename)
+  {
+    filename = this.resolve(filename);
+    string path = this.actualFile(filename);
+    string luacode = this.machine.luaFilepathVars(filename) ~ readText(path);
+    if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(filename)))
+      throw new Exception("Cannot run file " ~ filename);
+    if (lua_pcall(this.lua, 0, LUA_MULTRET, 0))
+      throw new Exception("Cannot run file " ~ filename);
   }
 
   /**

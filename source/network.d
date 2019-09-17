@@ -16,6 +16,7 @@ import machine;
 class Network
 {
   string cacheDir; /// path to cache folder
+  string referer; /// url to the program currently using this network
 
   /**
     create network
@@ -157,6 +158,7 @@ class Network
       httpReq.url = url;
       this.url = url;
       httpReq.clearRequestHeaders();
+      httpReq.addRequestHeader("Referer", this.referer);
       httpReq.addRequestHeader("Location", rename);
       httpReq.perform();
       if (res.code >= 300)
@@ -227,6 +229,7 @@ class Network
     httpReq.url = url;
     this.url = url;
     httpReq.clearRequestHeaders();
+    httpReq.addRequestHeader("Referer", this.referer);
     if (type)
       httpReq.addRequestHeader("Content-Type", type);
     if (payload)

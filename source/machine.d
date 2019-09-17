@@ -27,7 +27,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.6.2"; /// version of the software
+const VERSION = "0.6.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -155,6 +155,7 @@ class Machine
       Program program = this.programs[i];
       if (program)
       {
+        this.net.referer = program.url;
         runningPrograms++;
         if (!program.running)
           this.shutdownProgram(program);
@@ -238,6 +239,8 @@ class Machine
   Program startProgram(string filename, string[] args = [], string cwd = null)
   {
     Program program = new Program(this, filename, args, cwd);
+    if (this.net.isUrl(this.drives[program.drive]))
+      program.url = this.drives[program.drive] ~ program.filename[program.drive.length + 1 .. $];
     this.programs ~= program;
     return program;
   }
@@ -682,6 +685,7 @@ class Machine
     int mx;
     int my;
     ubyte mb = cast(ubyte) SDL_GetMouseState(&mx, &my);
+    mb = (mb / 2) + (mb % 2);
     if (mx > dx)
       mx = (mx - dx) / scale;
     else
