@@ -25,12 +25,12 @@ class Pixmap
   /**
     create new pixmap
   */
-  this(uint width, uint height, ubyte colorBits)
+  this(int width, int height, ubyte colorBits)
   {
     if (colorBits > 8)
       throw new Exception("Too many colorbits!");
-    this.width = width;
-    this.height = height;
+    this.width = max(0, width);
+    this.height = max(0, height);
     this.colorBits = colorBits;
 
     uint colors = 1;
