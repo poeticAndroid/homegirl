@@ -1,11 +1,10 @@
+local Class = require("class")
+
 local defaultfont = text.loadfont("Victoria.8b")
 
 local Screen = {}
 do
-  Screen.__index = Screen
-
   function Screen:new(title, mode, colorbits)
-    local self = setmetatable({}, Screen)
     self._mode = mode
     self._colorbits = colorbits
     self.rootvp = view.newscreen(self._mode, self._colorbits)
@@ -14,8 +13,8 @@ do
     self:colors(1, 0)
     self:font(defaultfont)
     self:title(title)
-    return self
   end
+  Screen = Class:new(nil, Screen.new)
 
   function Screen:font(font)
     if font then
