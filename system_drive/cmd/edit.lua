@@ -44,7 +44,7 @@ function _step(t)
     left = 0
   end
   if deltalen > 0 then
-    if string.sub(txt, pos, pos) == "\n" then
+    if string.sub(txt, pos, pos + 1) == "\n\n" then
       input.selected(getindent(lines[line - 1]))
       txt = input.text()
     end
