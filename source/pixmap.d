@@ -306,6 +306,11 @@ class Pixmap
   */
   void copyPixFrom(Pixmap src, uint sx, uint sy, uint dx, uint dy)
   {
+    if (dx >= this.width || dy >= this.height)
+      return;
+    sx %= src.width;
+    sy %= src.height;
+
     const c = src.pget(sx, sy);
     switch (this.copymode)
     {
