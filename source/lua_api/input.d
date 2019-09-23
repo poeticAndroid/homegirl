@@ -27,8 +27,8 @@ void registerFunctions(Program program)
       if (!prog.activeViewport)
         throw new Exception("No active viewport!");
       if (set)
-        prog.activeViewport.getTextinput().setText(text);
-      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getText()));
+        prog.activeViewport.getTextinput(true).setText(text);
+      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput(true).getText()));
       return 1;
     }
     catch (Exception err)
@@ -53,8 +53,8 @@ void registerFunctions(Program program)
       if (!prog.activeViewport)
         throw new Exception("No active viewport!");
       if (set)
-        prog.activeViewport.getTextinput().insertText(text);
-      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput().getSelectedText()));
+        prog.activeViewport.getTextinput(true).insertText(text);
+      lua_pushstring(L, toStringz(prog.activeViewport.getTextinput(true).getSelectedText()));
       return 1;
     }
     catch (Exception err)
@@ -81,11 +81,11 @@ void registerFunctions(Program program)
         throw new Exception("No active viewport!");
       if (set)
       {
-        prog.activeViewport.getTextinput().setPosBytes(cast(uint) pos);
-        prog.activeViewport.getTextinput().setSelectedBytes(cast(uint) sel);
+        prog.activeViewport.getTextinput(true).setPosBytes(cast(uint) pos);
+        prog.activeViewport.getTextinput(true).setSelectedBytes(cast(uint) sel);
       }
-      lua_pushinteger(L, prog.activeViewport.getTextinput().posBytes);
-      lua_pushinteger(L, prog.activeViewport.getTextinput().selectedBytes);
+      lua_pushinteger(L, prog.activeViewport.getTextinput(true).posBytes);
+      lua_pushinteger(L, prog.activeViewport.getTextinput(true).selectedBytes);
       return 2;
     }
     catch (Exception err)
@@ -107,7 +107,7 @@ void registerFunctions(Program program)
     {
       if (!prog.activeViewport)
         throw new Exception("No active viewport!");
-      prog.activeViewport.getTextinput().clearHistory();
+      prog.activeViewport.getTextinput(true).clearHistory();
       return 0;
     }
     catch (Exception err)

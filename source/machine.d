@@ -27,7 +27,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.6.5"; /// version of the software
+const VERSION = "0.6.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -93,8 +93,8 @@ class Machine
         break;
       case SDL_TEXTINPUT:
         this.newInput = true;
-        if (this.focusedViewport && this.focusedViewport.textinput)
-          this.focusedViewport.textinput.insertText(to!string(cast(char*) event.text.text));
+        if (this.focusedViewport && this.focusedViewport.getTextinput())
+          this.focusedViewport.getTextinput().insertText(to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
         this.newInput = true;
@@ -832,9 +832,9 @@ class Machine
   {
     if (!this.focusedViewport)
       return;
-    if (!this.focusedViewport.textinput)
+    if (!this.focusedViewport.getTextinput())
       return;
-    TextEditor te = this.focusedViewport.textinput;
+    TextEditor te = this.focusedViewport.getTextinput();
     if (SDL_GetModState() & KMOD_CTRL)
     {
       switch (key)

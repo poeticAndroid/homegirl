@@ -175,8 +175,11 @@ class Viewport
   */
   void resize(uint width, uint height)
   {
-    this.pixmap.destroyTexture();
-    this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+    if (this.pixmap.width != width || this.pixmap.height != height)
+    {
+      this.pixmap.destroyTexture();
+      this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+    }
   }
 
   /**
@@ -261,10 +264,15 @@ class Viewport
   /**
     get text input for this viewport
   */
-  TextEditor getTextinput()
+  TextEditor getTextinput(bool create = false)
   {
     if (!this.textinput)
-      this.textinput = new TextEditor();
+    {
+      if (create)
+        this.textinput = new TextEditor();
+      else if (this.parent)
+        return this.parent.getTextinput(create);
+    }
     return this.textinput;
   }
 
