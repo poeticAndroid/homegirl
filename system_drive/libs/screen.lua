@@ -1,10 +1,11 @@
-local Class = require("class")
+local Widget = require("widget")
 
 local defaultfont = text.loadfont("Victoria.8b")
 
-local Screen = {}
+local Screen = Widget:extend()
 do
-  function Screen:new(title, mode, colorbits)
+  function Screen:_new(title, mode, colorbits)
+    self.children = {}
     self._mode = mode
     self._colorbits = colorbits
     self.rootvp = view.newscreen(self._mode, self._colorbits)
@@ -14,7 +15,25 @@ do
     self:font(defaultfont)
     self:title(title)
   end
-  Screen = Class:new(nil, Screen.new)
+
+  function Screen:attach(name, child)
+    if name then
+      self.children[name] = child
+    else
+      table.insert(self.children, child)
+    end
+    child:attachto(self.mainvp, self.rootvp)
+    return child
+  end
+  function Screen:attachwindow(name, child)
+    if name then
+      self.children[name] = child
+    else
+      table.insert(self.children, child)
+    end
+    child:attachto(self.rootvp, self.rootvp)
+    return child
+  end
 
   function Screen:font(font)
     if font then
@@ -32,22 +51,13 @@ do
     return self._font
   end
 
-  function Screen:colors(bg, fg)
-    if bg then
-      self._bgcolor = bg
-      self._fgcolor = fg
-      self:title(self._title)
-    end
-    return self._bgcolor, self._fgcolor
-  end
-
   function Screen:title(title)
     if title then
       self._title = view.attribute(self.rootvp, "title", title)
       local prevvp = view.active()
       view.active(self.titlevp)
-      gfx.bgcolor(self._bgcolor)
-      gfx.fgcolor(self._fgcolor)
+      gfx.bgcolor(self.lightcolor)
+      gfx.fgcolor(self.darkcolor)
       gfx.cls()
       local vw, vh = view.size(self.titlevp)
       local tw, th = text.draw(self._title, self._font, 1, 1)
@@ -58,7 +68,7 @@ do
     return self._title
   end
 
-  function Screen:step()
+  function Screen:step(time)
     local prevvp = view.active()
     view.active(self.titlevp)
     local vw, vh = view.size(self.titlevp)
@@ -77,12 +87,20 @@ do
       self:title(self._title)
       if self._lastmbtn == 1 and x >= btnx then
         view.zindex(self.rootvp, 0)
-        view.focused(self.titlevp, false)
+        view.focused(self.rootvp, false)
       else
         view.focused(self.mainvp, true)
       end
     end
     self._lastmbtn = btn
+    view.active(self.rootvp)
+    if input.hotkey() == "." then
+      view.zindex(self.rootvp, 0)
+      view.focused(self.rootvp, false)
+    end
+    for name, child in pairs(self.children) do
+      child:step(time)
+    end
     view.active(prevvp)
   end
 
@@ -130,6 +148,12 @@ do
     return self._mode, self._colorbits
   end
 
+  function Screen:colors(bg, fg)
+    self.darkcolor = fg
+    self.lightcolor = bg
+    self:title(self._title)
+  end
+
   function Screen:autocolor()
     local prevvp = view.active()
     view.active(self.rootvp)
@@ -149,7 +173,9 @@ do
         fg = c
       end
     end
-    self:colors(bg, fg)
+    self.darkcolor = fg
+    self.lightcolor = bg
+    self:title(self._title)
     view.active(prevvp)
   end
 
@@ -157,7 +183,7 @@ do
     local vw, vh = view.size(self.titlevp)
     local btnx = vw - vh * 2
     local s = vh * .55
-    local bg, fg = self._bgcolor, self._fgcolor
+    local bg, fg = self.lightcolor, self.darkcolor
     gfx.fgcolor(fg)
     gfx.bar(btnx - 2, 0, 2, vh)
     if pressed then

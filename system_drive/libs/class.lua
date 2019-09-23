@@ -1,3 +1,6 @@
+print("Don't use class.lua.. object.lua is much better!")
+fs.delete(_DIR .. _FILE)
+
 local Class = {}
 
 function Class:new(super, constructor)
