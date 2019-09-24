@@ -23,6 +23,7 @@ class Viewport
   char hotkey; /// hotkey just pressed if this viewport has focus
   ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
   TextEditor textinput; /// text editor
+  Basket basket; /// drop basket for drag-and-drop
   string[string] attributes; /// attributes
   Pixmap pointer; /// mouse pointer
   int pointerX; /// mouse pointer anchor
@@ -277,6 +278,21 @@ class Viewport
   }
 
   /**
+    get drop basket for this viewport
+  */
+  Basket getBasket(bool create = false)
+  {
+    if (!this.basket)
+    {
+      if (create)
+        this.basket = new Basket();
+      else if (this.parent)
+        return this.parent.getBasket(create);
+    }
+    return this.basket;
+  }
+
+  /**
     clear inputs
   */
   void clearInput()
@@ -321,4 +337,31 @@ class Viewport
   private Viewport parent; /// parent of this viewport
   private Viewport[] children; /// children of this viewport
   // private uint nextVPid = 0;
+}
+
+/**
+  basket for catching drops
+*/
+class Basket
+{
+  string[] drops;
+
+  this()
+  {
+    this.drops = [];
+  }
+
+  void deposit(string[] drops)
+  {
+    this.drops ~= drops;
+  }
+
+  string dispense()
+  {
+    if (this.drops.length == 0)
+      return null;
+    string drop = this.drops[0];
+    this.drops = this.drops.remove(0);
+    return drop;
+  }
 }

@@ -215,6 +215,67 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &input_gamepad);
   luaL_dostring(lua, "input.gamepad = _");
 
+  /// input.drag(drop, icon)
+  extern (C) int input_drag(lua_State* L) @trusted
+  {
+    const drop = to!string(lua_tostring(L, 1));
+    const icon = lua_tointeger(L, 2);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (icon >= prog.pixmaps.length || !prog.pixmaps[cast(uint) icon])
+        throw new Exception("Invalid image!");
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      if (!prog.activeViewport.containsViewport(prog.machine.focusedViewport))
+        throw new Exception("viewport is not focused!");
+      if (prog.activeViewport.mouseBtn == 0)
+        throw new Exception("no mouse buttons pressed!");
+      // if (prog.activeViewport.mouseX < 0 || prog.activeViewport.mouseY < 0
+      //     || prog.activeViewport.mouseX >= prog.activeViewport.pixmap.width
+      //     || prog.activeViewport.mouseY >= prog.activeViewport.pixmap.height)
+      //   throw new Exception("mouse is outside viewport!");
+      prog.machine.dragObject(drop, prog.pixmaps[cast(uint) icon]);
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_drag);
+  luaL_dostring(lua, "input.drag = _");
+
+  /// input.drop(): drop
+  extern (C) int input_drop(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      auto drop = prog.activeViewport.getBasket(true).dispense();
+      if (drop)
+        lua_pushstring(L, toStringz(drop));
+      else
+        lua_pushnil(L);
+      return 1;
+    }
+
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_drop);
+  luaL_dostring(lua, "input.drop = _");
+
   /// input.midi(): byte
   extern (C) int input_midi(lua_State* L) @trusted
   {

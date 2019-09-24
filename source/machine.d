@@ -27,7 +27,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.6.6"; /// version of the software
+const VERSION = "0.6.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -52,6 +52,8 @@ class Machine
   string[string] env; /// environment variables
   Pixmap[][string] fonts; /// fonts loaded
   string configFile; /// path of the config file
+  Pixmap[] draggedIcons; /// icons representing the objects currently being dragged
+  string[] draggedObjects; /// objects currently being dragged
 
   /**
     Create a new machine
@@ -592,6 +594,15 @@ class Machine
     return this.midiData.length > 0;
   }
 
+  /**
+    grab an object to drag around
+  */
+  void dragObject(string obj, Pixmap icon)
+  {
+    this.draggedObjects ~= obj;
+    this.draggedIcons ~= icon;
+  }
+
   // === _privates === //
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
@@ -730,6 +741,15 @@ class Machine
         SDL_ShowCursor(SDL_ENABLE);
       }
     }
+    if (mb == 0)
+    {
+      if (vp && vp.getBasket())
+        vp.getBasket().deposit(this.draggedObjects);
+      this.draggedObjects = [];
+      this.draggedIcons = [];
+    }
+    if (this.draggedObjects.length && this.focusedViewport)
+      this.focusedViewport.setMouseBtn(0);
     if (this.lastmb == 0 && mb == 1)
       this.focusViewport(vp);
     if (!validFocus && this.screens.length)
@@ -814,6 +834,21 @@ class Machine
       rect2.w = rect.w * screen.pixelWidth * scale;
       rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
+      if (this.draggedIcons.length > 0)
+      {
+        auto cm = screen.pixmap.copymode;
+        screen.pixmap.copymode = CopyMode.matte;
+        int off = cast(int) min(3, this.draggedIcons.length) - 1;
+        for (uint j = 0; j < min(3, this.draggedIcons.length); j++)
+        {
+          auto pix = this.draggedIcons[j];
+          screen.pixmap.copyRectFrom(pix, 0, 0,
+              off + screen.mouseX - pix.width / 2,
+              off + screen.mouseY - pix.height / 2, pix.width, pix.height);
+          off -= 2;
+        }
+        screen.pixmap.copymode = cm;
+      }
       if (!pixmap.texture)
         pixmap.initTexture(this.ren);
       uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
