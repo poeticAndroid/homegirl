@@ -2,6 +2,7 @@ module texteditor;
 
 import std.array;
 import std.utf;
+import std.uni;
 
 /**
   headless text editor
@@ -15,6 +16,7 @@ class TextEditor
   uint col = 0; /// current column of the cursor
   uint selected = 0; /// number of characters selected following current cursor position
   uint selectedBytes = 0; /// number of bytes selected following current cursor position
+  uint linesPerPage = 10; /// number of lines to move on PageUp/Dwn
 
   string[] textHist; /// history of latest text changes
   uint[] posHist; /// history of cursor positions at latest text changes
@@ -116,12 +118,14 @@ class TextEditor
   /**
     delete character left of cursor
   */
-  void backSpace()
+  void backSpace(bool word = false)
   {
     if (this.selected == 0 && this.pos > 0)
     {
-      this.pos--;
-      this.selected++;
+      if (word)
+        this.previousWord(true);
+      else
+        this.left(true);
     }
     this.insertText("");
   }
@@ -129,10 +133,15 @@ class TextEditor
   /**
     delete character right of cursor
   */
-  void deleteChar()
+  void deleteChar(bool word = false)
   {
     if (this.selected == 0 && this.pos < this.text.length)
-      this.selected++;
+    {
+      if (word)
+        this.nextWord(true);
+      else
+        this.right(true);
+    }
     this.insertText("");
   }
 
@@ -240,6 +249,49 @@ class TextEditor
   }
 
   /**
+    move cursor down one page
+  */
+  void pageDown(bool select = false)
+  {
+    for (uint i = 0; i < this.linesPerPage; i++)
+      this.down(select);
+  }
+
+  /**
+    move cursor up one page
+  */
+  void pageUp(bool select = false)
+  {
+    for (uint i = 0; i < this.linesPerPage; i++)
+      this.up(select);
+  }
+
+  /**
+    move cursor to next word
+  */
+  void nextWord(bool select = false)
+  {
+    if (this.pos + this.selected >= this.text.length)
+      return;
+    uint type = this.charType(this.text[this.pos + this.selected]);
+    while (this.pos + this.selected < this.text.length
+        && type == this.charType(this.text[this.pos + this.selected]))
+      this.right(select);
+  }
+
+  /**
+    move cursor to previous word
+  */
+  void previousWord(bool select = false)
+  {
+    if (this.pos < 1)
+      return;
+    uint type = this.charType(this.text[this.pos - 1]);
+    while (this.pos > 0 && type == this.charType(this.text[this.pos - 1]))
+      this.left(select);
+  }
+
+  /**
     move cursor to beginning of current line
   */
   void home(bool select = false)
@@ -266,6 +318,34 @@ class TextEditor
       this.pos = _pos;
       this.recalculate();
     }
+  }
+
+  /**
+    move cursor to the beginning of the document
+  */
+  void docStart(bool select = false)
+  {
+    if (select)
+      this.selected += this.pos;
+    else
+      this.selected = 0;
+    this.pos = 0;
+    this.recalculate();
+  }
+
+  /**
+    move cursor to the end of the document
+  */
+  void docEnd(bool select = false)
+  {
+    if (select)
+      this.selected = cast(uint) this.text.length - this.pos;
+    else
+    {
+      this.selected = 0;
+      this.pos = cast(uint) this.text.length;
+    }
+    this.recalculate();
   }
 
   /**
@@ -305,5 +385,15 @@ class TextEditor
       return;
     this.textHist = [];
     this.posHist = [];
+  }
+
+  // -- _privates -- //
+  uint charType(dchar chr)
+  {
+    if (isAlpha(chr))
+      return 1;
+    if (isNumber(chr))
+      return 2;
+    return 0;
   }
 }

@@ -70,8 +70,8 @@ void registerFunctions(Program program)
   /// input.cursor([pos, selected]): pos, selected
   extern (C) int input_cursor(lua_State* L) @trusted
   {
-    const pos = lua_tointeger(L, 1);
-    const sel = lua_tointeger(L, 2);
+    const pos = lua_tonumber(L, 1);
+    const sel = lua_tonumber(L, 2);
     const set = 1 - lua_isnoneornil(L, 1);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -97,6 +97,32 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &input_cursor);
   luaL_dostring(lua, "input.cursor = _");
+
+  /// input.linesperpage([linesperpage]): linesperpage
+  extern (C) int input_linesperpage(lua_State* L) @trusted
+  {
+    const lines = lua_tonumber(L, 1);
+    const set = 1 - lua_isnoneornil(L, 1);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.activeViewport)
+        throw new Exception("No active viewport!");
+      if (set)
+        prog.activeViewport.getTextinput(true).linesPerPage = cast(uint) lines;
+      lua_pushinteger(L, prog.activeViewport.getTextinput(true).linesPerPage);
+      return 1;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &input_linesperpage);
+  luaL_dostring(lua, "input.linesperpage = _");
 
   /// input.clearhistory()
   extern (C) int input_clearhistory(lua_State* L) @trusted

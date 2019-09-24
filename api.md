@@ -64,6 +64,7 @@
     input.text([text]): text
     input.selected([text]): text
     input.cursor([pos, selected]): pos, selected
+    input.linesperpage([linesperpage]): linesperpage
     input.clearhistory()
     input.hotkey(): hotkey
     input.mouse(): x, y, btn

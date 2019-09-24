@@ -865,19 +865,27 @@ class Machine
       break;
     case SDLK_RETURN:
     case SDLK_KP_ENTER:
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.end();
       te.insertText("\n");
       break;
     case SDLK_BACKSPACE:
-      te.backSpace();
+      te.backSpace(cast(bool)(SDL_GetModState() & KMOD_CTRL));
       break;
     case SDLK_DELETE:
-      te.deleteChar();
+      te.deleteChar(cast(bool)(SDL_GetModState() & KMOD_CTRL));
       break;
     case SDLK_RIGHT:
-      te.right(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.nextWord(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.right(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_LEFT:
-      te.left(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.previousWord(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.left(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_DOWN:
       te.down(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
@@ -885,11 +893,23 @@ class Machine
     case SDLK_UP:
       te.up(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
+    case SDLK_PAGEDOWN:
+      te.pageDown(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_PAGEUP:
+      te.pageUp(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
     case SDLK_HOME:
-      te.home(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.docStart(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.home(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_END:
-      te.end(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.docEnd(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.end(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     default:
     }

@@ -24,6 +24,7 @@ function _init(args)
     sys.exit(1)
   end
   input.cursor(0)
+  input.linesperpage(20)
 end
 
 function _step(t)
