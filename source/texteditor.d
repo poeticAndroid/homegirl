@@ -3,6 +3,7 @@ module texteditor;
 import std.array;
 import std.utf;
 import std.uni;
+import std.algorithm;
 
 /**
   headless text editor
@@ -10,11 +11,9 @@ import std.uni;
 class TextEditor
 {
   dstring text = ""; /// text content of the editor
-  uint pos = 0; /// current character position of the cursor
+  uint pos1 = 0; /// current character position of the main cursor
+  uint pos2 = 0; /// current character position of the anchor cursor
   uint posBytes = 0; /// current byte position of the cursor
-  uint line = 1; /// current line of the cursor
-  uint col = 0; /// current column of the cursor
-  uint selected = 0; /// number of characters selected following current cursor position
   uint selectedBytes = 0; /// number of bytes selected following current cursor position
   uint linesPerPage = 10; /// number of lines to move on PageUp/Dwn
 
@@ -38,8 +37,8 @@ class TextEditor
     const left = this.getText().length;
     if (pos > left)
       pos = cast(uint) left;
-    this.pos = cast(uint) toUTF32(this.getText()[0 .. pos]).length;
-    this.selected = 0;
+    this.pos1 = cast(uint) toUTF32(this.getText()[0 .. pos]).length;
+    this.pos2 = this.pos1;
     this.recalculate();
   }
 
@@ -51,7 +50,9 @@ class TextEditor
     const left = this.getText().length - this.posBytes;
     if (sel > left)
       sel = cast(uint) left;
-    this.selected = cast(uint) toUTF32(this.getText()[this.posBytes .. this.posBytes + sel]).length;
+    this.pos2 = min(this.pos1, this.pos2);
+    this.pos1 = this.pos2 + cast(uint) toUTF32(
+        this.getText()[this.posBytes .. this.posBytes + sel]).length;
     this.recalculate();
   }
 
@@ -68,30 +69,19 @@ class TextEditor
   */
   string getSelectedText()
   {
-    return toUTF8(this.text[this.pos .. this.pos + this.selected]);
+    return toUTF8(this.text[min(this.pos1, this.pos2) .. max(this.pos1, this.pos2)]);
   }
 
   /**
-    recalculate line and column
+    recalculate posBytes and selectedBytes
   */
   void recalculate()
   {
-    this.line = 1;
-    this.col = 0;
-    if (this.pos > this.text.length)
-      this.pos = cast(uint) this.text.length;
-    if (this.pos + this.selected > this.text.length)
-      this.selected = cast(uint) this.text.length - this.pos;
-    for (uint i = 0; i < this.pos; i++)
-    {
-      this.col++;
-      if (this.text[i] == 10)
-      {
-        this.line++;
-        this.col = 0;
-      }
-    }
-    this.posBytes = cast(uint) toUTF8(this.text[0 .. this.pos]).length;
+    if (this.pos1 > this.text.length)
+      this.pos1 = cast(uint) this.text.length;
+    if (this.pos2 > this.text.length)
+      this.pos2 = cast(uint) this.text.length;
+    this.posBytes = cast(uint) toUTF8(this.text[0 .. min(this.pos1, this.pos2)]).length;
     this.selectedBytes = cast(uint) this.getSelectedText().length;
   }
 
@@ -101,7 +91,7 @@ class TextEditor
   void insertText(string _text)
   {
     this.textHist ~= this.getText();
-    this.posHist ~= this.pos;
+    this.posHist ~= this.pos1;
     if (this.textHist.length > 256)
     {
       this.textHist = this.textHist[1 .. $];
@@ -109,9 +99,10 @@ class TextEditor
     }
 
     const text = toUTF32(replace(_text, "\r", ""));
-    this.text = this.text[0 .. this.pos] ~ text ~ this.text[this.pos + this.selected .. $];
-    this.pos += text.length;
-    this.selected = 0;
+    this.text = this.text[0 .. min(this.pos1, this.pos2)] ~ text ~ this.text[max(this.pos1,
+        this.pos2) .. $];
+    this.pos1 = min(this.pos1, this.pos2) + cast(uint) text.length;
+    this.pos2 = this.pos1;
     this.recalculate();
   }
 
@@ -120,7 +111,7 @@ class TextEditor
   */
   void backSpace(bool word = false)
   {
-    if (this.selected == 0 && this.pos > 0)
+    if (this.pos1 == this.pos2 && this.pos1 > 0)
     {
       if (word)
         this.previousWord(true);
@@ -135,7 +126,7 @@ class TextEditor
   */
   void deleteChar(bool word = false)
   {
-    if (this.selected == 0 && this.pos < this.text.length)
+    if (this.pos1 == this.pos2 && this.pos1 < this.text.length)
     {
       if (word)
         this.nextWord(true);
@@ -150,25 +141,26 @@ class TextEditor
   */
   void right(bool select = false)
   {
-    if (select)
-    {
-      if (this.pos + this.selected < this.text.length)
-        this.selected++;
-      this.selectedBytes = cast(uint) this.getSelectedText().length;
+    if (this.pos1 >= this.text.length)
       return;
-    }
-    this.selected = 0;
-    this.selectedBytes = 0;
-    if (this.pos >= this.text.length)
-      return;
-    this.col++;
-    if (this.text[this.pos] == 10)
+    const delta = toUTF8(this.text[this.pos1 .. this.pos1 + 1]).length;
+    this.pos1++;
+    if (this.pos1 <= this.pos2)
     {
-      this.line++;
-      this.col = 0;
+      this.posBytes += delta;
+      this.selectedBytes -= delta;
     }
-    this.posBytes += toUTF8(this.text[this.pos .. this.pos + 1]).length;
-    this.pos++;
+    else
+    {
+      this.selectedBytes += delta;
+    }
+    if (!select)
+    {
+      if (this.pos1 > this.pos2)
+        this.posBytes += this.selectedBytes;
+      this.pos2 = this.pos1;
+      this.selectedBytes = 0;
+    }
   }
 
   /**
@@ -176,22 +168,25 @@ class TextEditor
   */
   void left(bool select = false)
   {
+    if (this.pos1 <= 0)
+      return;
+    const delta = toUTF8(this.text[this.pos1 - 1 .. this.pos1]).length;
+    this.pos1--;
+    if (this.pos1 < this.pos2)
+    {
+      this.posBytes -= delta;
+      this.selectedBytes += delta;
+    }
+    else
+    {
+      this.selectedBytes -= delta;
+    }
     if (!select)
     {
-      this.selected = 0;
+      if (this.pos1 > this.pos2)
+        this.posBytes += this.selectedBytes;
+      this.pos2 = this.pos1;
       this.selectedBytes = 0;
-    }
-    if (this.pos == 0)
-      return;
-    this.col--;
-    this.pos--;
-    this.posBytes -= toUTF8(this.text[this.pos .. this.pos + 1]).length;
-    if (this.text[this.pos] == 10)
-      this.recalculate();
-    if (select)
-    {
-      this.selected++;
-      this.selectedBytes = cast(uint) this.getSelectedText().length;
     }
   }
 
@@ -200,29 +195,18 @@ class TextEditor
   */
   void down(bool select = false)
   {
-    uint _pos = this.pos;
-    this.pos += this.selected;
-    if (this.pos >= this.text.length)
+    uint col = 0;
+    while (this.pos1 > 0 && this.text[this.pos1 - 1] != 10)
     {
-      this.pos = _pos;
-      return;
+      this.left(select);
+      col++;
     }
-    if (this.selected)
-      this.recalculate();
-    const targetLine = this.line + 1;
-    const targetCol = this.col;
-    while (this.pos < this.text.length && this.line < targetLine)
-      this.right();
-    while (this.pos < this.text.length && this.line == targetLine && this.col < targetCol)
-      this.right();
-    while (this.pos > 0 && this.line > targetLine)
-      this.left();
-    if (select)
-    {
-      this.selected = this.pos - _pos;
-      this.pos = _pos;
-      this.recalculate();
-    }
+    while (this.pos1 < this.text.length && this.text[this.pos1] != 10)
+      this.right(select);
+    if (this.pos1 < this.text.length)
+      this.right(select);
+    while (col-- && this.pos1 < this.text.length && this.text[this.pos1] != 10)
+      this.right(select);
   }
 
   /**
@@ -230,22 +214,18 @@ class TextEditor
   */
   void up(bool select = false)
   {
-    uint _pos = this.pos + this.selected;
-    if (!select)
-      this.selected = 0;
-    if (this.pos == 0)
-      return;
-    const targetLine = this.line - 1;
-    const targetCol = this.col;
-    while (this.pos > 0 && this.line > targetLine)
-      this.left();
-    while (this.pos > 0 && this.line == targetLine && this.col > targetCol)
-      this.left();
-    while (this.pos < this.text.length && this.line < targetLine)
-      this.right();
-    if (select)
-      this.selected += _pos - this.pos;
-    this.selectedBytes = cast(uint) this.getSelectedText().length;
+    uint col = 0;
+    while (this.pos1 > 0 && this.text[this.pos1 - 1] != 10)
+    {
+      this.left(select);
+      col++;
+    }
+    if (this.pos1 > 0)
+      this.left(select);
+    while (this.pos1 > 0 && this.text[this.pos1 - 1] != 10)
+      this.left(select);
+    while (col-- && this.pos1 < this.text.length && this.text[this.pos1] != 10)
+      this.right(select);
   }
 
   /**
@@ -271,11 +251,10 @@ class TextEditor
   */
   void nextWord(bool select = false)
   {
-    if (this.pos + this.selected >= this.text.length)
+    if (this.pos1 >= this.text.length)
       return;
-    uint type = this.charType(this.text[this.pos + this.selected]);
-    while (this.pos + this.selected < this.text.length
-        && type == this.charType(this.text[this.pos + this.selected]))
+    uint type = this.charType(this.text[this.pos1]);
+    while (this.pos1 < this.text.length && type == this.charType(this.text[this.pos1]))
       this.right(select);
   }
 
@@ -284,10 +263,10 @@ class TextEditor
   */
   void previousWord(bool select = false)
   {
-    if (this.pos < 1)
+    if (this.pos1 <= 0)
       return;
-    uint type = this.charType(this.text[this.pos - 1]);
-    while (this.pos > 0 && type == this.charType(this.text[this.pos - 1]))
+    uint type = this.charType(this.text[this.pos1 - 1]);
+    while (this.pos1 > 0 && type == this.charType(this.text[this.pos1 - 1]))
       this.left(select);
   }
 
@@ -296,11 +275,8 @@ class TextEditor
   */
   void home(bool select = false)
   {
-    this.left(select);
-    while (this.pos > 0 && this.text[this.pos] != 10)
+    while (this.pos1 > 0 && this.text[this.pos1 - 1] != 10)
       this.left(select);
-    if (this.pos > 0)
-      this.right(select);
   }
 
   /**
@@ -308,16 +284,8 @@ class TextEditor
   */
   void end(bool select = false)
   {
-    uint _pos = this.pos;
-    this.pos += this.selected;
-    while (this.pos < this.text.length && this.text[this.pos] != 10)
-      this.right();
-    if (select)
-    {
-      this.selected = this.pos - _pos;
-      this.pos = _pos;
-      this.recalculate();
-    }
+    while (this.pos1 < this.text.length && this.text[this.pos1] != 10)
+      this.right(select);
   }
 
   /**
@@ -325,11 +293,9 @@ class TextEditor
   */
   void docStart(bool select = false)
   {
-    if (select)
-      this.selected += this.pos;
-    else
-      this.selected = 0;
-    this.pos = 0;
+    this.pos1 = 0;
+    if (!select)
+      this.pos2 = this.pos1;
     this.recalculate();
   }
 
@@ -338,14 +304,51 @@ class TextEditor
   */
   void docEnd(bool select = false)
   {
-    if (select)
-      this.selected = cast(uint) this.text.length - this.pos;
+    this.pos1 = cast(uint) this.text.length;
+    if (!select)
+      this.pos2 = this.pos1;
+    this.recalculate();
+  }
+
+  /**
+    indent current line according to the previous line
+  */
+  void indent()
+  {
+    this.home();
+    this.up();
+    string ind = "";
+    uint p = this.pos1;
+    while (p < this.text.length && this.text[p] != 10 && this.text[p] < 33)
+      ind ~= this.text[p++];
+    this.down();
+    this.insertText(ind);
+  }
+
+  /**
+    detect type of indentation used in the document
+  */
+  string detectIndentation()
+  {
+    auto i = countUntil(this.text, "\n\t");
+    if (i > 0)
+    {
+      return "\t";
+    }
     else
     {
-      this.selected = 0;
-      this.pos = cast(uint) this.text.length;
+      string ind = " ";
+      auto j = countUntil(this.text, "\n" ~ ind ~ " ");
+      if (j < 0)
+        return "\t";
+      do
+      {
+        ind ~= " ";
+        i = countUntil(this.text, "\n" ~ ind ~ " ");
+      }
+      while (i == j);
+      return ind;
     }
-    this.recalculate();
   }
 
   /**
@@ -353,11 +356,9 @@ class TextEditor
   */
   void selectAll()
   {
-    this.pos = 0;
+    this.pos1 = cast(uint) this.text.length;
+    this.pos2 = 0;
     this.posBytes = 0;
-    this.line = 1;
-    this.col = 0;
-    this.selected = cast(uint) this.text.length;
     this.selectedBytes = cast(uint) this.getText().length;
   }
 
@@ -371,7 +372,8 @@ class TextEditor
     uint last = cast(uint) this.textHist.length - 1;
     this.setText(this.textHist[last]);
     this.textHist = this.textHist[0 .. last];
-    this.pos = this.posHist[last];
+    this.pos1 = this.posHist[last];
+    this.pos2 = this.posHist[last];
     this.posHist = this.posHist[0 .. last];
     this.recalculate();
   }

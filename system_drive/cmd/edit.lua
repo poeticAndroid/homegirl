@@ -45,10 +45,6 @@ function _step(t)
     left = 0
   end
   if deltalen > 0 then
-    if string.sub(txt, pos, pos + 1) == "\n\n" then
-      input.selected(getindent(lines[line - 1]))
-      txt = input.text()
-    end
     if string.sub(txt, pos - 1, pos) == "\n\t" or string.sub(txt, pos - 2, pos) == "  \t" then
       pos = pos - 1
       sel = 1

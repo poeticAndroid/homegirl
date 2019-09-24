@@ -94,7 +94,8 @@ class Machine
       case SDL_TEXTINPUT:
         this.newInput = true;
         if (this.focusedViewport && this.focusedViewport.getTextinput())
-          this.focusedViewport.getTextinput().insertText(to!string(cast(char*) event.text.text));
+          this.handleTextInput(this.focusedViewport.getTextinput(),
+              to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
         this.newInput = true;
@@ -828,6 +829,31 @@ class Machine
     SDL_RenderPresent(this.ren);
   }
 
+  private void handleTextInput(TextEditor te, string txt)
+  {
+    const startBr = "'\"({[";
+    const endBr = "'\")}]";
+    const i = countUntil(startBr, txt);
+    const j = countUntil(endBr, txt);
+    if (j >= 0 && te.selectedBytes == 0 && te.text[te.pos1] == txt[0])
+    {
+      te.right();
+    }
+    else if (i >= 0)
+    {
+      const sel = te.getSelectedText();
+      const pos2 = min(te.pos1, te.pos2);
+      te.insertText(startBr[i .. i + 1] ~ sel ~ endBr[i .. i + 1]);
+      te.left();
+      te.pos2 = pos2 + 1;
+      te.recalculate();
+    }
+    else
+    {
+      te.insertText(txt);
+    }
+  }
+
   private void handleTextEdit(SDL_Keycode key)
   {
     if (!this.focusedViewport)
@@ -861,13 +887,42 @@ class Machine
     switch (key)
     {
     case SDLK_TAB:
-      te.insertText("\t");
+      if (te.selectedBytes > 0)
+      {
+        te.setSelectedBytes(te.selectedBytes);
+        while (te.pos2 > 0 && te.text[te.pos2 - 1] != 10)
+          te.pos2--;
+        if (te.pos2 > 0)
+          te.pos2--;
+        if (te.pos1 > 0)
+          te.pos1--;
+        while (te.pos1 < te.text.length && te.text[te.pos1] != 10)
+          te.pos1++;
+        const ind = te.detectIndentation();
+        const pos2 = min(te.pos1, te.pos2);
+        const sel = te.getSelectedText();
+        if (SDL_GetModState() & KMOD_SHIFT)
+          te.insertText(replace(sel, "\n" ~ ind, "\n"));
+        else
+          te.insertText(replace(sel, "\n", "\n" ~ ind));
+        te.pos2 = pos2;
+        if (te.pos1 < te.text.length)
+          te.pos1++;
+        if (te.pos2 < te.text.length)
+          te.pos2++;
+        te.recalculate();
+      }
+      else
+      {
+        te.insertText("\t");
+      }
       break;
     case SDLK_RETURN:
     case SDLK_KP_ENTER:
       if (SDL_GetModState() & KMOD_CTRL)
         te.end();
       te.insertText("\n");
+      te.indent();
       break;
     case SDLK_BACKSPACE:
       te.backSpace(cast(bool)(SDL_GetModState() & KMOD_CTRL));
