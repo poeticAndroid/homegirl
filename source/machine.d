@@ -27,7 +27,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.7.0"; /// version of the software
+const VERSION = "0.7.1"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -870,7 +870,7 @@ class Machine
     const endBr = "'\")}]";
     const i = countUntil(startBr, txt);
     const j = countUntil(endBr, txt);
-    if (j >= 0 && te.selectedBytes == 0 && te.text[te.pos1] == txt[0])
+    if (j >= 0 && te.selectedBytes == 0 && te.pos1 < te.text.length && te.text[te.pos1] == txt[0])
     {
       te.right();
     }
