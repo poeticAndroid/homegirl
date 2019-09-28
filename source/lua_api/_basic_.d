@@ -1,6 +1,5 @@
 module lua_api._basic_;
 
-import std.stdio;
 import std.string;
 import std.path;
 import std.conv;
@@ -53,7 +52,7 @@ void registerFunctions(Program program)
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.shutdown(-1);
-    writeln("Shit hit the fan!");
+    // writeln("Shit hit the fan!");
     return 0;
   }
 
@@ -113,7 +112,7 @@ void registerFunctions(Program program)
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     prog.write(1, msg ~ "\n");
-    writeln(prog.machine.baseName(prog.filename) ~ ": " ~ msg);
+    // writeln(prog.machine.baseName(prog.filename) ~ ": " ~ msg);
     return 0;
   }
 
