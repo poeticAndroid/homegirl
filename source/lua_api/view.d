@@ -294,7 +294,18 @@ void registerFunctions(Program program)
         vp = prog.machine.mainScreen;
       }
       if (set)
-        prog.machine.focusViewport(focused ? vp : null);
+      {
+        if (focused)
+        {
+          if (!vp.containsViewport(prog.machine.focusedViewport))
+            prog.machine.focusViewport(vp);
+        }
+        else
+        {
+          if (vp.containsViewport(prog.machine.focusedViewport))
+            prog.machine.focusViewport(null);
+        }
+      }
       lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
       return 1;
     }

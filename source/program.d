@@ -337,7 +337,8 @@ class Program
     vp.attributes["title"] = this.machine.baseName(this.filename);
     const i = this.addViewport(vp);
     this.activeViewport = vp;
-    this.machine.focusViewport(vp);
+    if (parent.containsViewport(this.machine.focusedViewport))
+      this.machine.focusViewport(vp);
     return i;
   }
 
