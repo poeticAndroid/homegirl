@@ -5,6 +5,8 @@ import std.math;
 import std.algorithm.comparison;
 import bindbc.sdl;
 
+import viewport;
+
 /**
   index-based pixel map
 */
@@ -21,6 +23,7 @@ class Pixmap
   CopyMode copymode = CopyMode.replace; /// the mode by which to copy other pixmaps onto this one
   CopyMode textCopymode = CopyMode.color; /// the mode by which to copy other pixmaps onto this one
   SDL_Texture* texture; /// texture representation of pixmap
+  Viewport viewport; /// associated viewport
 
   /**
     create new pixmap
@@ -109,6 +112,8 @@ class Pixmap
   {
     for (uint i = 0; i < this.pixels.length; i++)
       this.pixels[i] = this.bgColor & this.pixelMask;
+    if (this.viewport)
+      this.viewport.setDirty();
   }
 
   /**
@@ -121,6 +126,8 @@ class Pixmap
     this.palette[i++] = (green % 16) * 17;
     this.palette[i++] = (blue % 16) * 17;
     this.uicolors[0] = 0;
+    if (this.viewport)
+      this.viewport.setDirty();
   }
 
   /**
@@ -159,6 +166,8 @@ class Pixmap
       return;
     uint i = y * this.width + x;
     this.pixels[i] = c & this.pixelMask;
+    if (this.viewport)
+      this.viewport.setDirty();
   }
 
   /**
@@ -347,6 +356,40 @@ class Pixmap
   void copyRectFrom(Pixmap src, int sx, int sy, int dx, int dy, uint w, uint h,
       float scalex = 1, float scaley = 1)
   {
+    if (dx < 0)
+    {
+      sx = cast(int)(sx - dx * scalex);
+      dx *= -1;
+      if (w > dx)
+        w -= dx;
+      else
+        w = 0;
+      dx = 0;
+    }
+    if (dy < 0)
+    {
+      sy = cast(int)(sy - dy * scaley);
+      dy *= -1;
+      if (h > dy)
+        h -= dy;
+      else
+        h = 0;
+      dy = 0;
+    }
+    if (dx + w > this.width)
+    {
+      if (dx < this.width)
+        w = this.width - dx;
+      else
+        w = 0;
+    }
+    if (dy + h > this.height)
+    {
+      if (dy < this.height)
+        h = this.height - dy;
+      else
+        h = 0;
+    }
     for (uint y = 0; y < h; y++)
     {
       for (uint x = 0; x < w; x++)

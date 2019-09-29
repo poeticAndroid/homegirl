@@ -28,6 +28,7 @@ class Viewport
   Pixmap pointer; /// mouse pointer
   int pointerX; /// mouse pointer anchor
   int pointerY; /// mouse pointer anchor
+  bool dirty = true; /// whether this viewport needs to be rerendered;
 
   /**
     create a new Viewport
@@ -38,6 +39,7 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
+    this.pixmap.viewport = this;
   }
 
   Viewport getParent()
@@ -167,8 +169,13 @@ class Viewport
   */
   void move(int left, int top)
   {
-    this.left = left;
-    this.top = top;
+    if (this.left != left || this.top != top)
+    {
+      this.left = left;
+      this.top = top;
+      if (this.parent)
+        this.parent.setDirty();
+    }
   }
 
   /**
@@ -180,6 +187,8 @@ class Viewport
     {
       this.pixmap.destroyTexture();
       this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+      this.pixmap.viewport = this;
+      this.setDirty();
     }
   }
 
@@ -304,11 +313,23 @@ class Viewport
   }
 
   /**
+    set this viewport as being dirty
+  */
+  void setDirty()
+  {
+    this.dirty = true;
+    if (this.parent)
+      this.parent.setDirty();
+  }
+
+  /**
     Render any visible children onto this viewport
   */
   void render()
   {
     this.visible = true;
+    if (!this.dirty)
+      return;
     foreach (viewport; this.children)
     {
       if (viewport && viewport.visible)
@@ -320,6 +341,7 @@ class Viewport
           viewport.pixmap.destroyTexture();
           Pixmap oldpix = viewport.pixmap;
           viewport.pixmap = new Pixmap(oldpix.width, oldpix.height, this.pixmap.colorBits);
+          viewport.pixmap.viewport = viewport;
           viewport.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
           viewport.pixmap.setFGColor(oldpix.fgColor);
           viewport.pixmap.setBGColor(oldpix.bgColor);
@@ -331,6 +353,7 @@ class Viewport
             viewport.top, viewport.pixmap.width, viewport.pixmap.height);
       }
     }
+    this.dirty = false;
   }
 
   // -- _privates -- //
