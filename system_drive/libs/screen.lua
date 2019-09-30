@@ -18,6 +18,9 @@ do
 
   function Screen:attach(name, child)
     if name then
+      if self.children[name] then
+        self:destroychild(name)
+      end
       self.children[name] = child
     else
       table.insert(self.children, child)
@@ -27,6 +30,9 @@ do
   end
   function Screen:attachwindow(name, child)
     if name then
+      if self.children[name] then
+        self:destroychild(name)
+      end
       self.children[name] = child
     else
       table.insert(self.children, child)
