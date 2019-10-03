@@ -86,6 +86,7 @@ class Viewport
       this.children = this.children.remove(i);
       vp.detach();
     }
+    this.setDirty();
   }
 
   /**
