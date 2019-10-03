@@ -1,3 +1,4 @@
+local path = require("path")
 local queue = {}
 local indent = ""
 
@@ -5,15 +6,15 @@ function _init(args)
   local src = args[1]
   local dest = args[#args]
   if fs.isdir(dest) then
-    dest = trailslash(dest)
+    dest = path.trailslash(dest)
     for i = 1, #args - 1 do
       local entry = args[i]
       if fs.isdir(entry) then
-        if not copydir(entry, dest .. basename(entry)) then
+        if not copydir(entry, dest .. path.basename(entry)) then
           return sys.exit(1)
         end
       else
-        if not copyfile(entry, dest .. basename(entry)) then
+        if not copyfile(entry, dest .. path.basename(entry)) then
           return sys.exit(1)
         end
       end
@@ -50,7 +51,7 @@ function _step()
       print("Could not write to '" .. dest .. "'!")
       return sys.exit(1)
     end
-    print(indent .. basename(src) .. " copied!")
+    print(indent .. path.basename(src) .. " copied!")
   end
 end
 
@@ -65,8 +66,8 @@ function copyfile(src, dest)
 end
 
 function copydir(src, dest)
-  src = trailslash(src)
-  dest = trailslash(dest)
+  src = path.trailslash(src)
+  dest = path.trailslash(dest)
   local task = {
     src = src,
     dest = dest,
@@ -88,32 +89,4 @@ function copydir(src, dest)
   end
   indent = task.indent
   return true
-end
-
-function basename(path)
-  path = notrailslash(path)
-  local i = string.find(string.reverse(path), "/") or string.find(string.reverse(path), ":")
-  if i then
-    return string.sub(path, -i + 1)
-  else
-    return path
-  end
-end
-function trailslash(path)
-  if string.sub(path, -1) == "/" then
-    return path
-  elseif string.sub(path, -1) == ":" then
-    return path
-  else
-    return path .. "/"
-  end
-end
-function notrailslash(path)
-  if string.sub(path, -1) == "/" then
-    return string.sub(path, 1, -2)
-  elseif string.sub(path, -1) == ":" then
-    return string.sub(path, 1, -2)
-  else
-    return path
-  end
 end
