@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.7.5"; /// version of the software
+const VERSION = "0.7.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -838,28 +838,26 @@ class Machine
       rect2.w = rect.w * screen.pixelWidth * scale;
       rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
+      pixmap.initTexture(this.ren);
+      uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
+      uint sy = screen.pixelWidth / min(screen.pixelWidth, screen.pixelHeight);
+      pixmap.updateTexture();
       if (this.draggedIcons.length > 0)
       {
         auto cm = screen.pixmap.copymode;
-        screen.pixmap.copymode = CopyMode.matte;
         int off = cast(int) min(3, this.draggedIcons.length) - 1;
         for (uint j = 0; j < min(3, this.draggedIcons.length); j++)
         {
           auto pix = this.draggedIcons[j];
-          screen.pixmap.copyRectFrom(pix, 0, 0,
-              off + screen.mouseX - pix.width / 2,
-              off + screen.mouseY - pix.height / 2, pix.width, pix.height);
+          pixmap.copyToTexture(pix, false, off + screen.mouseX - pix.width / 2,
+              off + screen.mouseY - pix.height / 2);
           off -= 2;
         }
-        screen.pixmap.copymode = cm;
       }
-      if (!pixmap.texture)
-        pixmap.initTexture(this.ren);
-      uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
-      uint sy = screen.pixelWidth / min(screen.pixelWidth, screen.pixelHeight);
-      pixmap.updateTexture(this.pointer, screen.mouseX - this.pointerX * sx,
-          screen.mouseY - this.pointerY * sy, sx, sy);
-      SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
+      if (this.pointer)
+        pixmap.copyToTexture(this.pointer, true, screen.mouseX - this.pointerX * sx,
+            screen.mouseY - this.pointerY * sy, sx, sy);
+      SDL_RenderCopy(this.ren, pixmap.getTexture(), rect, rect2);
       rect2.y = dy + height * scale;
       SDL_RenderFillRect(ren, rect2);
     }

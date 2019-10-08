@@ -22,7 +22,6 @@ class Pixmap
   uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
   CopyMode copymode = CopyMode.replace; /// the mode by which to copy other pixmaps onto this one
   CopyMode textCopymode = CopyMode.color; /// the mode by which to copy other pixmaps onto this one
-  SDL_Texture* texture; /// texture representation of pixmap
   Viewport viewport; /// associated viewport
 
   /**
@@ -54,18 +53,22 @@ class Pixmap
   */
   void initTexture(SDL_Renderer* ren)
   {
+    if (this.texture)
+      return;
     this.texture = SDL_CreateTexture(ren, SDL_PIXELFORMAT_BGR888,
         SDL_TEXTUREACCESS_STREAMING, this.width, this.height);
+    this.textureLocked = false;
   }
 
   /**
     refresh all pixels in texture to represent pixmap
   */
-  void updateTexture(Pixmap pointer = null, int px = 0, int py = 0, uint sx = 1, uint sy = 1)
+  void updateTexture()
   {
-    ubyte* texdata = null;
+    // ubyte* texdata = null;
     int pitch;
     SDL_LockTexture(this.texture, null, cast(void**)&texdata, &pitch);
+    this.textureLocked = true;
     uint src = 0;
     uint dest = 0;
     for (uint i = 0; i < this.pixels.length; i++)
@@ -76,21 +79,42 @@ class Pixmap
       texdata[dest++] = this.palette[src++];
       texdata[dest++] = 255;
     }
-    if (pointer)
+  }
+
+  /**
+    copy pixmap to an unlocked texture
+  */
+  void copyToTexture(Pixmap pix, bool ui, int px = 0, int py = 0, uint sx = 1, uint sy = 1)
+  {
+    if (!this.uicolors[0])
+      this.findUIcolors();
+    if (ui)
     {
-      if (!this.uicolors[0])
-        this.findUIcolors();
-      for (uint y = 0; y < pointer.height * sy; y++)
-        for (uint x = 0; x < pointer.width * sx; x++)
-        {
-          {
-            if (pointer.pget(x / sx, y / sy))
-              this.psetTexture(texdata, px + x, py + y,
-                  this.uicolors[pointer.pget(x / sx, y / sy) % this.uicolors.length]);
-          }
-        }
+      for (uint y = 0; y < pix.height * sy; y++)
+        for (uint x = 0; x < pix.width * sx; x++)
+          if (pix.pget(x / sx, y / sy))
+            this.psetTexture(px + x, py + y, this.uicolors[pix.pget(x / sx,
+                y / sy) % this.uicolors.length]);
     }
-    SDL_UnlockTexture(this.texture);
+    else
+    {
+      for (uint y = 0; y < pix.height * sy; y++)
+        for (uint x = 0; x < pix.width * sx; x++)
+          if (pix.pget(x / sx, y / sy) != pix.bgColor)
+            this.psetTexture(px + x, py + y, pix.pget(x / sx, y / sy) % this.palette.length);
+    }
+  }
+
+  /**
+    get texture
+  */
+  SDL_Texture* getTexture()
+  {
+    if (this.textureLocked)
+      SDL_UnlockTexture(this.texture);
+    this.textureLocked = false;
+    this.texdata = null;
+    return this.texture;
   }
 
   /**
@@ -102,6 +126,8 @@ class Pixmap
     {
       SDL_DestroyTexture(this.texture);
       this.texture = null;
+      this.textureLocked = false;
+      this.texdata = null;
     }
   }
 
@@ -589,6 +615,9 @@ class Pixmap
   }
 
   // --- _privates --- //
+  private SDL_Texture* texture;
+  private ubyte* texdata;
+  private bool textureLocked;
   private ubyte pixelMask;
   private ubyte[4] uicolors;
 
@@ -600,7 +629,7 @@ class Pixmap
     return b1 + np * db;
   }
 
-  private void psetTexture(ubyte* texdata, uint x, uint y, ubyte c)
+  private void psetTexture(uint x, uint y, ubyte c)
   {
     if (x >= this.width || y >= this.height)
       return;
