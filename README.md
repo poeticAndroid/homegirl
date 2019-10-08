@@ -1,6 +1,6 @@
 ![Icon](./images/homegirl.png) Homegirl
 ========
-It's a fantasy console (like pico-8 or tic-80) inspired by the Amiga!
+It's a fantasy console (like pico-8 or tic-80) inspired by the Commodore Amiga!
 
 ![Amigaaah!](./images/homegirl_screentitles.gif)
 

@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.7.3"; /// version of the software
+const VERSION = "0.7.4"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -795,21 +795,22 @@ class Machine
     int highest = 1024;
 
     bool oldAspect = false;
+    if (this.screens.length && this.screens[$ - 1].pixmap.height
+        * this.screens[$ - 1].pixelHeight > 400)
+      oldAspect = true;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
       if (screen.top < 0)
         screen.top = 0;
-      if (screen.top > height)
-        screen.top = height;
+      // if (screen.top > height)
+      //   screen.top = height;
       auto pixmap = screen.pixmap;
       int nextPos = height;
       if (this.screens.length > i + 1)
         nextPos = this.screens[i + 1].top;
       if (screen.top >= nextPos)
         continue;
-      if (screen.pixmap.height * screen.pixelHeight > 400)
-        oldAspect = true;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
       if (screen.top <= highest)
