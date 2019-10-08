@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.7.4"; /// version of the software
+const VERSION = "0.7.5"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -391,7 +391,7 @@ class Machine
       throw new Exception("Invalid path!");
     if (!isValidPath(path))
       throw new Exception("Invalid path!");
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Exception("Drive '" ~ name ~ "' already mounted!");
@@ -416,7 +416,7 @@ class Machine
   {
     if (!this.net.isUrl(url))
       throw new Exception("Invalid URL!");
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     if (url[$ - 1 .. $] != "/")
       url ~= "/";
     if (this.drives.get(name, null))
@@ -432,7 +432,7 @@ class Machine
   */
   void unmountDrive(string name, bool force = false)
   {
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     if (!this.drives.get(name, null))
       return;
     uint inUse = 0;
@@ -469,6 +469,7 @@ class Machine
   */
   string actualPath(string consolePath, bool dir = false)
   {
+    string actual;
     string drive = this.getDrive(consolePath, "");
     if (!drive)
       throw new Exception("Path is not absolute!");
@@ -478,12 +479,15 @@ class Machine
     if (this.net.isUrl(this.drives[drive]))
     {
       if (dir)
-        return this.net.get(this.drives[drive] ~ path)[0 .. $ - 6] ~ ".~dir/";
+        actual = this.net.get(this.drives[drive] ~ path)[0 .. $ - 6] ~ ".~dir/";
       else
-        return this.net.get(this.drives[drive] ~ path);
+        actual = this.net.get(this.drives[drive] ~ path);
     }
     else
-      return buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
+      actual = buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
+    if (!exists(actual) && path != toLower(path))
+      return this.actualPath(toLower(consolePath), dir);
+    return actual;
   }
 
   /**
@@ -499,9 +503,9 @@ class Machine
       throw new Exception("Path is not absolute!");
     if (!this.drives.get(drive, null))
       throw new Exception("Drive '" ~ drive ~ "' does not exist!");
-    string path = consolePath[drive.length + 1 .. $];
+    string path = toLower(consolePath[drive.length + 1 .. $]);
     if (rename)
-      path2 = rename[drive2.length + 1 .. $];
+      path2 = toLower(rename[drive2.length + 1 .. $]);
     if (this.net.isUrl(this.drives[drive]))
       return this.net.sync(this.drives[drive] ~ path, rename ? this.drives[drive2] ~ path2 : null);
     return true;
@@ -532,7 +536,7 @@ class Machine
     if (i <= 0)
       return null;
     else
-      return toUpper(path[0 .. i]) ~ end;
+      return toLower(path[0 .. i]) ~ end;
   }
 
   /**
