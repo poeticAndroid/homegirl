@@ -385,6 +385,9 @@ void registerFunctions(Program program)
     }
   }
 
+  lua_register(lua, "_", &sys_childexitcode);
+  luaL_dostring(lua, "sys.childexitcode = _");
+
   /// sys.writetochild(child, str)
   extern (C) int sys_writetochild(lua_State* L) @trusted
   {

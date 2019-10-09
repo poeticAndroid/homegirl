@@ -24,7 +24,7 @@ import sample;
 class Program
 {
   bool running = true; /// is the program running?
-  int exitcode = 0; /// exit code
+  int exitcode = -1; /// exit code
   string drive; /// the drive this program originates from
   string filename; /// filename of the Lua script currently running
   string url; /// program url if on web drive
@@ -593,5 +593,6 @@ class Program
     this.write(2, ("Lua err: " ~ err ~ "\n"));
     writeln("Lua err: " ~ err);
     this.running = false;
+    this.exitcode = -1;
   }
 }
