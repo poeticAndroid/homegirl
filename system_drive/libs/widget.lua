@@ -51,7 +51,9 @@ do
       end
     end
     self.children = nil
-    view.remove(self.container)
+    if self.container then
+      view.remove(self.container)
+    end
     self.container = nil
     self.parentvp = nil
     self.screen = nil

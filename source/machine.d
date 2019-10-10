@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.8.1"; /// version of the software
+const VERSION = "0.8.2"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -165,13 +165,14 @@ class Machine
         {
           if (program.nextStep == 0)
             this.newInput = true;
-          if ((program.stepInterval < 0 && newInput)
-              || (program.stepInterval >= 0 && program.nextStep <= SDL_GetTicks()))
+          if ((program.stepInterval < 0 && newInput) || (program.stepInterval < -1
+              && newStir) || (program.stepInterval >= 0 && program.nextStep <= SDL_GetTicks()))
             program.step(SDL_GetTicks());
         }
       }
     }
     this.newInput = false;
+    this.newStir = false;
 
     if (runningPrograms == 0)
     {
@@ -625,6 +626,7 @@ class Machine
   private uint bootupState = 5;
   private uint nextBootup;
   private bool newInput;
+  private bool newStir;
   private bool oldAspect;
   private Pixmap pointer;
   private int pointerX;
@@ -766,11 +768,15 @@ class Machine
       if (this.focusedViewport)
         this.focusedViewport.setMouseBtn(mb);
     }
-    if (mb && (this.lastmx != mx || this.lastmy != my))
+    if (this.lastmx != mx || this.lastmy != my)
     {
-      this.newInput = true;
+      this.newStir = true;
       this.lastmx = mx;
       this.lastmy = my;
+      if (mb)
+      {
+        this.newInput = true;
+      }
     }
   }
 
@@ -825,7 +831,7 @@ class Machine
       else
       {
         this.rect.x = 0;
-        this.rect.y = dy + screen.top * scale - 8 * scale;
+        this.rect.y = dy + screen.top * scale - 5 * scale;
         SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }
