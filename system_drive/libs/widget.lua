@@ -8,7 +8,7 @@ do
   Widget.bgcolor = 0
   Widget.fgtextcolor = 1
   Widget.bgtextcolor = 1
-  Widget.parentvp = false
+  Widget.parent = false
   Widget.font = text.loadfont("Victoria.8b")
 
   function Widget:_new(label)
@@ -24,11 +24,21 @@ do
     else
       table.insert(self.children, child)
     end
-    child:attachto(self.mainvp or self.container, self.screen)
+    child:attachto(self)
+    child:redraw()
     return child
   end
-  function Widget:attachto(vp, screen)
-    if self.parentvp ~= vp then
+  function Widget:attachto(parent, vp, screen)
+    if parent then
+      if vp == nil then
+        vp = parent.mainvp or parent.container
+      end
+      if screen == nil then
+        screen = parent.screen
+      end
+    end
+    if self.parent ~= parent then
+      self.parent = parent
       local l, t, w, h = 0, 0, 8, 8
       if self.container then
         l, t = view.position(self.container)
@@ -60,15 +70,33 @@ do
   end
   function Widget:destroychild(name)
     local child = self.children[name]
-    child:destroy()
-    self.children[name] = nil
+    if child then
+      child:destroy()
+      self.children[name] = nil
+    else
+      for n, child in pairs(self.children) do
+        if child == name then
+          child:destroy()
+          self.children[n] = nil
+        end
+      end
+    end
   end
 
   function Widget:position(left, top)
     return view.position(self.container, left, top)
   end
   function Widget:size(width, height)
-    return view.size(self.container, width, height)
+    local w, h = view.size(self.container, width, height)
+    self:redraw()
+    return w, h
+  end
+  function Widget:autosize()
+    return self:size(16, 9)
+  end
+  function Widget:focus()
+    view.focused(self.mainvp or self.container, true)
+    self:redraw()
   end
 
   function Widget:step(t)
@@ -77,6 +105,8 @@ do
         child:step(t)
       end
     end
+  end
+  function Widget:redraw()
   end
 
   function Widget:outset(x, y, w, h)
@@ -103,6 +133,9 @@ do
   end
 
   function Widget:gotclicked(vp)
+    if not vp then
+      vp = self.container
+    end
     local clicked = false
     local prevvp = view.active()
     view.active(vp)
