@@ -23,6 +23,8 @@ function _init()
   -- out("Homegirl Shell\n")
   if sys.env("ENGINE_VERSION") then
     out("System version " .. sys.env("ENGINE_VERSION") .. "\n\n")
+    out("Thank you for trying out the free version of Homegirl! <3\n")
+    out("You can get the full version on\n\t\t\t\tpoeticandroid.itch.io/homegirl\n\n")
   end
 end
 
