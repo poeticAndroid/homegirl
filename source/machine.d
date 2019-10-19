@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.8.5"; /// version of the software
+const VERSION = "0.8.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -91,6 +91,26 @@ class Machine
         break;
       case SDL_MOUSEMOTION:
         this.cursorBlank = SDL_GetTicks() + 8192;
+        break;
+      case SDL_MOUSEWHEEL:
+        if (this.focusedViewport && this.focusedViewport.getTextinput())
+        {
+          auto te = this.focusedViewport.getTextinput();
+          if (event.wheel.y < 0)
+          {
+            newInput = true;
+            te.down();
+            te.down();
+            te.down();
+          }
+          else if (event.wheel.y > 0)
+          {
+            newInput = true;
+            te.up();
+            te.up();
+            te.up();
+          }
+        }
         break;
       case SDL_TEXTINPUT:
         this.newInput = true;
