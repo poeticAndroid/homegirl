@@ -268,7 +268,7 @@ void registerFunctions(Program program)
   /// fs.write(filename, string): success
   extern (C) int fs_write(lua_State* L) @trusted
   {
-    auto filename = to!string(lua_tostring(L, 1));
+    auto filename = toLower(to!string(lua_tostring(L, 1)));
     size_t len;
     auto str = lua_tolstring(L, 2, &len);
     lua_getglobal(L, "__program");
@@ -325,7 +325,7 @@ void registerFunctions(Program program)
   extern (C) int fs_rename(lua_State* L) @trusted
   {
     auto filename = to!string(lua_tostring(L, 1));
-    auto newname = to!string(lua_tostring(L, 2));
+    auto newname = toLower(to!string(lua_tostring(L, 2)));
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try

@@ -54,7 +54,7 @@ void registerFunctions(Program program)
   /// audio.save(filename, sampl): success
   extern (C) int audio_save(lua_State* L) @trusted
   {
-    auto filename = to!string(lua_tostring(L, 1));
+    auto filename = toLower(to!string(lua_tostring(L, 1)));
     const smplID = lua_tointeger(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);

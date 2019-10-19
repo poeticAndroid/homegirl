@@ -77,7 +77,7 @@ void registerFunctions(Program program)
   /// image.save(filename, img[]): success
   extern (C) int image_save(lua_State* L) @trusted
   {
-    const filename = to!string(lua_tostring(L, 1));
+    const filename = toLower(to!string(lua_tostring(L, 1)));
     const anim_len = lua_rawlen(L, 2);
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
