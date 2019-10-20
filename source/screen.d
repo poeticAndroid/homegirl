@@ -8,8 +8,9 @@ import pixmap;
 */
 class Screen : Viewport
 {
-  ubyte pixelWidth; /// width of each pixel (1 or 2)
-  ubyte pixelHeight; /// height of each pixel (1 or 2)
+  static bool widescreen; /// whether to do 16:9 or 4:3 aspect ratio
+  ubyte pixelWidth; /// width of each pixel
+  ubyte pixelHeight; /// height of each pixel
 
   /**
     create a new screen
@@ -33,6 +34,8 @@ class Screen : Viewport
         throw new Exception("Unsupported screen mode!");
       if (colorBits > 8)
         throw new Exception("Unsupported number of colorBits!");
+      mode = mode % 16;
+      this.mode = mode;
       this.pixelWidth = 8;
       this.pixelHeight = 8;
       for (uint i = 0; i < (mode % 4); i++)
@@ -42,7 +45,7 @@ class Screen : Viewport
         this.pixelHeight /= 2;
       mode /= 4;
       uint height = 360;
-      if (mode)
+      if (!Screen.widescreen)
         height = 480;
       this.pixmap = new Pixmap(640 / this.pixelWidth, height / this.pixelHeight, colorBits);
     }

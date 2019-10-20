@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.8.6"; /// version of the software
+const VERSION = "0.8.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -39,6 +39,7 @@ class Machine
   Screen[] screens; /// all the screens
   Screen mainScreen; /// the first screen ever created
   Viewport focusedViewport; /// the viewport that has focus
+  bool widescreen; /// whether to do 16:9 or 4:3 aspect ratio
   Program[] programs; /// all the programs currently running on the machine
   ubyte[uint][2] gameBindings; /// keyboard bindings to game input
   bool hasGamepad = false; /// has a gamepad been used?
@@ -305,6 +306,7 @@ class Machine
   */
   Screen createScreen(ubyte mode, ubyte colorBits)
   {
+    Screen.widescreen = this.widescreen;
     Screen screen = new Screen(mode, colorBits);
     this.screens ~= screen;
     if (this.mainScreen)

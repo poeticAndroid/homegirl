@@ -105,6 +105,11 @@ int main(string[] args)
     }
     writeConfig = true;
   }
+  if (!("widescreen" in config))
+  {
+    config["widescreen"] = parseJSON("true");
+    writeConfig = true;
+  }
   if (writeConfig)
   {
     if (!exists(dirName(configFileName)))
@@ -141,6 +146,8 @@ int main(string[] args)
     if ("fullscreen" in config["window"] && config["window"].object["fullscreen"].boolean)
       machine.toggleFullscren();
   }
+  if ("widescreen" in config)
+    machine.widescreen = config["widescreen"].boolean;
   if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
   {
   }
