@@ -214,8 +214,8 @@ class Program
       filename ~= suf;
     if (filename != this.machine.baseName(filename))
       return filename;
-    if (exists(this.actualFile(this.machine.dirName(this.filename) ~ filename)))
-      return this.machine.dirName(this.filename) ~ filename;
+    if (exists(this.actualFile(this.machine.dirName(this.filename) ~ dir ~ "/" ~ filename)))
+      return this.machine.dirName(this.filename) ~ dir ~ "/" ~ filename;
     if (exists(this.actualFile(this.drive ~ ":" ~ dir ~ "/" ~ filename)))
       return this.drive ~ ":" ~ dir ~ "/" ~ filename;
     if (exists(this.actualFile("SYS:" ~ dir ~ "/" ~ filename)))
