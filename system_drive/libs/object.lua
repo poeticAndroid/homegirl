@@ -1,11 +1,11 @@
 local Object = {}
 do
   Object.__index = Object
-  function Object:_new()
+  function Object:constructor()
   end
   function Object:new(...)
     local obj = setmetatable({}, self)
-    obj:_new(...)
+    obj:constructor(...)
     return obj
   end
   function Object:extend()

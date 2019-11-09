@@ -19,6 +19,10 @@ function _init(args)
         end
       end
     end
+  elseif fs.isdir(src) then
+    if not copydir(src, dest) then
+      return sys.exit(1)
+    end
   else
     if not copyfile(src, dest) then
       return sys.exit(1)

@@ -11,7 +11,7 @@ do
   Widget.parent = false
   Widget.font = text.loadfont("Victoria.8b")
 
-  function Widget:_new(label)
+  function Widget:constructor(label)
     self.label = label
   end
 

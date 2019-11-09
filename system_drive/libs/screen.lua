@@ -4,7 +4,7 @@ local defaultfont = text.loadfont("Victoria.8b")
 
 local Screen = Widget:extend()
 do
-  function Screen:_new(title, mode, colorbits)
+  function Screen:constructor(title, mode, colorbits)
     self.children = {}
     self._mode = mode
     self._colorbits = colorbits

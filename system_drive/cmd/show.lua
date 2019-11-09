@@ -13,16 +13,21 @@ function _init(args)
   width, height = image.size(anim[1])
   print(args[1] .. ": " .. width .. " x " .. height .. " pixels")
   scrnw, scrnh = view.size(scrn.rootvp)
-  while width > scrnw do
-    mode = mode + 5
-    scrnw = scrnw * 2
-    scrnh = scrnh * 2
+  if width > height then
+    while width > scrnw do
+      mode = mode + 5
+      scrnw = scrnw * 2
+      scrnh = scrnh * 2
+    end
+  else
+    while height > scrnh do
+      mode = mode + 5
+      scrnw = scrnw * 2
+      scrnh = scrnh * 2
+    end
   end
   if mode > 15 then
     mode = 15
-  end
-  if height > scrnh then
-    mode = mode + 16
   end
   zoom(0)
   f = 0
@@ -61,7 +66,7 @@ function _step(t)
     zoom(-32)
   end
   if _lastbtn == 0 and btn & 32 > 0 then -- B
-    zoom(16)
+    zoom(5)
   end
   if _lastbtn == 0 and btn & 64 > 0 then -- X
     zoom(1)
@@ -90,7 +95,7 @@ function zoom(amount)
     mode = mode - 32
   end
   scrn:mode(mode, 8)
-  scrnw, scrnh = scrn:size()
+  scrnw, scrnh = view.size(scrn.rootvp)
   image.copymode(0)
   x = scrnw / 2 - width / 2
   y = scrnh / 2 - height / 2
