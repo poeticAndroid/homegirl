@@ -126,7 +126,9 @@ void registerFunctions(Program program)
     auto prog = cast(Program*) lua_touserdata(L, -1);
     try
     {
-      if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
+      if (!(prog.resolve(filename).length > 10
+          && prog.resolve(filename)[0 .. 9] == "sys:libs/")
+          && !prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
       filename = prog.resolveResource("libs", filename, ".lua");
       auto path = prog.actualFile(filename);
