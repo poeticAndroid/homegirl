@@ -119,10 +119,10 @@ class Network
       url = this.url;
       if (res.code < 300)
       {
+        this.httpReq.flushCookieJar();
         if (!exists(dirName(filename)))
           mkdirRecurse(dirName(filename));
         std.file.write(filename, res.data);
-        this.httpReq.flushCookieJar();
         try
         {
           getTimes(filename, accessTime, modificationTime);
@@ -142,12 +142,11 @@ class Network
       }
       else
       {
+        this.httpReq.flushCookieJar();
+        if (exists(dirName(voidfilename)))
+          std.file.write(voidfilename, res.data);
         if (exists(filename))
           remove(filename);
-        if (!exists(dirName(filename)))
-          mkdirRecurse(dirName(filename));
-        std.file.write(voidfilename, res.data);
-        this.httpReq.flushCookieJar();
         string dirname = filename[0 .. $ - 6] ~ ".~dir";
         if (exists(dirname))
           rmdirRecurse(dirname);
