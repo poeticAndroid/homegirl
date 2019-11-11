@@ -95,6 +95,7 @@ class Network
     SysTime accessTime, modificationTime, now;
     url = onlyPath(url);
     string filename = this.actualFile(url);
+    string voidfilename = filename[0 .. $ - 6] ~ ".~void";
     bool getit = true;
     if (exists(filename) && getSize(filename))
     {
@@ -103,8 +104,17 @@ class Network
       const age = now.toUnixTime() - accessTime.toUnixTime();
       getit = age > 600;
     }
+    else if (exists(voidfilename))
+    {
+      getTimes(voidfilename, accessTime, modificationTime);
+      now = Clock.currTime();
+      const age = now.toUnixTime() - modificationTime.toUnixTime();
+      getit = age > 600;
+    }
     if (getit)
     {
+      if (exists(voidfilename))
+        remove(voidfilename);
       this.exec(HTTP.Method.get, url);
       url = this.url;
       if (res.code < 300)
@@ -134,6 +144,10 @@ class Network
       {
         if (exists(filename))
           remove(filename);
+        if (!exists(dirName(filename)))
+          mkdirRecurse(dirName(filename));
+        std.file.write(voidfilename, res.data);
+        this.httpReq.flushCookieJar();
         string dirname = filename[0 .. $ - 6] ~ ".~dir";
         if (exists(dirname))
           rmdirRecurse(dirname);

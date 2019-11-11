@@ -408,19 +408,33 @@ void registerFunctions(Program program)
       string[] entries;
       foreach (string name; dirEntries(prog.actualFile(dirname, true), SpanMode.shallow))
       {
-        if (name[$ - 5 .. $] == ".~dir")
+        if (name.length >= 6 && name[$ - 6 .. $] == ".~void")
         {
-          auto _i = entries.countUntil(name[0 .. $ - 5] ~ ".~file");
-          if (_i >= 0)
-            entries = entries.remove(_i);
-        }
-        if (name[$ - 6 .. $] == ".~file")
-        {
-          if (entries.countUntil(name[0 .. $ - 6] ~ ".~dir") < 0)
-            entries ~= name;
+          SysTime accessTime, modificationTime, now;
+          getTimes(name, accessTime, modificationTime);
+          now = Clock.currTime();
+          const age = now.toUnixTime() - modificationTime.toUnixTime();
+          if (age > 600)
+          {
+            std.file.remove(name);
+          }
         }
         else
-          entries ~= name;
+        {
+          if (name.length >= 5 && name[$ - 5 .. $] == ".~dir")
+          {
+            auto _i = entries.countUntil(name[0 .. $ - 5] ~ ".~file");
+            if (_i >= 0)
+              entries = entries.remove(_i);
+          }
+          if (name.length >= 6 && name[$ - 6 .. $] == ".~file")
+          {
+            if (entries.countUntil(name[0 .. $ - 6] ~ ".~dir") < 0)
+              entries ~= name;
+          }
+          else
+            entries ~= name;
+        }
       }
       lua_createtable(L, cast(uint) entries.length, 0);
       for (uint i = 0; i < entries.length; i++)
