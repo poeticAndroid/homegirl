@@ -37,7 +37,7 @@ int main(string[] args)
 
   const ret = loadFreeImage();
   if (ret == FISupport.noLibrary)
-    writeln("Couldn't load FreeImage!");
+    writeln("FreeImage 3.18 is required!");
 
   // start machine
   try
@@ -58,7 +58,7 @@ int main(string[] args)
   }
   catch (Exception e)
   {
-    writeln("no config!");
+    writeln("no config! creating default.");
     config = parseJSON("{}");
   }
   if (!("drives" in config))

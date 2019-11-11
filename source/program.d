@@ -68,9 +68,16 @@ class Program
     this.samples ~= null;
 
     // Load the Lua library.
-    dylib_load_lua();
-    this.lua = luaL_newstate();
-    luaL_openlibs(this.lua);
+    try
+    {
+      dylib_load_lua();
+      this.lua = luaL_newstate();
+      luaL_openlibs(this.lua);
+    }
+    catch (Throwable err)
+    {
+      writeln("Lua 5.3 is required!");
+    }
     registerFunctions(this);
     string luacode = this.machine.luaFilepathVars(this.filename) ~ readText(
         this.actualFile(this.filename));

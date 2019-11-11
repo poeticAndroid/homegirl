@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.9.0"; /// version of the software
+const VERSION = "0.9.1"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -61,7 +61,7 @@ class Machine
   this()
   {
     if (loadSDL() != sdlSupport)
-      throw new Exception("SDL not work! :(");
+      throw new Exception("SDL2 2.0.8 is required!");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
       throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
 
