@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.9.2"; /// version of the software
+const VERSION = "0.9.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -54,6 +54,9 @@ class Machine
   string configFile; /// path of the config file
   Pixmap[] draggedIcons; /// icons representing the objects currently being dragged
   string[] draggedObjects; /// objects currently being dragged
+  Pixmap busyPointer; /// mouse pointer to show when busy
+  int busyPointerX; /// mouse pointer anchor
+  int busyPointerY; /// mouse pointer anchor
 
   /**
     Create a new machine
@@ -68,6 +71,7 @@ class Machine
     this.initWindow();
     this.audio = new SoundChip();
     this.initMidi();
+    this.defaultBusyPointer();
     this.env["ENGINE"] = "Homegirl";
     this.env["ENGINE_VERSION"] = VERSION;
   }
@@ -231,7 +235,8 @@ class Machine
       }
     }
     this.audio.step(SDL_GetTicks());
-    this.drawScreens();
+    this.drawScreens(this.isBusy);
+    this.isBusy = false;
   }
 
   /**
@@ -629,6 +634,15 @@ class Machine
     this.draggedIcons ~= icon;
   }
 
+  /**
+    display the busy pointer
+  */
+  void showBusy()
+  {
+    if (!this.isBusy)
+      this.drawScreens(true);
+  }
+
   // === _privates === //
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
@@ -653,6 +667,7 @@ class Machine
   private Pixmap pointer;
   private int pointerX;
   private int pointerY;
+  private bool isBusy;
 
   private void initWindow()
   {
@@ -802,7 +817,7 @@ class Machine
     }
   }
 
-  private void drawScreens()
+  private void drawScreens(bool busy = false)
   {
     const width = 640;
     uint height = 360;
@@ -882,7 +897,10 @@ class Machine
           off -= 2;
         }
       }
-      if (this.pointer)
+      if (busy && this.busyPointer)
+        pixmap.copyToTexture(this.busyPointer, true, screen.mouseX - this.busyPointerX * sx,
+            screen.mouseY - this.busyPointerY * sy, sx, sy);
+      else if (this.pointer)
         pixmap.copyToTexture(this.pointer, true, screen.mouseX - this.pointerX * sx,
             screen.mouseY - this.pointerY * sy, sx, sy);
       SDL_RenderCopy(this.ren, pixmap.getTexture(), rect, rect2);
@@ -892,6 +910,7 @@ class Machine
     if (this.lastmb == 0)
       this.oldAspect = oldAspect;
     SDL_RenderPresent(this.ren);
+    this.isBusy = busy;
   }
 
   private void handleTextInput(TextEditor te, string txt)
@@ -1146,6 +1165,31 @@ class Machine
       }
       this.newInput = this.newInput || this.hasMidi();
     }
+  }
+
+  private void defaultBusyPointer()
+  {
+    this.busyPointer = new Pixmap(17, 24, 2);
+    this.busyPointer.pixels = [0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+      2, 2, 2, 2, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 1,
+      2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 1, 2, 2,
+      2, 2, 2, 2, 2, 1, 0, 0, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0,
+      0, 0, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 1, 2, 2, 2, 2,
+      2, 2, 2, 1, 1, 1, 1, 2, 2, 1, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2,
+      2, 2, 2, 1, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 0, 0, 0, 1,
+      2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2,
+      2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2,
+      1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 1, 0, 0, 0, 0, 0, 0];
+    this.busyPointerX = 8;
+    this.busyPointerY = 10;
   }
 }
 

@@ -53,6 +53,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       if (!maxset)
         maxframes = -1;
       uint[] anim = prog.loadAnimation(prog.actualFile(filename), cast(uint) maxframes);
@@ -85,6 +86,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       uint[] anim;
       if (anim_len)
       {
@@ -395,6 +397,35 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_pointer);
   luaL_dostring(lua, "image.pointer = _");
+
+  /// image.busypointer(img, Xoffset, Yoffset)
+  extern (C) int image_busypointer(lua_State* L) @trusted
+  {
+    const imgID = lua_tointeger(L, 1);
+    const px = lua_tonumber(L, 2);
+    const py = lua_tonumber(L, 3);
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    try
+    {
+      if (!prog.hasPermission(Permissions.manageMainScreen))
+        throw new Exception("no permission to manage the main screen!");
+      if (imgID >= prog.pixmaps.length)
+        throw new Exception("Invalid image!");
+      prog.machine.busyPointer = prog.pixmaps[cast(uint) imgID];
+      prog.machine.busyPointerX = cast(int) px;
+      prog.machine.busyPointerY = cast(int) py;
+      return 0;
+    }
+    catch (Exception err)
+    {
+      luaL_error(L, toStringz(err.msg));
+      return 0;
+    }
+  }
+
+  lua_register(lua, "_", &image_busypointer);
+  luaL_dostring(lua, "image.busypointer = _");
 
   /// image.forget(img)
   extern (C) int image_forget(lua_State* L) @trusted

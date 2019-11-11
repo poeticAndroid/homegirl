@@ -59,6 +59,7 @@
     image.usepalette(img)
     image.copypalette(img)
     image.pointer(img, Xoffset, Yoffset)
+    image.busypointer(img, Xoffset, Yoffset)
     image.forget(img)
 ##  input
     input.text([text]): text
@@ -84,6 +85,7 @@
     sys.exit([code])
     sys.permissions(drive[, perms]): perms
     sys.requestedpermissions(drive[, perms]): perms
+    sys.showbusy()
     sys.exec(filename[, args[][, cwd]]): success
     sys.killall(programname): count
     sys.startchild(filename[, args[]]): child

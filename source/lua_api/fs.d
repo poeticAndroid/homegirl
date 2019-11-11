@@ -66,12 +66,14 @@ void registerFunctions(Program program)
       {
         if (!prog.hasPermission(Permissions.mountRemoteDrives))
           throw new Exception("no permission to mount remote drives!");
+        prog.machine.showBusy();
         prog.machine.mountRemoteDrive(drive, path);
       }
       else
       {
         if (!prog.hasPermission(Permissions.mountLocalDrives))
           throw new Exception("no permission to mount local drives!");
+        prog.machine.showBusy();
         prog.machine.mountLocalDrive(drive, path);
       }
       lua_pushboolean(L, true);
@@ -125,6 +127,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       lua_pushboolean(L, exists(prog.actualFile(filename)) && isFile(prog.actualFile(filename)));
       return 1;
     }
@@ -148,6 +151,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       lua_pushboolean(L, exists(prog.actualFile(filename, true))
           && isDir(prog.actualFile(filename, true)));
       return 1;
@@ -172,6 +176,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       lua_pushinteger(L, getSize(prog.actualFile(filename)));
       return 1;
     }
@@ -195,6 +200,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       SysTime accessed, modified;
       getTimes(prog.actualFile(filename), accessed, modified);
       lua_pushinteger(L, modified.hour);
@@ -223,6 +229,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       SysTime accessed, modified;
       getTimes(prog.actualFile(filename), accessed, modified);
       lua_pushinteger(L, modified.year);
@@ -251,6 +258,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       ubyte[] bin = cast(ubyte[]) read(prog.actualFile(filename));
       lua_pushlstring(L, cast(char*) bin, bin.length);
       return 1;
@@ -277,6 +285,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
+      prog.machine.showBusy();
       ubyte[] bin;
       bin.length = len;
       for (uint i = 0; i < len; i++)
@@ -307,6 +316,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
+      prog.machine.showBusy();
       ubyte[] bin = prog.machine.postPath(prog.resolve(filename), request, type);
       lua_pushlstring(L, cast(char*) bin, bin.length);
       return 1;
@@ -336,6 +346,7 @@ void registerFunctions(Program program)
         throw new Exception("no permission to write to other drives!");
       if (prog.machine.getDrive(filename) != prog.machine.getDrive(newname))
         throw new Exception("cannot rename across drives!");
+      prog.machine.showBusy();
       string path = prog.actualFile(filename, true);
       string newpath = prog.actualFile(newname, true);
       bool found = false;
@@ -376,6 +387,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
+      prog.machine.showBusy();
       string path = prog.actualFile(filename, true);
       if (exists(path) && isDir(path))
         rmdirRecurse(path);
@@ -405,6 +417,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       string[] entries;
       foreach (string name; dirEntries(prog.actualFile(dirname, true), SpanMode.shallow))
       {
@@ -471,6 +484,7 @@ void registerFunctions(Program program)
       {
         if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.readOtherDrives))
           throw new Exception("no permission to read other drives!");
+        prog.machine.showBusy();
         if (!exists(prog.actualFile(dirname, true)) || !isDir(prog.actualFile(dirname, true)))
         {
           lua_pushnil(L);
@@ -503,6 +517,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(dirname) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
+      prog.machine.showBusy();
       mkdirRecurse(prog.actualFile(dirname, true));
       lua_pushboolean(L, prog.machine.syncPath(prog.resolve(dirname)));
       return 1;

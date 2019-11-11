@@ -249,6 +249,18 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_requestedpermissions);
   luaL_dostring(lua, "sys.requestedpermissions = _");
 
+  /// sys.showbusy()
+  extern (C) int sys_showbusy(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    prog.machine.showBusy();
+    return 0;
+  }
+
+  lua_register(lua, "_", &sys_showbusy);
+  luaL_dostring(lua, "sys.showbusy = _");
+
   /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted
   {
@@ -271,6 +283,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       prog.machine.startProgram(prog.resolve(filename), args, cwd);
       lua_pushboolean(L, true);
       return 1;
@@ -329,6 +342,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       lua_pushinteger(L, prog.startChild(prog.resolve(filename), args));
       return 1;
     }

@@ -68,6 +68,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       prog.doFile(filename);
       return 1;
     }
@@ -90,6 +91,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       auto path = prog.actualFile(filename);
       if (luaL_loadstring(L,
           toStringz(prog.machine.luaFilepathVars(prog.resolve(filename)) ~ readText(path))))
@@ -130,6 +132,7 @@ void registerFunctions(Program program)
           && prog.resolve(filename)[0 .. 9] == "sys:libs/")
           && !prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       filename = prog.resolveResource("libs", filename, ".lua");
       auto path = prog.actualFile(filename);
       lua_getglobal(L, "package");

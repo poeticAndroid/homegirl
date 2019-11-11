@@ -38,6 +38,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
         throw new Exception("no permission to read other drives!");
+      prog.machine.showBusy();
       lua_pushinteger(L, prog.loadSample(prog.actualFile(filename)));
       return 1;
     }
@@ -62,6 +63,7 @@ void registerFunctions(Program program)
     {
       if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.writeOtherDrives))
         throw new Exception("no permission to write to other drives!");
+      prog.machine.showBusy();
       if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
         throw new Exception("Invalid sample!");
       prog.samples[cast(uint) smplID].saveWav(prog.actualFile(filename));
