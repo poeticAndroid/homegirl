@@ -104,7 +104,8 @@ class Network
       const age = now.toUnixTime() - accessTime.toUnixTime();
       getit = age > 600;
     }
-    else if (exists(voidfilename))
+    else if (exists(voidfilename) && baseName(voidfilename) == baseName(dirEntries(dirName(voidfilename),
+        baseName(voidfilename), SpanMode.shallow).front))
     {
       getTimes(voidfilename, accessTime, modificationTime);
       now = Clock.currTime();
@@ -113,8 +114,6 @@ class Network
     }
     if (getit)
     {
-      if (exists(voidfilename))
-        remove(voidfilename);
       this.exec(HTTP.Method.get, url);
       url = this.url;
       if (res.code < 300)
