@@ -249,8 +249,8 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_requestedpermissions);
   luaL_dostring(lua, "sys.requestedpermissions = _");
 
-  /// sys.showbusy()
-  extern (C) int sys_showbusy(lua_State* L) @trusted
+  /// sys.lookbusy()
+  extern (C) int sys_lookbusy(lua_State* L) @trusted
   {
     lua_getglobal(L, "__program");
     auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -258,8 +258,8 @@ void registerFunctions(Program program)
     return 0;
   }
 
-  lua_register(lua, "_", &sys_showbusy);
-  luaL_dostring(lua, "sys.showbusy = _");
+  lua_register(lua, "_", &sys_lookbusy);
+  luaL_dostring(lua, "sys.lookbusy = _");
 
   /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted

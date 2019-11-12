@@ -85,7 +85,7 @@
     sys.exit([code])
     sys.permissions(drive[, perms]): perms
     sys.requestedpermissions(drive[, perms]): perms
-    sys.showbusy()
+    sys.lookbusy()
     sys.exec(filename[, args[][, cwd]]): success
     sys.killall(programname): count
     sys.startchild(filename[, args[]]): child
