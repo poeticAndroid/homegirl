@@ -20,12 +20,12 @@ int main(string[] args)
 
   version (Windows)
   {
-    configFileName = buildNormalizedPath(environment["APPDATA"], "Homegirl/config.json");
+    configFileName = buildNormalizedPath(environment.get("APPDATA"), "Homegirl/config.json");
   }
   else
   {
     if ("HOME" in environment)
-      configFileName = buildNormalizedPath(environment["HOME"], ".config/Homegirl/config.json");
+      configFileName = buildNormalizedPath(environment.get("HOME"), ".config/Homegirl/config.json");
     else
       configFileName = "./config.json";
   }
@@ -115,7 +115,8 @@ int main(string[] args)
     if (!exists(dirName(configFileName)))
       mkdirRecurse(dirName(configFileName));
     auto configFile = File(configFileName, "w");
-    configFile.write(toJSON(config, true));
+    configFile.write(toJSON(config, true,
+        JSONOptions.doNotEscapeSlashes | JSONOptions.escapeNonAsciiChars));
     configFile.close();
   }
   machine.net = new Network(config["network"].object["cache"].str);
@@ -189,7 +190,8 @@ int main(string[] args)
   }
 
   auto configFile = File(configFileName, "w");
-  configFile.write(toJSON(config, true, JSONOptions.doNotEscapeSlashes));
+  configFile.write(toJSON(config, true,
+      JSONOptions.doNotEscapeSlashes | JSONOptions.escapeNonAsciiChars));
   configFile.close();
 
   //shutdown machine
