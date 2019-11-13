@@ -78,7 +78,7 @@ FIMEMORY* readfile(string filename)
 void writefile(string filename, FIMEMORY* mem)
 {
   ubyte* bin;
-  uint len;
+  DWORD len;
   FreeImage_AcquireMemory(mem, &bin, &len);
   auto f = File(filename, "wb");
   for (uint i = 0; i < len; i++)
