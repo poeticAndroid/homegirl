@@ -23,6 +23,7 @@ import sample;
 */
 class Program
 {
+  uint memoryUsed = 0; /// amount of memory used for code for this program
   bool running = true; /// is the program running?
   int exitcode = -1; /// exit code
   string drive; /// the drive this program originates from
@@ -81,8 +82,29 @@ class Program
     registerFunctions(this);
     string luacode = this.machine.luaFilepathVars(this.filename) ~ readText(
         this.actualFile(this.filename));
+    this.useMemory(cast(uint) luacode.length);
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(this.filename)))
       this.croak();
+  }
+
+  /** 
+    add the the amount of memory used
+  */
+  void useMemory(uint bytes)
+  {
+    this.memoryUsed += bytes;
+    this.machine.useMemory(bytes);
+  }
+
+  /** 
+    subtract the the amount of memory used
+  */
+  void freeMemory(uint bytes)
+  {
+    if (bytes > this.memoryUsed)
+      bytes = this.memoryUsed;
+    this.memoryUsed -= bytes;
+    this.machine.freeMemory(bytes);
   }
 
   /**
@@ -104,6 +126,13 @@ class Program
       this.nextStep = timestamp;
     if (this.activeViewport)
       this.activeViewport.setHotkey(0);
+    // lua_gc(this.lua, LUA_GCSTEP, 0);
+    // uint mem = lua_gc(this.lua, LUA_GCCOUNT, 0) * 1024;
+    // mem += lua_gc(this.lua, LUA_GCCOUNTB, 0);
+    // if (mem > this.memoryUsed)
+    //   this.useMemory(mem - this.memoryUsed);
+    // else
+    //   this.freeMemory(this.memoryUsed - mem);
   }
 
   /**
@@ -136,6 +165,7 @@ class Program
       i = this.samples.length;
       while (i)
         this.removeSample(cast(uint)--i);
+      this.freeMemory(this.memoryUsed);
     }
   }
 
@@ -147,6 +177,7 @@ class Program
     filename = this.resolve(filename);
     string path = this.actualFile(filename);
     string luacode = this.machine.luaFilepathVars(filename) ~ readText(path);
+    this.useMemory(cast(uint) luacode.length);
     if (luaL_loadbuffer(this.lua, toStringz(luacode), luacode.length, toStringz(filename)))
       throw new Exception("Cannot run file " ~ filename);
     if (lua_pcall(this.lua, 0, LUA_MULTRET, 0))
@@ -301,6 +332,8 @@ class Program
     auto i = countUntil(this.viewports, vp);
     if (i >= 0)
       return cast(uint) i;
+    if (vp.program == this)
+      this.useMemory(vp.memoryUsed());
     i = this.viewports.length - 1;
     while (i && this.viewports[i])
       i--;
@@ -360,12 +393,14 @@ class Program
       this.activeViewport = null;
     if (vp.program == this)
     {
+      this.freeMemory(vp.memoryUsed());
       if (vp.getParent())
         vp.getParent().removeViewport(vp);
       else
         this.machine.removeScreen(vp);
       vp.program = null;
     }
+
     this.viewports[vpid] = null;
     auto i = this.viewports.length;
     while (i > 0)
@@ -398,6 +433,7 @@ class Program
     auto i = countUntil(this.pixmaps, pixmap);
     if (i >= 0)
       return cast(uint) i;
+    this.useMemory(pixmap.memoryUsed());
     i = this.pixmaps.length - 1;
     while (i && this.pixmaps[i])
       i--;
@@ -465,6 +501,7 @@ class Program
   {
     if (this.pixmaps[pmid])
     {
+      this.freeMemory(this.pixmaps[pmid].memoryUsed());
       this.pixmaps[pmid].destroyTexture();
       this.pixmaps[pmid] = null;
     }
@@ -478,6 +515,7 @@ class Program
     auto i = countUntil(this.samples, sample);
     if (i >= 0)
       return cast(uint) i;
+    this.useMemory(sample.memoryUsed());
     i = this.samples.length - 1;
     while (i && this.samples[i])
       i--;
@@ -516,6 +554,7 @@ class Program
   {
     if (this.samples[pmid])
     {
+      this.freeMemory(this.samples[pmid].memoryUsed());
       for (uint i = 0; i < this.machine.audio.src.length; i++)
         if (this.machine.audio.src[i] == this.samples[pmid])
           this.machine.audio.src[i] = null;

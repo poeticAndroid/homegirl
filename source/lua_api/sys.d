@@ -261,6 +261,18 @@ void registerFunctions(Program program)
   lua_register(lua, "_", &sys_lookbusy);
   luaL_dostring(lua, "sys.lookbusy = _");
 
+  /// sys.memoryusage(): bytesinuse
+  extern (C) int sys_memoryusage(lua_State* L) @trusted
+  {
+    lua_getglobal(L, "__program");
+    auto prog = cast(Program*) lua_touserdata(L, -1);
+    lua_pushinteger(L, prog.machine.memoryUsed);
+    return 1;
+  }
+
+  lua_register(lua, "_", &sys_memoryusage);
+  luaL_dostring(lua, "sys.memoryusage = _");
+
   /// sys.exec(filename[, args[][, cwd]]): success
   extern (C) int sys_exec(lua_State* L) @trusted
   {

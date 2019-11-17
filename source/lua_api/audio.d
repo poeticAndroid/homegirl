@@ -218,7 +218,9 @@ void registerFunctions(Program program)
         throw new Exception("Invalid sample!");
       if (set)
       {
+        prog.freeMemory(prog.samples[cast(uint) smplID].memoryUsed());
         prog.samples[cast(uint) smplID].data.length = cast(uint) len;
+        prog.useMemory(prog.samples[cast(uint) smplID].memoryUsed());
       }
       lua_pushinteger(L, prog.samples[cast(uint) smplID].data.length);
       return 1;

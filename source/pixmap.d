@@ -94,7 +94,7 @@ class Pixmap
         for (uint x = 0; x < pix.width * sx; x++)
           if (pix.pget(x / sx, y / sy))
             this.psetTexture(px + x, py + y, this.uicolors[pix.pget(x / sx,
-                y / sy) % this.uicolors.length]);
+                  y / sy) % this.uicolors.length]);
     }
     else
     {
@@ -129,6 +129,14 @@ class Pixmap
       this.textureLocked = false;
       this.texdata = null;
     }
+  }
+
+  /**
+    calculate memory usage of this pixmap
+  */
+  uint memoryUsed()
+  {
+    return (this.width * this.height * this.colorBits) / 8;
   }
 
   /**

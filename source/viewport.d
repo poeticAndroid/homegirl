@@ -42,6 +42,14 @@ class Viewport
     this.pixmap.viewport = this;
   }
 
+  /**
+    calculate memory usage of this pixmap
+  */
+  uint memoryUsed()
+  {
+    return this.pixmap.memoryUsed();
+  }
+
   Viewport getParent()
   {
     return this.parent;
@@ -186,10 +194,14 @@ class Viewport
   {
     if (this.pixmap.width != width || this.pixmap.height != height)
     {
+      if (this.program)
+        this.program.freeMemory(this.memoryUsed());
       this.pixmap.destroyTexture();
       this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
       this.pixmap.viewport = this;
       this.setDirty();
+      if (this.program)
+        this.program.useMemory(this.memoryUsed());
     }
   }
 
@@ -339,6 +351,8 @@ class Viewport
           viewport.mode = this.mode;
         if (this.pixmap.colorBits != viewport.pixmap.colorBits)
         {
+          if (viewport.program)
+            viewport.program.freeMemory(viewport.memoryUsed());
           viewport.pixmap.destroyTexture();
           Pixmap oldpix = viewport.pixmap;
           viewport.pixmap = new Pixmap(oldpix.width, oldpix.height, this.pixmap.colorBits);
@@ -348,6 +362,8 @@ class Viewport
           viewport.pixmap.setBGColor(oldpix.bgColor);
           viewport.pixmap.copymode = oldpix.copymode;
           viewport.pixmap.textCopymode = oldpix.textCopymode;
+          if (viewport.program)
+            viewport.program.useMemory(viewport.memoryUsed());
         }
         viewport.render();
         this.pixmap.copyRectFrom(viewport.pixmap, 0, 0, viewport.left,

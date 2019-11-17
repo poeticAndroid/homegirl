@@ -25,6 +25,14 @@ class Sample
   }
 
   /**
+    calculate memory usage of this sample
+  */
+  uint memoryUsed()
+  {
+    return cast(uint) this.data.length;
+  }
+
+  /**
     load sample from wav file
   */
   void loadWav(string filename)

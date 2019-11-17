@@ -26,13 +26,14 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.9.8"; /// version of the software
+const VERSION = "0.9.9"; /// version of the software
 
 /**
   Class representing "the machine"!
 */
 class Machine
 {
+  uint memoryUsed = 0; /// amount of memory used (in bytes)
   SDL_Window* win; /// the main window
   bool running = true; /// is the machine running?
   bool fullscreen = false; /// is the machine running in full screen?
@@ -74,6 +75,24 @@ class Machine
     this.defaultBusyPointer();
     this.env["ENGINE"] = "Homegirl";
     this.env["ENGINE_VERSION"] = VERSION;
+  }
+
+  /** 
+    add the the amount of memory used
+  */
+  void useMemory(uint bytes)
+  {
+    this.memoryUsed += bytes;
+  }
+
+  /** 
+    subtract the the amount of memory used
+  */
+  void freeMemory(uint bytes)
+  {
+    if (bytes > this.memoryUsed)
+      bytes = this.memoryUsed;
+    this.memoryUsed -= bytes;
   }
 
   /**
@@ -488,7 +507,11 @@ class Machine
   Pixmap[] getFont(string filename)
   {
     if (!this.fonts.get(filename, null))
+    {
       this.fonts[filename] = image_loader.loadAnimation(filename);
+      foreach (pix; this.fonts[filename])
+        this.useMemory(pix.memoryUsed());
+    }
     return this.fonts[filename];
   }
 
