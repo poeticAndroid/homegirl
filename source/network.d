@@ -97,15 +97,14 @@ class Network
     string filename = this.actualFile(url);
     string voidfilename = filename[0 .. $ - 6] ~ ".~void";
     bool getit = true;
-    if (exists(filename) && getSize(filename))
+    if (existsExactly(filename) && getSize(filename))
     {
       getTimes(filename, accessTime, modificationTime);
       now = Clock.currTime();
       const age = now.toUnixTime() - accessTime.toUnixTime();
       getit = age > 600;
     }
-    else if (exists(voidfilename) && baseName(voidfilename) == baseName(dirEntries(dirName(voidfilename),
-        baseName(voidfilename), SpanMode.shallow).front))
+    else if (existsExactly(voidfilename))
     {
       getTimes(voidfilename, accessTime, modificationTime);
       now = Clock.currTime();
@@ -315,6 +314,21 @@ class Network
       if (baseName(href) != "~index.~file" && !exists(href))
         std.file.write(href, "");
     }
+  }
+
+  private bool existsExactly(string filename)
+  {
+    if (!exists(filename))
+      return false;
+    if (baseName(filename) == baseName(dirEntries(dirName(filename),
+        baseName(filename), SpanMode.shallow).front))
+    {
+      if (filename.length > this.cacheDir.length)
+        return this.existsExactly(dirName(filename));
+      else
+        return true;
+    }
+    return false;
   }
 }
 
