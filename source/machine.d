@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.9.9"; /// version of the software
+const VERSION = "0.9.10"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -662,6 +662,7 @@ class Machine
   */
   void showBusy()
   {
+    this.audio.lastTick = 0;
     if (!this.isBusy)
       this.drawScreens(true);
   }

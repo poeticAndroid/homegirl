@@ -25,7 +25,7 @@ do
     else
       table.insert(self.children, child)
     end
-    child:attachto(self)
+    child:attachto(self, self.mainvp, self.rootvp)
     return child
   end
   function Screen:attachwindow(name, child)
