@@ -63,7 +63,7 @@ version(D_BetterC)
 	void* dylib_load_lua() {
 		version(Windows) void* handle = dylib_load("lua53.dll");
 		else version(OSX) void* handle = dylib_load("liblua.5.3.dylib");
-		else version(Posix) void* handle = dylib_load("liblua.so.5.3,liblua5.3.so");
+		else version(Posix) void* handle = dylib_load("liblua.so.5.3,liblua5.3.so,liblua-5.3.so");
 
 		if(handle is null) return null;
 
@@ -222,7 +222,7 @@ else
 {
 	version(Windows) private enum string[] _lua_libs = ["lua53.dll"];
 	else version(OSX) private enum string[] _lua_libs = ["liblua.5.3.dylib"];
-	else version(Posix) private enum string[] _lua_libs = ["liblua.so.5.3", "liblua5.3.so"];
+	else version(Posix) private enum string[] _lua_libs = ["liblua.so.5.3", "liblua5.3.so", "liblua-5.3.so"];
 
 	mixin(DylibLoaderBuilder!("Lua", _lua_libs, riverd.lua.dynfun));
 }
