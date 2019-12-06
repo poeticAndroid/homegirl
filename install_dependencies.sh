@@ -14,9 +14,6 @@ else
 
   (
     sudo apt-get install libsdl2-2.0-0 libfreeimage3 liblua5.3-dev curl ||
-    (
-      sudo dnf install SDL2 freeimage lua curl # &&
-      # sudo ln -s /usr/lib64/liblua-5.3.so /usr/lib64/liblua5.3.so
-    )
+    sudo dnf install SDL2 freeimage lua curl
   ) && rm "$0"
 fi
