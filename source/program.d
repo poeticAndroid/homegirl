@@ -7,8 +7,7 @@ import std.array;
 import std.file;
 import std.algorithm;
 import std.conv;
-import riverd.lua;
-import riverd.lua.types;
+import bindbc.lua;
 
 import machine;
 import screen;
@@ -71,11 +70,11 @@ class Program
     // Load the Lua library.
     try
     {
-      dylib_load_lua();
+      loadLua();
       this.lua = luaL_newstate();
       luaL_openlibs(this.lua);
     }
-    catch (Throwable err)
+    catch (Exception err)
     {
       writeln("Lua 5.3 is required!");
     }
