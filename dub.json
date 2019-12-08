@@ -21,8 +21,7 @@
 		"bindbc-freeimage": "~>0.3.1",
 		"bindbc-lua": "~>0.1.2",
 		"bindbc-sdl": "~>0.13.0",
-		"htmld": "~>0.3.7",
-		"minuit": "~>0.1.3"
+		"htmld": "~>0.3.7"
 	},
 	"description": "A fantasy console inspired by the Amiga.",
 	"license": "MIT",
