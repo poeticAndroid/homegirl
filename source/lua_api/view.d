@@ -18,7 +18,7 @@ int view_newscreen(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
-    lua_pushinteger(L, prog.createScreen(cast(ubyte) mode, cast(ubyte) colorBits));
+    lua_pushinteger(L, cast(int) prog.createScreen(cast(ubyte) mode, cast(ubyte) colorBits));
     return 1;
   }
   catch (Exception err)
@@ -54,8 +54,8 @@ int view_screenmode(lua_State* L) nothrow
     }
     if (set)
       vp.changeMode(cast(ubyte) mode, cast(ubyte) colorBits);
-    lua_pushinteger(L, vp.mode);
-    lua_pushinteger(L, vp.pixmap.colorBits);
+    lua_pushinteger(L, cast(int) vp.mode);
+    lua_pushinteger(L, cast(int) vp.pixmap.colorBits);
     return 2;
   }
   catch (Exception err)
@@ -79,8 +79,8 @@ int view_new(lua_State* L) nothrow
   {
     if (parentId != 0 && (parentId >= prog.viewports.length || !prog.viewports[cast(uint) parentId]))
       throw new Exception("Invalid viewport!");
-    lua_pushinteger(L, prog.createViewport(cast(uint) parentId, cast(int) left,
-        cast(int) top, cast(uint) width, cast(uint) height));
+    lua_pushinteger(L, cast(int) prog.createViewport(cast(uint) parentId,
+        cast(int) left, cast(int) top, cast(uint) width, cast(uint) height));
     return 1;
   }
   catch (Exception err)
@@ -120,7 +120,7 @@ int view_active(lua_State* L) nothrow
     if (id < 1)
       lua_pushnil(L);
     else
-      lua_pushinteger(L, id);
+      lua_pushinteger(L, cast(int) id);
     return 1;
   }
   catch (Exception err)
@@ -156,8 +156,8 @@ int view_position(lua_State* L) nothrow
     }
     if (set)
       vp.move(cast(int) left, cast(int) top);
-    lua_pushinteger(L, vp.left);
-    lua_pushinteger(L, vp.top);
+    lua_pushinteger(L, cast(int) vp.left);
+    lua_pushinteger(L, cast(int) vp.top);
     return 2;
   }
   catch (Exception err)
@@ -193,8 +193,8 @@ int view_size(lua_State* L) nothrow
     }
     if (set)
       vp.resize(cast(uint) width, cast(uint) height);
-    lua_pushinteger(L, vp.pixmap.width);
-    lua_pushinteger(L, vp.pixmap.height);
+    lua_pushinteger(L, cast(int) vp.pixmap.width);
+    lua_pushinteger(L, cast(int) vp.pixmap.height);
     return 2;
   }
   catch (Exception err)
@@ -317,9 +317,9 @@ int view_zindex(lua_State* L) nothrow
         prog.machine.setScreenIndex(vp, cast(int) index);
     }
     if (par)
-      lua_pushinteger(L, par.getViewportIndex(vp));
+      lua_pushinteger(L, cast(int) par.getViewportIndex(vp));
     else
-      lua_pushinteger(L, prog.machine.getScreenIndex(vp));
+      lua_pushinteger(L, cast(int) prog.machine.getScreenIndex(vp));
     return 1;
   }
   catch (Exception err)
@@ -354,7 +354,7 @@ int view_children(lua_State* L) nothrow
     lua_createtable(L, cast(uint) entries.length, 0);
     for (uint i = 0; i < entries.length; i++)
     {
-      lua_pushinteger(L, prog.addViewport(entries[i]));
+      lua_pushinteger(L, cast(int) prog.addViewport(entries[i]));
       lua_rawseti(L, -2, i + 1);
     }
     return 1;

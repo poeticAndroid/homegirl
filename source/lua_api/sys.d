@@ -139,10 +139,10 @@ int sys_time(lua_State* L) nothrow
   try
   {
     SysTime now = Clock.currTime();
-    lua_pushinteger(L, now.hour);
-    lua_pushinteger(L, now.minute);
-    lua_pushinteger(L, now.second);
-    lua_pushinteger(L, now.utcOffset.total!"minutes");
+    lua_pushinteger(L, cast(int) now.hour);
+    lua_pushinteger(L, cast(int) now.minute);
+    lua_pushinteger(L, cast(int) now.second);
+    lua_pushinteger(L, cast(int) now.utcOffset.total!"minutes");
     return 4;
   }
   catch (Exception err)
@@ -158,10 +158,10 @@ int sys_date(lua_State* L) nothrow
   try
   {
     SysTime now = Clock.currTime();
-    lua_pushinteger(L, now.year);
-    lua_pushinteger(L, now.month);
-    lua_pushinteger(L, now.day);
-    lua_pushinteger(L, now.dayOfWeek);
+    lua_pushinteger(L, cast(int) now.year);
+    lua_pushinteger(L, cast(int) now.month);
+    lua_pushinteger(L, cast(int) now.day);
+    lua_pushinteger(L, cast(int) now.dayOfWeek);
     return 4;
   }
   catch (Exception err)
@@ -204,7 +204,7 @@ int sys_permissions(lua_State* L) nothrow
       throw new Exception("no permission to manage permissions!");
     if (set)
       prog.machine.perms[drive] = cast(uint) perms;
-    lua_pushinteger(L, prog.machine.perms.get(drive, 0));
+    lua_pushinteger(L, cast(int) prog.machine.perms.get(drive, 0));
     return 1;
   }
   catch (Exception err)
@@ -229,7 +229,7 @@ int sys_requestedpermissions(lua_State* L) nothrow
       throw new Exception("no permission to manage permissions!");
     if (set)
       prog.machine.reqPerms[drive] = cast(uint) perms;
-    lua_pushinteger(L, prog.machine.reqPerms.get(drive, 0));
+    lua_pushinteger(L, cast(int) prog.machine.reqPerms.get(drive, 0));
     return 1;
   }
   catch (Exception err)
@@ -261,7 +261,7 @@ int sys_memoryusage(lua_State* L) nothrow
 {
   lua_getglobal(L, "__program");
   auto prog = cast(Program*) lua_touserdata(L, -1);
-  lua_pushinteger(L, prog.machine.memoryUsed);
+  lua_pushinteger(L, cast(int) prog.machine.memoryUsed);
   return 1;
 }
 
@@ -309,7 +309,7 @@ int sys_killall(lua_State* L) nothrow
   {
     if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.managePrograms))
       throw new Exception("no permission to manage other programs!");
-    lua_pushinteger(L, prog.machine.killAll(prog.resolve(filename)));
+    lua_pushinteger(L, cast(int) prog.machine.killAll(prog.resolve(filename)));
     return 1;
   }
   catch (Exception err)
@@ -341,7 +341,7 @@ int sys_startchild(lua_State* L) nothrow
     if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
       throw new Exception("no permission to read other drives!");
     prog.machine.showBusy();
-    lua_pushinteger(L, prog.startChild(prog.resolve(filename), args));
+    lua_pushinteger(L, cast(int) prog.startChild(prog.resolve(filename), args));
     return 1;
   }
   catch (Exception err)
@@ -381,7 +381,7 @@ int sys_childexitcode(lua_State* L) nothrow
   {
     if (child >= prog.children.length || !prog.children[cast(uint) child])
       throw new Exception("Invalid child!");
-    lua_pushinteger(L, prog.children[cast(uint) child].exitcode);
+    lua_pushinteger(L, cast(int) prog.children[cast(uint) child].exitcode);
     return 1;
   }
   catch (Exception err)

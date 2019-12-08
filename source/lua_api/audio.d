@@ -14,7 +14,7 @@ int audio_new(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
-    lua_pushinteger(L, prog.createSample());
+    lua_pushinteger(L, cast(int) prog.createSample());
     return 1;
   }
   catch (Exception err)
@@ -35,7 +35,7 @@ int audio_load(lua_State* L) nothrow
     if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
       throw new Exception("no permission to read other drives!");
     prog.machine.showBusy();
-    lua_pushinteger(L, prog.loadSample(prog.actualFile(filename)));
+    lua_pushinteger(L, cast(int) prog.loadSample(prog.actualFile(filename)));
     return 1;
   }
   catch (Exception err)
@@ -103,7 +103,7 @@ int audio_channelfreq(lua_State* L) nothrow
   {
     if (set)
       prog.machine.audio.setFreq(cast(uint) channel, cast(int) samplerate);
-    lua_pushinteger(L, prog.machine.audio.getFreq(cast(uint) channel));
+    lua_pushinteger(L, cast(int) prog.machine.audio.getFreq(cast(uint) channel));
     return 1;
   }
   catch (Exception err)
@@ -139,7 +139,7 @@ int audio_channelvolume(lua_State* L) nothrow
   {
     if (set)
       prog.machine.audio.setVolume(cast(uint) channel, cast(ubyte) volume);
-    lua_pushinteger(L, prog.machine.audio.getVolume(cast(uint) channel));
+    lua_pushinteger(L, cast(int) prog.machine.audio.getVolume(cast(uint) channel));
     return 1;
   }
   catch (Exception err)
@@ -162,8 +162,8 @@ int audio_channelloop(lua_State* L) nothrow
   {
     if (set)
       prog.machine.audio.setLoop(cast(uint) channel, cast(uint) start, cast(uint) end);
-    lua_pushinteger(L, prog.machine.audio.getLoopStart(cast(uint) channel));
-    lua_pushinteger(L, prog.machine.audio.getLoopEnd(cast(uint) channel));
+    lua_pushinteger(L, cast(int) prog.machine.audio.getLoopStart(cast(uint) channel));
+    lua_pushinteger(L, cast(int) prog.machine.audio.getLoopEnd(cast(uint) channel));
     return 2;
   }
   catch (Exception err)
@@ -190,7 +190,7 @@ int audio_samplevalue(lua_State* L) nothrow
       throw new Exception("Invalid position!");
     if (set)
       prog.samples[cast(uint) smplID].data[cast(uint) pos] = cast(byte) value;
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].data[cast(uint) pos]);
+    lua_pushinteger(L, cast(int) prog.samples[cast(uint) smplID].data[cast(uint) pos]);
     return 1;
   }
   catch (Exception err)
@@ -218,7 +218,7 @@ int audio_samplelength(lua_State* L) nothrow
       prog.samples[cast(uint) smplID].data.length = cast(uint) len;
       prog.useMemory(prog.samples[cast(uint) smplID].memoryUsed());
     }
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].data.length);
+    lua_pushinteger(L, cast(int) prog.samples[cast(uint) smplID].data.length);
     return 1;
   }
   catch (Exception err)
@@ -242,7 +242,7 @@ int audio_samplefreq(lua_State* L) nothrow
       throw new Exception("Invalid sample!");
     if (set)
       prog.samples[cast(uint) smplID].freq = cast(int) samplerate;
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].freq);
+    lua_pushinteger(L, cast(int) prog.samples[cast(uint) smplID].freq);
     return 1;
   }
   catch (Exception err)
@@ -270,8 +270,8 @@ int audio_sampleloop(lua_State* L) nothrow
       prog.samples[cast(uint) smplID].loopStart = cast(uint) start;
       prog.samples[cast(uint) smplID].loopEnd = cast(uint) end;
     }
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopStart);
-    lua_pushinteger(L, prog.samples[cast(uint) smplID].loopEnd);
+    lua_pushinteger(L, cast(int) prog.samples[cast(uint) smplID].loopStart);
+    lua_pushinteger(L, cast(int) prog.samples[cast(uint) smplID].loopEnd);
     return 2;
   }
   catch (Exception err)

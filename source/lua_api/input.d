@@ -69,8 +69,8 @@ int input_cursor(lua_State* L) nothrow
       prog.activeViewport.getTextinput(true).setPosBytes(cast(uint) pos);
       prog.activeViewport.getTextinput(true).setSelectedBytes(cast(uint) sel);
     }
-    lua_pushinteger(L, prog.activeViewport.getTextinput(true).posBytes);
-    lua_pushinteger(L, prog.activeViewport.getTextinput(true).selectedBytes);
+    lua_pushinteger(L, cast(int) prog.activeViewport.getTextinput(true).posBytes);
+    lua_pushinteger(L, cast(int) prog.activeViewport.getTextinput(true).selectedBytes);
     return 2;
   }
   catch (Exception err)
@@ -93,7 +93,7 @@ int input_linesperpage(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.getTextinput(true).linesPerPage = cast(uint) lines;
-    lua_pushinteger(L, prog.activeViewport.getTextinput(true).linesPerPage);
+    lua_pushinteger(L, cast(int) prog.activeViewport.getTextinput(true).linesPerPage);
     return 1;
   }
   catch (Exception err)
@@ -150,9 +150,9 @@ int input_mouse(lua_State* L) nothrow
   {
     if (!prog.activeViewport)
       throw new Exception("No active viewport!");
-    lua_pushinteger(L, prog.activeViewport.mouseX);
-    lua_pushinteger(L, prog.activeViewport.mouseY);
-    lua_pushinteger(L, prog.activeViewport.mouseBtn);
+    lua_pushinteger(L, cast(int) prog.activeViewport.mouseX);
+    lua_pushinteger(L, cast(int) prog.activeViewport.mouseY);
+    lua_pushinteger(L, cast(int) prog.activeViewport.mouseBtn);
     return 3;
   }
   catch (Exception err)
@@ -172,7 +172,7 @@ int input_gamepad(lua_State* L) nothrow
   {
     if (!prog.activeViewport)
       throw new Exception("No active viewport!");
-    lua_pushinteger(L, prog.activeViewport.getGameBtn(cast(ubyte) player));
+    lua_pushinteger(L, cast(int) prog.activeViewport.getGameBtn(cast(ubyte) player));
     return 1;
   }
   catch (Exception err)
@@ -245,7 +245,7 @@ int input_midi(lua_State* L) nothrow
   try
   {
     if (prog.machine.hasMidi())
-      lua_pushinteger(L, prog.machine.getMidi());
+      lua_pushinteger(L, cast(int) prog.machine.getMidi());
     else
       lua_pushnil(L);
     return 1;

@@ -41,9 +41,9 @@ int gfx_palette(lua_State* L) nothrow
     if (set)
       prog.activeViewport.pixmap.setColor(cast(uint) c, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b);
     uint i = cast(uint)(c * 3) % prog.activeViewport.pixmap.palette.length;
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
-    lua_pushinteger(L, prog.activeViewport.pixmap.palette[i++] % 16);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.palette[i++] % 16);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.palette[i++] % 16);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.palette[i++] % 16);
     return 3;
   }
   catch (Exception err)
@@ -66,7 +66,7 @@ int gfx_fgcolor(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.pixmap.setFGColor(cast(ubyte) cindex);
-    lua_pushinteger(L, prog.activeViewport.pixmap.fgColor);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.fgColor);
     return 1;
   }
   catch (Exception err)
@@ -89,7 +89,7 @@ int gfx_bgcolor(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.pixmap.setBGColor(cast(ubyte) cindex);
-    lua_pushinteger(L, prog.activeViewport.pixmap.bgColor);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.bgColor);
     return 1;
   }
   catch (Exception err)
@@ -114,7 +114,7 @@ int gfx_pixel(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.pixmap.pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
-    lua_pushinteger(L, prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.pget(cast(uint) x, cast(uint) y));
     return 1;
   }
   catch (Exception err)

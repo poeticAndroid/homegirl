@@ -19,7 +19,7 @@ int text_loadfont(lua_State* L) nothrow
     if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
       throw new Exception("no permission to read other drives!");
     filename = prog.resolveResource("fonts", filename, ".gif");
-    lua_pushinteger(L, prog.loadFont(prog.actualFile(filename)));
+    lua_pushinteger(L, cast(int) prog.loadFont(prog.actualFile(filename)));
     return 1;
   }
   catch (Exception err)
@@ -42,7 +42,7 @@ int text_copymode(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.pixmap.textCopymode = cast(CopyMode) mode;
-    lua_pushinteger(L, prog.activeViewport.pixmap.textCopymode);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.textCopymode);
     return 1;
   }
   catch (Exception err)
@@ -70,7 +70,7 @@ int text_draw(lua_State* L) nothrow
     auto o = prog.activeViewport.pixmap.text(text, prog.fonts[cast(uint) font],
         cast(int) x, cast(int) y);
     for (uint i = 0; i < o.length; i++)
-      lua_pushinteger(L, o[i]);
+      lua_pushinteger(L, cast(int) o[i]);
     return o.length;
   }
   catch (Exception err)

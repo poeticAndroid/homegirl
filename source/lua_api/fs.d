@@ -153,7 +153,7 @@ int fs_size(lua_State* L) nothrow
     if (!prog.isOnOriginDrive(filename) && !prog.hasPermission(Permissions.readOtherDrives))
       throw new Exception("no permission to read other drives!");
     prog.machine.showBusy();
-    lua_pushinteger(L, getSize(prog.actualFile(filename)));
+    lua_pushinteger(L, cast(int) getSize(prog.actualFile(filename)));
     return 1;
   }
   catch (Exception err)
@@ -176,10 +176,10 @@ int fs_time(lua_State* L) nothrow
     prog.machine.showBusy();
     SysTime accessed, modified;
     getTimes(prog.actualFile(filename), accessed, modified);
-    lua_pushinteger(L, modified.hour);
-    lua_pushinteger(L, modified.minute);
-    lua_pushinteger(L, modified.second);
-    lua_pushinteger(L, modified.utcOffset.total!"minutes");
+    lua_pushinteger(L, cast(int) modified.hour);
+    lua_pushinteger(L, cast(int) modified.minute);
+    lua_pushinteger(L, cast(int) modified.second);
+    lua_pushinteger(L, cast(int) modified.utcOffset.total!"minutes");
     return 4;
   }
   catch (Exception err)
@@ -202,10 +202,10 @@ int fs_date(lua_State* L) nothrow
     prog.machine.showBusy();
     SysTime accessed, modified;
     getTimes(prog.actualFile(filename), accessed, modified);
-    lua_pushinteger(L, modified.year);
-    lua_pushinteger(L, modified.month);
-    lua_pushinteger(L, modified.day);
-    lua_pushinteger(L, modified.dayOfWeek);
+    lua_pushinteger(L, cast(int) modified.year);
+    lua_pushinteger(L, cast(int) modified.month);
+    lua_pushinteger(L, cast(int) modified.day);
+    lua_pushinteger(L, cast(int) modified.dayOfWeek);
     return 4;
   }
   catch (Exception err)

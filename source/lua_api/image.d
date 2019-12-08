@@ -18,7 +18,8 @@ int image_new(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
-    lua_pushinteger(L, prog.createPixmap(cast(uint) width, cast(uint) height, cast(ubyte) colorBits));
+    lua_pushinteger(L, cast(int) prog.createPixmap(cast(uint) width,
+        cast(uint) height, cast(ubyte) colorBits));
     return 1;
   }
   catch (Exception err)
@@ -47,7 +48,7 @@ int image_load(lua_State* L) nothrow
     lua_createtable(L, cast(uint) anim.length, 0);
     for (uint i = 0; i < anim.length; i++)
     {
-      lua_pushinteger(L, anim[i]);
+      lua_pushinteger(L, cast(int) anim[i]);
       lua_rawseti(L, -2, i + 1);
     }
     return 1;
@@ -103,8 +104,8 @@ int image_size(lua_State* L) nothrow
   {
     if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
       throw new Exception("Invalid image!");
-    lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].width);
-    lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].height);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].width);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].height);
     return 2;
   }
   catch (Exception err)
@@ -129,7 +130,7 @@ int image_duration(lua_State* L) nothrow
       throw new Exception("Invalid image!");
     if (set)
       prog.pixmaps[cast(uint) imgID].duration = cast(uint) duration;
-    lua_pushinteger(L, prog.pixmaps[cast(uint) imgID].duration);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].duration);
     return 1;
   }
   catch (Exception err)
@@ -152,7 +153,7 @@ int image_copymode(lua_State* L) nothrow
       throw new Exception("No active viewport!");
     if (set)
       prog.activeViewport.pixmap.copymode = cast(CopyMode) mode;
-    lua_pushinteger(L, prog.activeViewport.pixmap.copymode);
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.copymode);
     return 1;
   }
   catch (Exception err)
