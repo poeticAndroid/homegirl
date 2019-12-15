@@ -64,9 +64,14 @@ do
       view.active(self.titlevp)
       gfx.bgcolor(self.lightcolor)
       gfx.fgcolor(self.darkcolor)
-      gfx.cls()
       local vw, vh = view.size(self.titlevp)
+      local btnx = vw - vh * 2 - 2
+      gfx.cls()
       local tw, th = text.draw(self._title, self._font, 1, 1)
+      if tw >= btnx then
+        gfx.cls()
+        tw, th = text.draw(self._title, self._font, btnx - tw, 1)
+      end
       gfx.bar(0, vh - 1, vw, 1)
       self:_drawbtn()
       view.active(prevvp)

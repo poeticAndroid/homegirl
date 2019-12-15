@@ -4,38 +4,11 @@ end
 
 function friendly(bytes)
   local units = bytes
-  local type = "bytes"
-  if units >= 1024 then
+  local measures = {"YiB", "ZiB", "EiB", "PiB", "TiB", "GiB", "MiB", "KiB"}
+  local measure = "bytes"
+  while units >= 1024 do
     units = units / 1024
-    type = "KiB"
+    measure = table.remove(measures)
   end
-  if units >= 1024 then
-    units = units / 1024
-    type = "MiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "GiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "TiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "PiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "EiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "ZiB"
-  end
-  if units >= 1024 then
-    units = units / 1024
-    type = "YiB"
-  end
-  return string.format("%4.3f", units) .. " " .. type
+  return string.format("%4.3f", units) .. " " .. measure
 end
