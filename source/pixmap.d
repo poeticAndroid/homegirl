@@ -181,6 +181,35 @@ class Pixmap
   }
 
   /**
+    find color closest to given r, g, b values
+  */
+  ubyte nearestColor(int red, int green, int blue)
+  {
+    ubyte l = cast(ubyte)(this.palette.length / 3);
+    red = (red % 16) * 17;
+    green = (green % 16) * 17;
+    blue = (blue % 16) * 17;
+    ubyte best = 3;
+    real record = 1024;
+    for (ubyte i = 0; i < l; i++)
+    {
+      int _red = this.palette[i * 3 + 0];
+      int _green = this.palette[i * 3 + 1];
+      int _blue = this.palette[i * 3 + 2];
+      const diff = sqrt(cast(real)(pow(red - _red, 2) + pow(green - _green, 2) + pow(blue - _blue,
+          2)));
+      if (diff == 0)
+        return i;
+      if (diff < record)
+      {
+        record = diff;
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  /**
     get color of specific pixel
   */
   ubyte pget(uint x, uint y)
@@ -379,6 +408,15 @@ class Pixmap
       break;
     case CopyMode.add:
       this.pset(dx, dy, cast(ubyte)(this.pget(dx, dy) + c));
+      break;
+    case CopyMode.matchreplace:
+      this.pset(dx, dy,
+          this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
+      break;
+    case CopyMode.matchmatte:
+      if (c != src.bgColor)
+        this.pset(dx, dy,
+            this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
       break;
     default:
     }
@@ -709,5 +747,7 @@ enum CopyMode
   xor,
   min,
   max,
-  add
+  add,
+  matchreplace,
+  matchmatte
 }

@@ -99,6 +99,29 @@ int gfx_bgcolor(lua_State* L) nothrow
   }
 }
 
+/// gfx.nearestcolor(r, g, b): color
+int gfx_nearestcolor(lua_State* L) nothrow
+{
+  const r = lua_tonumber(L, 1);
+  const g = lua_tonumber(L, 2);
+  const b = lua_tonumber(L, 3);
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (!prog.activeViewport)
+      throw new Exception("No active viewport!");
+    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.nearestColor(cast(ubyte) r,
+        cast(ubyte) g, cast(ubyte) b));
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
 /// gfx.pixel(x, y[, color]): color
 int gfx_pixel(lua_State* L) nothrow
 {
@@ -236,6 +259,9 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &gfx_bgcolor);
   luaL_dostring(lua, "gfx.bgcolor = _");
+
+  lua_register(lua, "_", &gfx_nearestcolor);
+  luaL_dostring(lua, "gfx.nearestcolor = _");
 
   lua_register(lua, "_", &gfx_pixel);
   luaL_dostring(lua, "gfx.pixel = _");

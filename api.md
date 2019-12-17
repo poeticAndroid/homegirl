@@ -41,6 +41,7 @@
     gfx.palette(color[, red, green, blue]): red, green, blue
     gfx.fgcolor([color]): color
     gfx.bgcolor([color]): color
+    gfx.nearestcolor(r, g, b): color
     gfx.pixel(x, y[, color]): color
     gfx.plot(x, y)
     gfx.bar(x, y, width, height)

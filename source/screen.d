@@ -47,7 +47,22 @@ class Screen : Viewport
       uint height = 360;
       if (!Screen.widescreen)
         height = 480;
+      if (this.program)
+        this.program.freeMemory(this.memoryUsed());
+      this.pixmap.destroyTexture();
+      Pixmap oldpix = this.pixmap;
       this.pixmap = new Pixmap(640 / this.pixelWidth, height / this.pixelHeight, colorBits);
+      this.pixmap.viewport = this;
+      this.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+      this.pixmap.setFGColor(oldpix.fgColor);
+      this.pixmap.setBGColor(oldpix.bgColor);
+      this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.textCopymode = oldpix.textCopymode;
+      if (oldpix.palette.length == this.pixmap.palette.length)
+        this.pixmap.palette = oldpix.palette;
+      this.setDirty();
+      if (this.program)
+        this.program.useMemory(this.memoryUsed());
     }
 
     /**
@@ -61,12 +76,13 @@ class Screen : Viewport
   void defaultPointer()
   {
     this.pointer = new Pixmap(11, 11, 2);
-    this.pointer.pixels = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2,
-      1, 0, 0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0,
-      0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 1, 3, 3, 2, 1, 0, 0,
-      0, 0, 1, 1, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0,
-      0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 1, 0, 0];
+    this.pointer.pixels = [
+      1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 3,
+      3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 1, 3, 3, 3,
+      3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 1, 3, 3, 2, 1, 0, 0, 0, 0, 1, 1, 0, 1, 3,
+      3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3,
+      3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+    ];
     this.pointerX = 0;
     this.pointerY = 0;
   }

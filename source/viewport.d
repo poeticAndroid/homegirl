@@ -39,6 +39,8 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
+    if (this.parent)
+      this.pixmap.palette = this.parent.pixmap.palette;
     this.pixmap.viewport = this;
   }
 
@@ -197,8 +199,15 @@ class Viewport
       if (this.program)
         this.program.freeMemory(this.memoryUsed());
       this.pixmap.destroyTexture();
+      Pixmap oldpix = this.pixmap;
       this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
       this.pixmap.viewport = this;
+      this.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+      this.pixmap.setFGColor(oldpix.fgColor);
+      this.pixmap.setBGColor(oldpix.bgColor);
+      this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.textCopymode = oldpix.textCopymode;
+      this.pixmap.palette = oldpix.palette;
       this.setDirty();
       if (this.program)
         this.program.useMemory(this.memoryUsed());
@@ -362,6 +371,7 @@ class Viewport
           viewport.pixmap.setBGColor(oldpix.bgColor);
           viewport.pixmap.copymode = oldpix.copymode;
           viewport.pixmap.textCopymode = oldpix.textCopymode;
+          viewport.pixmap.palette = this.pixmap.palette;
           if (viewport.program)
             viewport.program.useMemory(viewport.memoryUsed());
         }
