@@ -409,14 +409,32 @@ class Pixmap
     case CopyMode.add:
       this.pset(dx, dy, cast(ubyte)(this.pget(dx, dy) + c));
       break;
-    case CopyMode.matchreplace:
+    case CopyMode.matchReplace:
       this.pset(dx, dy,
           this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
       break;
-    case CopyMode.matchmatte:
+    case CopyMode.matchMatte:
       if (c != src.bgColor)
         this.pset(dx, dy,
             this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
+      break;
+    case CopyMode.averageColor:
+      const _c = this.pget(dx, dy);
+      this.pset(dx, dy, this.nearestColor((this.palette[_c * 3 + 0] + src.palette[c * 3 + 0]) / 32,
+          (this.palette[_c * 3 + 1] + src.palette[c * 3 + 1]) / 32,
+          (this.palette[_c * 3 + 2] + src.palette[c * 3 + 2]) / 32));
+      break;
+    case CopyMode.darkerColor:
+      const _c = this.pget(dx, dy);
+      this.pset(dx, dy, this.nearestColor(min(this.palette[_c * 3 + 0],
+          src.palette[c * 3 + 0]), min(this.palette[_c * 3 + 1],
+          src.palette[c * 3 + 1]), min(this.palette[_c * 3 + 2], src.palette[c * 3 + 2])));
+      break;
+    case CopyMode.lighterColor:
+      const _c = this.pget(dx, dy);
+      this.pset(dx, dy, this.nearestColor(max(this.palette[_c * 3 + 0],
+          src.palette[c * 3 + 0]), max(this.palette[_c * 3 + 1],
+          src.palette[c * 3 + 1]), max(this.palette[_c * 3 + 2], src.palette[c * 3 + 2])));
       break;
     default:
     }
@@ -748,6 +766,9 @@ enum CopyMode
   min,
   max,
   add,
-  matchreplace,
-  matchmatte
+  matchReplace,
+  matchMatte,
+  averageColor,
+  darkerColor,
+  lighterColor,
 }
