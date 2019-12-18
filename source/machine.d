@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.4"; /// version of the software
+const VERSION = "0.10.5"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -948,7 +948,7 @@ class Machine
       this.oldAspect = oldAspect;
     if (this.TVfilter)
     {
-      const b = 76;
+      const b = 32;
       rect.w = width + b;
       rect.h = height + b;
       rect2.w = (width + b) * scale;
@@ -1281,8 +1281,8 @@ class Machine
 
     uint dest = 0;
     ubyte top, left, scan, a;
-    uint bx = 16;
-    uint by = 16;
+    uint bx = 4;
+    uint by = 4;
     uint mul = 4;
     for (uint y = 0; y < height; y++)
     {
@@ -1323,7 +1323,7 @@ class Machine
         {
           scan = 0;
         }
-        a = cast(ubyte) min(255, top + left + scan);
+        a = cast(ubyte) min(255, (top + left) / 2 + scan);
         texdata[dest++] = a;
         texdata[dest++] = 0;
         texdata[dest++] = 0;
