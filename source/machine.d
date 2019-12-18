@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.5"; /// version of the software
+const VERSION = "0.10.6"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -58,7 +58,7 @@ class Machine
   Pixmap busyPointer; /// mouse pointer to show when busy
   int busyPointerX; /// mouse pointer anchor
   int busyPointerY; /// mouse pointer anchor
-  bool TVfilter; /// enable TV filter
+  bool CRTfilter; /// enable TV filter
 
   /**
     Create a new machine
@@ -946,7 +946,7 @@ class Machine
     }
     if (this.lastmb == 0)
       this.oldAspect = oldAspect;
-    if (this.TVfilter)
+    if (this.CRTfilter)
     {
       const b = 32;
       rect.w = width + b;
@@ -956,13 +956,13 @@ class Machine
       rect2.x = dx - b / 2 * scale;
       rect2.y = dy - b / 2 * scale;
       this.rollbar += scale;
-      this.applyTVfilter();
+      this.applyCRTfilter();
     }
     SDL_RenderPresent(this.ren);
     this.isBusy = busy;
   }
 
-  private void applyTVfilter()
+  private void applyCRTfilter()
   {
     if (!this.TVlayer)
       this.createTVlayer(rect.w, rect.h);

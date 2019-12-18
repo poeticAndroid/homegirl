@@ -110,9 +110,9 @@ int main(string[] args)
     config["widescreen"] = parseJSON("true");
     writeConfig = true;
   }
-  if (!("tvfilter" in config))
+  if (!("crtfilter" in config))
   {
-    config["tvfilter"] = parseJSON("true");
+    config["crtfilter"] = parseJSON("true");
     writeConfig = true;
   }
   if (writeConfig)
@@ -156,8 +156,8 @@ int main(string[] args)
   }
   if ("widescreen" in config)
     machine.widescreen = config["widescreen"].type == JSONType.true_;
-  if ("tvfilter" in config)
-    machine.TVfilter = config["tvfilter"].type == JSONType.true_;
+  if ("crtfilter" in config)
+    machine.CRTfilter = config["crtfilter"].type == JSONType.true_;
   if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
   {
   }
