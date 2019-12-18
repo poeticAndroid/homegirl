@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.2"; /// version of the software
+const VERSION = "0.10.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -58,6 +58,7 @@ class Machine
   Pixmap busyPointer; /// mouse pointer to show when busy
   int busyPointerX; /// mouse pointer anchor
   int busyPointerY; /// mouse pointer anchor
+  bool TVfilter; /// enable TV filter
 
   /**
     Create a new machine
@@ -692,6 +693,8 @@ class Machine
   private int pointerX;
   private int pointerY;
   private bool isBusy;
+  private SDL_Texture* TVlayer;
+  private int rollbar = 0;
 
   private void initWindow()
   {
@@ -727,7 +730,12 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
-    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
+    if (this.TVlayer)
+    {
+      SDL_DestroyTexture(this.TVlayer);
+      this.TVlayer = null;
+    }
   }
 
   private void destroyWindow()
@@ -869,6 +877,14 @@ class Machine
     if (this.screens.length && this.screens[$ - 1].pixmap.height
         * this.screens[$ - 1].pixelHeight > 400)
       oldAspect = true;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = width;
+    rect.h = height; // - screen.top / screen.pixelHeight;
+    rect2.x = dx;
+    rect2.y = dy;
+    rect2.w = width * scale;
+    rect2.h = height * scale;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
@@ -900,10 +916,7 @@ class Machine
       rect.y = 0;
       rect.w = pixmap.width;
       rect.h = pixmap.height; // - screen.top / screen.pixelHeight;
-      rect2.x = dx;
       rect2.y = dy + screen.top * scale;
-      rect2.w = rect.w * screen.pixelWidth * scale;
-      rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
       pixmap.initTexture(this.ren);
       uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
@@ -933,8 +946,45 @@ class Machine
     }
     if (this.lastmb == 0)
       this.oldAspect = oldAspect;
+    if (this.TVfilter)
+    {
+      const b = 76;
+      rect.w = width + b;
+      rect.h = height + b;
+      rect2.w = (width + b) * scale;
+      rect2.h = (height + b) * scale;
+      rect2.x = dx - b / 2 * scale;
+      rect2.y = dy - b / 2 * scale;
+      this.rollbar += scale;
+      this.applyTVfilter();
+    }
     SDL_RenderPresent(this.ren);
     this.isBusy = busy;
+  }
+
+  private void applyTVfilter()
+  {
+    if (!this.TVlayer)
+      this.createTVlayer(rect.w, rect.h);
+    SDL_RenderCopy(this.ren, this.TVlayer, rect, rect2);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+    SDL_GetWindowSize(this.win, &rect.w, &rect.h);
+    rect.y = 0;
+    rect.x = rect2.x + rect2.w;
+    SDL_RenderFillRect(ren, rect);
+    rect.x = rect2.x - rect.w;
+    SDL_RenderFillRect(ren, rect);
+    rect.x = 0;
+    rect.y = rect2.y + rect2.h;
+    SDL_RenderFillRect(ren, rect);
+    rect.y = rect2.y - rect.h;
+    SDL_RenderFillRect(ren, rect);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 15);
+    if (this.rollbar > rect.h)
+      this.rollbar -= rect.h * 2;
+    rect.y = this.rollbar;
+    rect.h /= 2;
+    SDL_RenderFillRect(ren, rect);
   }
 
   private void handleTextInput(TextEditor te, string txt)
@@ -1215,6 +1265,72 @@ class Machine
     ];
     this.busyPointerX = 8;
     this.busyPointerY = 10;
+  }
+
+  private void createTVlayer(uint width, uint height)
+  {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_SetRenderDrawBlendMode(this.ren, SDL_BLENDMODE_BLEND);
+    this.TVlayer = SDL_CreateTexture(this.ren, SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING, width, height);
+    SDL_SetTextureBlendMode(this.TVlayer, SDL_BLENDMODE_BLEND);
+
+    ubyte* texdata = null;
+    int pitch;
+    SDL_LockTexture(this.TVlayer, null, cast(void**)&texdata, &pitch);
+
+    uint dest = 0;
+    ubyte top, left, scan, a;
+    uint bx = 16;
+    uint by = 16;
+    uint mul = 4;
+    for (uint y = 0; y < height; y++)
+    {
+      for (uint x = 0; x < width; x++)
+      {
+        top = cast(ubyte) max(0, 255 - 255 * sin(cast(float) x / width * PI) * mul);
+        left = cast(ubyte) max(0, 255 - 255 * sin(cast(float) y / height * PI) * mul);
+        if (y < by * mul)
+        {
+          top = cast(ubyte) max(0, 255 - 255 * sin(cast(float) x / width * PI) * (cast(float) y / by));
+        }
+        if ((height - y) < by * mul)
+        {
+          top = cast(ubyte) max(0,
+              255 - 255 * sin(cast(float) x / width * PI) * (cast(float)(height - y) / by));
+        }
+
+        if (x < bx * mul)
+        {
+          left = cast(ubyte) max(0, 255 - 255 * sin(cast(float) y / height * PI) * (
+              cast(float) x / bx));
+        }
+        if ((width - x) < bx * mul)
+        {
+          left = cast(ubyte) max(0,
+              255 - 255 * sin(cast(float) y / height * PI) * (cast(float)(width - x) / bx));
+        }
+
+        if (y % 2)
+        {
+          scan = 127;
+        }
+        else if ((x + y / 2) % 2)
+        {
+          scan = 31;
+        }
+        else
+        {
+          scan = 0;
+        }
+        a = cast(ubyte) min(255, top + left + scan);
+        texdata[dest++] = a;
+        texdata[dest++] = 0;
+        texdata[dest++] = 0;
+        texdata[dest++] = 0;
+      }
+    }
+    SDL_UnlockTexture(this.TVlayer);
   }
 }
 

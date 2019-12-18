@@ -110,6 +110,11 @@ int main(string[] args)
     config["widescreen"] = parseJSON("true");
     writeConfig = true;
   }
+  if (!("tvfilter" in config))
+  {
+    config["tvfilter"] = parseJSON("true");
+    writeConfig = true;
+  }
   if (writeConfig)
   {
     if (!exists(dirName(configFileName)))
@@ -151,6 +156,8 @@ int main(string[] args)
   }
   if ("widescreen" in config)
     machine.widescreen = config["widescreen"].type == JSONType.true_;
+  if ("tvfilter" in config)
+    machine.TVfilter = config["tvfilter"].type == JSONType.true_;
   if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
   {
   }
