@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.3"; /// version of the software
+const VERSION = "0.10.4"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -979,7 +979,7 @@ class Machine
     SDL_RenderFillRect(ren, rect);
     rect.y = rect2.y - rect.h;
     SDL_RenderFillRect(ren, rect);
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 15);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 7);
     if (this.rollbar > rect.h)
       this.rollbar -= rect.h * 2;
     rect.y = this.rollbar;
