@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.6"; /// version of the software
+const VERSION = "0.10.7"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -156,7 +156,7 @@ class Machine
         switch (event.key.keysym.sym)
         {
         case SDLK_F7:
-          SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 18)
+          SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 32)
               * scale);
           SDL_SetWindowPosition(this.win, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           break;
@@ -1281,9 +1281,9 @@ class Machine
 
     uint dest = 0;
     ubyte top, left, scan, a;
-    uint bx = 4;
+    uint bx = 2;
     uint by = 4;
-    uint mul = 4;
+    uint mul = 32;
     for (uint y = 0; y < height; y++)
     {
       for (uint x = 0; x < width; x++)
@@ -1313,11 +1313,11 @@ class Machine
 
         if (y % 2)
         {
-          scan = 127;
+          scan = 63;
         }
         else if ((x + y / 2) % 2)
         {
-          scan = 31;
+          scan = 15;
         }
         else
         {
