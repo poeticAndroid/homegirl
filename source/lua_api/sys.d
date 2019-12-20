@@ -199,7 +199,7 @@ int sys_permissions(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
-    drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+    drive = toLower(prog.machine.getDrive(drive ~ ":", ""));
     if ((set || prog.drive != drive) && !prog.hasPermission(Permissions.managePermissions))
       throw new Exception("no permission to manage permissions!");
     if (set)
@@ -224,7 +224,7 @@ int sys_requestedpermissions(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
-    drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+    drive = toLower(prog.machine.getDrive(drive ~ ":", ""));
     if (prog.drive != drive && !prog.hasPermission(Permissions.managePermissions))
       throw new Exception("no permission to manage permissions!");
     if (set)

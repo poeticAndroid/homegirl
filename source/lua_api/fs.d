@@ -49,7 +49,7 @@ int fs_mount(lua_State* L) nothrow
   {
     if (!drive)
       throw new Exception("illegal drive name!");
-    drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+    drive = toLower(prog.machine.getDrive(drive ~ ":", ""));
     if (prog.machine.net.isUrl(path))
     {
       if (!prog.hasPermission(Permissions.mountRemoteDrives))
@@ -85,7 +85,7 @@ int fs_unmount(lua_State* L) nothrow
   {
     if (!drive)
       throw new Exception("illegal drive name!");
-    drive = toUpper(prog.machine.getDrive(drive ~ ":", ""));
+    drive = toLower(prog.machine.getDrive(drive ~ ":", ""));
     if (prog.drive != drive && !prog.hasPermission(Permissions.unmountDrives))
       throw new Exception("no permission to unmount other drives!");
     prog.machine.unmountDrive(drive, force != 0);
