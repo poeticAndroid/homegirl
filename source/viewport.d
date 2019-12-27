@@ -345,6 +345,17 @@ class Viewport
   }
 
   /**
+    make sure programs owned by this and parent viewports get stepped
+  */
+  void queueProgramStep(double interval)
+  {
+    if (this.program && this.program.stepInterval <= interval)
+      this.program.nextStep = 16;
+    if (this.parent)
+      this.parent.queueProgramStep(interval);
+  }
+
+  /**
     Render any visible children onto this viewport
   */
   void render()

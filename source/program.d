@@ -106,6 +106,8 @@ class Program
   */
   void step(uint timestamp)
   {
+    if (this.nextStep > timestamp)
+      this.nextStep = timestamp;
     this.purgeDeadViewports();
     if (this.nextStep == 0 && this.running && lua_pcall(this.lua, 0, LUA_MULTRET, 0))
       this.croak();
@@ -116,6 +118,8 @@ class Program
     if (this.running)
       this.call("_step", timestamp);
     this.nextStep += this.stepInterval;
+    if (this.stepInterval < 0)
+      this.nextStep = double.max;
     if (this.nextStep < timestamp)
       this.nextStep = timestamp;
     if (this.activeViewport)
@@ -263,6 +267,8 @@ class Program
     if (!this.io[buf])
       this.io[buf] = "";
     this.io[buf] ~= data;
+    if (data.length > 0 && this.stepInterval < 0)
+      this.nextStep = 16;
   }
 
   /**

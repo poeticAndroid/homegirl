@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.10.8"; /// version of the software
+const VERSION = "0.10.9"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -123,14 +123,14 @@ class Machine
           auto te = this.focusedViewport.getTextinput();
           if (event.wheel.y < 0)
           {
-            newInput = true;
+            this.focusedViewport.queueProgramStep(-1);
             te.down();
             te.down();
             te.down();
           }
           else if (event.wheel.y > 0)
           {
-            newInput = true;
+            this.focusedViewport.queueProgramStep(-1);
             te.up();
             te.up();
             te.up();
@@ -138,13 +138,13 @@ class Machine
         }
         break;
       case SDL_TEXTINPUT:
-        this.newInput = true;
+        this.focusedViewport.queueProgramStep(-1);
         if (this.focusedViewport && this.focusedViewport.getTextinput())
           this.handleTextInput(this.focusedViewport.getTextinput(),
               to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
-        this.newInput = true;
+        this.focusedViewport.queueProgramStep(-1);
         if (this.focusedViewport)
         {
           if ((SDL_GetModState() & KMOD_CTRL && event.key.keysym.sym < 128)
@@ -184,7 +184,7 @@ class Machine
         }
         break;
       case SDL_KEYUP:
-        this.newInput = true;
+        this.focusedViewport.queueProgramStep(-1);
         break;
       default:
         // writeln("event ", event.type);
@@ -208,16 +208,11 @@ class Machine
           this.shutdownProgram(program);
         else
         {
-          if (program.nextStep == 0)
-            this.newInput = true;
-          if ((program.stepInterval < 0 && newInput) || (program.stepInterval < -1
-              && newStir) || (program.stepInterval >= 0 && program.nextStep <= SDL_GetTicks()))
+          if (program.nextStep <= SDL_GetTicks())
             program.step(SDL_GetTicks());
         }
       }
     }
-    this.newInput = false;
-    this.newStir = false;
 
     if (runningPrograms == 0)
     {
@@ -400,6 +395,7 @@ class Machine
         this.focusedViewport.setMouseBtn(0);
         this.focusedViewport.setGameBtn(0, 1);
         this.focusedViewport.setGameBtn(0, 2);
+        this.focusedViewport.queueProgramStep(-1);
       }
       this.focusedViewport = vp;
     }
@@ -686,8 +682,6 @@ class Machine
   private uint scale;
   private uint bootupState = 5;
   private uint nextBootup;
-  private bool newInput;
-  private bool newStir;
   private bool oldAspect;
   private Pixmap pointer;
   private int pointerX;
@@ -818,7 +812,10 @@ class Machine
     if (mb == 0)
     {
       if (vp && vp.getBasket())
+      {
         vp.getBasket().deposit(this.draggedObjects);
+        vp.queueProgramStep(-1);
+      }
       this.draggedObjects = [];
       this.draggedIcons = [];
     }
@@ -832,20 +829,21 @@ class Machine
       this.focusViewport(this.focusedViewport.getParent());
     if (this.lastmb != mb)
     {
-      this.newInput = true;
       this.lastmb = mb;
       if (this.focusedViewport)
+      {
         this.focusedViewport.setMouseBtn(mb);
+        this.focusedViewport.queueProgramStep(-1);
+      }
     }
     if (this.lastmx != mx || this.lastmy != my)
     {
-      this.newStir = true;
+      if (this.focusedViewport)
+        this.focusedViewport.queueProgramStep(-2);
       this.lastmx = mx;
       this.lastmy = my;
-      if (mb)
-      {
-        this.newInput = true;
-      }
+      if (mb && this.focusedViewport)
+        this.focusedViewport.queueProgramStep(-1);
     }
   }
 
@@ -1201,7 +1199,7 @@ class Machine
     if (this.lastgmb != neo)
     {
       this.lastgmb = neo;
-      this.newInput = true;
+      this.focusedViewport.queueProgramStep(-1);
       for (uint i = 0; i < gameBtns.length; i++)
         this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }
