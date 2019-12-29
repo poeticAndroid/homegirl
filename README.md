@@ -21,8 +21,8 @@ Specs
  - **Programming language:** Lua ([See wiki for API documentation](https://github.com/poeticAndroid/homegirl/wiki))
  - **Screen resolutions:** Multiple screen modes ranging from 80x45 to 640x480 pixels
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
- - **Audio:** Four 8-bit PCM channels in stereo, playback up to 24 kHz
- - **Input:** Text, mouse, game input and MIDI(Windows only)..
+ - **Audio:** Four 8-bit PCM channels in stereo, playback up to 32 kHz
+ - **Input:** Text, mouse and game input..
  - **Filesystem:** Named drives which can be mapped to local folders or websites
  - **Native filetypes:** GIF for images and animations, WAV for sound samples
 

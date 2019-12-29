@@ -56,7 +56,7 @@ class Sample
     ushort bitsPerSample = f.rawRead(s)[0];
     if (audioFormat != 1)
       throw new Exception("Unsupported format!");
-    while (sampleRate > 24_000)
+    while (sampleRate > 32_000)
     {
       numChannels *= 2;
       sampleRate /= 2;
