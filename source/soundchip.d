@@ -65,11 +65,9 @@ class SoundChip
         else
           this.rate[i] = 0;
       }
-      this.buffer[p] = this.value[0] + this.value[1] - this.value[0] * this.value[1];
-      this.buffer[p] = this.buffer[p] + this.value[2] * .4 - this.buffer[p] * this.value[2] * .4;
+      this.buffer[p] = this.value[0] * .5 + this.value[1] * .5 + this.value[2] * .25;
       p++;
-      this.buffer[p] = this.value[2] + this.value[3] - this.value[2] * this.value[3];
-      this.buffer[p] = this.buffer[p] + this.value[1] * .4 - this.buffer[p] * this.value[1] * .4;
+      this.buffer[p] = this.value[3] * .5 + this.value[2] * .5 + this.value[1] * .25;
       p++;
       this.lastTick++;
       if (this.timeToSync-- == 0)
