@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.0.0"; /// version of the software
+const VERSION = "1.0.2"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -762,18 +762,19 @@ class Machine
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
-    int mx;
-    int my;
+    int mx, my;
     ubyte mb = cast(ubyte) SDL_GetMouseState(&mx, &my);
     mb = (mb / 2) + (mb % 2);
-    if (mx > dx)
-      mx = (mx - dx) / scale;
-    else
-      mx = ((dx - mx) / scale) * -1;
-    if (my > dy)
-      my = (my - dy) / scale;
-    else
-      my = ((dy - my) / scale) * -1;
+    if (mx < dx)
+      mx = dx;
+    if (my < dy)
+      my = dy;
+    mx = (mx - dx) / scale;
+    my = (my - dy) / scale;
+    if (mx >= width)
+      mx = width - 1;
+    if (my >= height)
+      my = height - 1;
 
     Viewport vp;
     bool validFocus = false;
@@ -787,6 +788,7 @@ class Machine
       if (screen.containsViewport(this.focusedViewport))
         validFocus = validFocus || true;
     }
+
     if (SDL_GetTicks() > this.cursorBlank)
     {
       SDL_ShowCursor(SDL_DISABLE);
@@ -803,10 +805,6 @@ class Machine
         this.pointerX = pvp.pointerX;
         this.pointerY = pvp.pointerY;
         SDL_ShowCursor(SDL_DISABLE);
-      }
-      else
-      {
-        SDL_ShowCursor(SDL_ENABLE);
       }
     }
     if (mb == 0)

@@ -112,7 +112,7 @@ int main(string[] args)
   }
   if (!("crtfilter" in config))
   {
-    config["crtfilter"] = parseJSON("true");
+    config["crtfilter"] = parseJSON("false");
     writeConfig = true;
   }
   if (writeConfig)

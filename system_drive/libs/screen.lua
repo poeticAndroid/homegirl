@@ -88,12 +88,6 @@ do
     if btn == 1 then
       if x < btnx then
         local top = self:top(self:top() + y - 5)
-        if (self._mode < 16 and top > 340) then
-          self:top(340)
-        end
-        if (self._mode >= 16 and top > 460) then
-          self:top(460)
-        end
       else
         self:_drawbtn(true)
       end
