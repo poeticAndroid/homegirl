@@ -155,7 +155,12 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
 */
 FIBITMAP* pixmapToFibitmap(Pixmap pixmap)
 {
-  FIBITMAP* img = FreeImage_Allocate(pixmap.width, pixmap.height, pixmap.colorBits);
+  auto bpp = pixmap.colorBits;
+  if (bpp > 8)
+    bpp = 8;
+  while (bpp != 1 && bpp != 4 && bpp != 8)
+    bpp++;
+  FIBITMAP* img = FreeImage_Allocate(pixmap.width, pixmap.height, bpp);
   FITAG* tag = FreeImage_CreateTag();
   FreeImage_SetTagKey(tag, "FrameTime");
   FreeImage_SetTagType(tag, FIDT_LONG);

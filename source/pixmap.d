@@ -40,8 +40,7 @@ class Pixmap
       colors *= 2;
     this.palette.length = colors * 3;
     this.pixelMask = cast(ubyte)(colors - 1);
-    for (uint i = 0; i < colors; i++)
-      this.setColor(i, cast(ubyte) i, cast(ubyte) i, cast(ubyte) i);
+    this.defaultPalette(colors);
 
     this.pixels.length = this.width * this.height;
     for (uint i = 0; i < this.pixels.length; i++)
@@ -183,27 +182,27 @@ class Pixmap
   /**
     find color closest to given r, g, b values
   */
-  ubyte nearestColor(int red, int green, int blue)
+  ubyte nearestColor(ubyte red, ubyte green, ubyte blue)
   {
-    ubyte l = cast(ubyte)(this.palette.length / 3);
+    uint l = cast(uint)(this.palette.length / 3);
     red = (red % 16) * 17;
     green = (green % 16) * 17;
     blue = (blue % 16) * 17;
     ubyte best = 3;
     real record = 1024;
-    for (ubyte i = 0; i < l; i++)
+    for (uint i = 0; i < l; i++)
     {
-      int _red = this.palette[i * 3 + 0];
-      int _green = this.palette[i * 3 + 1];
-      int _blue = this.palette[i * 3 + 2];
+      ubyte _red = this.palette[i * 3 + 0];
+      ubyte _green = this.palette[i * 3 + 1];
+      ubyte _blue = this.palette[i * 3 + 2];
       const diff = sqrt(cast(real)(pow(red - _red, 2) + pow(green - _green, 2) + pow(blue - _blue,
           2)));
       if (diff == 0)
-        return i;
+        return cast(ubyte) i;
       if (diff < record)
       {
         record = diff;
-        best = i;
+        best = cast(ubyte) i;
       }
     }
     return best;
@@ -751,6 +750,41 @@ class Pixmap
       }
     }
     this.uicolors[0] = 1;
+  }
+
+  private void defaultPalette(uint colors)
+  {
+    uint d = 6;
+    while ((d * d * d) > colors)
+      d--;
+    d--;
+    if (d == 0)
+    {
+      this.setColor(3, 10, 10, 10);
+      this.setColor(2, 5, 5, 5);
+      this.setColor(1, 15, 15, 15);
+      this.setColor(0, 0, 0, 0);
+    }
+    else
+    {
+      uint i = 0;
+      for (uint r = 0; r <= d; r++)
+      {
+        for (uint g = 0; g <= d; g++)
+        {
+          for (uint b = 0; b <= d; b++)
+          {
+            this.setColor(i++, cast(ubyte)(r * 15 / d), cast(ubyte)(g * 15 / d),
+                cast(ubyte)(b * 15 / d));
+          }
+        }
+      }
+      while (i < colors)
+      {
+        this.setColor(i, cast(ubyte) i, cast(ubyte) i, cast(ubyte) i);
+        i++;
+      }
+    }
   }
 }
 

@@ -115,6 +115,26 @@ int image_size(lua_State* L) nothrow
   }
 }
 
+/// image.colordepth(img):  colorbits
+int image_colordepth(lua_State* L) nothrow
+{
+  const imgID = lua_tointeger(L, 1);
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+      throw new Exception("Invalid image!");
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].colorBits);
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
 /// image.duration(img[, milliseconds]): milliseconds
 int image_duration(lua_State* L) nothrow
 {
@@ -419,6 +439,9 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_size);
   luaL_dostring(lua, "image.size = _");
+
+  lua_register(lua, "_", &image_colordepth);
+  luaL_dostring(lua, "image.colordepth = _");
 
   lua_register(lua, "_", &image_duration);
   luaL_dostring(lua, "image.duration = _");
