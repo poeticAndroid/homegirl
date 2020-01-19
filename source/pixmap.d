@@ -760,9 +760,9 @@ class Pixmap
     d--;
     if (d == 0)
     {
-      this.setColor(3, 10, 10, 10);
-      this.setColor(2, 5, 5, 5);
-      this.setColor(1, 15, 15, 15);
+      this.setColor(2, 10, 10, 10);
+      this.setColor(1, 5, 5, 5);
+      this.setColor(3, 15, 15, 15);
       this.setColor(0, 0, 0, 0);
     }
     else
@@ -779,6 +779,8 @@ class Pixmap
           }
         }
       }
+      if (colors == 16)
+        i = 0;
       while (i < colors)
       {
         this.setColor(i, cast(ubyte) i, cast(ubyte) i, cast(ubyte) i);
