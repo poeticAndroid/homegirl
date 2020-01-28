@@ -160,6 +160,90 @@ int image_duration(lua_State* L) nothrow
   }
 }
 
+/// image.pixel(img, x, y[, color]): color
+int image_pixel(lua_State* L) nothrow
+{
+  const imgID = lua_tointeger(L, 1);
+  const x = lua_tonumber(L, 2);
+  const y = lua_tonumber(L, 3);
+  const c = lua_tonumber(L, 4);
+  const set = 1 - lua_isnoneornil(L, 4);
+
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+      throw new Exception("Invalid image!");
+    if (set)
+      prog.pixmaps[cast(uint) imgID].pset(cast(uint) x, cast(uint) y, cast(ubyte) c);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].pget(cast(uint) x, cast(uint) y));
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
+/// image.palette(img, color[, red, green, blue]): red, green, blue
+int image_palette(lua_State* L) nothrow
+{
+  const imgID = lua_tointeger(L, 1);
+  const c = lua_tonumber(L, 2);
+  const r = lua_tonumber(L, 3);
+  const g = lua_tonumber(L, 4);
+  const b = lua_tonumber(L, 5);
+  const set = 1 - lua_isnoneornil(L, 3);
+
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+      throw new Exception("Invalid image!");
+    if (set)
+      prog.pixmaps[cast(uint) imgID].setColor(cast(uint) c, cast(ubyte) r,
+          cast(ubyte) g, cast(ubyte) b);
+    uint i = cast(uint)(c * 3) % prog.pixmaps[cast(uint) imgID].palette.length;
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].palette[i++] % 16);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].palette[i++] % 16);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].palette[i++] % 16);
+    return 3;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
+/// image.bgcolor(img[, color]): color
+int image_bgcolor(lua_State* L) nothrow
+{
+  const imgID = lua_tointeger(L, 1);
+  const cindex = lua_tonumber(L, 2);
+  const set = 1 - lua_isnoneornil(L, 2);
+
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (imgID >= prog.pixmaps.length || !prog.pixmaps[cast(uint) imgID])
+      throw new Exception("Invalid image!");
+    if (set)
+      prog.pixmaps[cast(uint) imgID].setBGColor(cast(ubyte) cindex);
+    lua_pushinteger(L, cast(int) prog.pixmaps[cast(uint) imgID].bgColor);
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
 /// image.copymode([mode]): mode
 int image_copymode(lua_State* L) nothrow
 {
@@ -445,6 +529,15 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_duration);
   luaL_dostring(lua, "image.duration = _");
+
+  lua_register(lua, "_", &image_pixel);
+  luaL_dostring(lua, "image.pixel = _");
+
+  lua_register(lua, "_", &image_palette);
+  luaL_dostring(lua, "image.palette = _");
+
+  lua_register(lua, "_", &image_bgcolor);
+  luaL_dostring(lua, "image.bgcolor = _");
 
   lua_register(lua, "_", &image_copymode);
   luaL_dostring(lua, "image.copymode = _");
