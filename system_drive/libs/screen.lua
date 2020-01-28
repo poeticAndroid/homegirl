@@ -165,24 +165,8 @@ do
   function Screen:autocolor()
     local prevvp = view.active()
     view.active(self.rootvp)
-    local r, g, b, bg, fg, bgv, fgv, v
-    local colors = math.pow(2, self._colorbits)
-    bgv = -1
-    fgv = 60
-    for c = 0, colors - 1 do
-      r, g, b = gfx.palette(c)
-      v = r + g + b
-      if v > bgv then
-        bgv = v
-        bg = c
-      end
-      if v < fgv then
-        fgv = v
-        fg = c
-      end
-    end
-    self.darkcolor = fg
-    self.lightcolor = bg
+    self.darkcolor = gfx.nearestcolor(0, 0, 0)
+    self.lightcolor = gfx.nearestcolor(15, 15, 15)
     self:title(self._title)
     view.active(prevvp)
   end
