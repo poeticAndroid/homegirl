@@ -20,12 +20,16 @@ do
     self:size(sw / 2, sh / 2)
     input.text(self.filename)
     input.clearhistory()
+    self.filename = self.filename .. "/."
+    self:step(42)
   end
 
   function FileRequester:step(time)
     local prevvp = view.active()
     view.active(self.container)
 
+    local list = self.list
+    local delta = #(input.text()) - #(self.filename)
     self.filename = input.text()
     if self.filename == path.trailslash(self.filename) then
       self.dirname = self.filename
@@ -40,9 +44,15 @@ do
     if string.find(self.basename, "\t") then
       self.basename = self.list[1] or ""
       self.filename = input.text(self.dirname .. self.basename)
+      if self.filename == path.trailslash(self.filename) then
+        self.dirname = self.filename
+        self.basename = ""
+      end
+    end
+    if delta < 0 or (delta > 0 and self.filename == path.trailslash(self.filename)) then
+      list = fs.list(self.dirname) or {}
     end
     self.list = {}
-    local list = fs.list(self.dirname) or {}
     if #(self.dirname) < 2 then
       list = fs.drives()
     end
@@ -117,7 +127,7 @@ do
       text.draw(self:_letterwrap(string.sub(self.filename, 1, cpos), math.floor((cw - 4) / chwidth)), self.font, x, y)
 
     y = y + th + 1
-    gfx.bar(0, y, cw, 1)
+    gfx.bar(x, y, cw - x * 2, 1)
     y = y + 2
     local top, maxw = y, 0
     for i, name in ipairs(self.list) do
@@ -126,8 +136,8 @@ do
       if tw > maxw then
         maxw = tw
       end
-      if y + th > ch then
-        x, y = x + maxw + 1, top
+      if y + th >= ch then
+        x, y = x + maxw + chwidth / 2, top
         maxw = 0
       end
     end
