@@ -1,4 +1,4 @@
-local Screen, Menu = require("screen"), require("menu")
+local Screen, Menu, FileRequester = require("screen"), require("menu"), require("filerequester")
 local scrn, menu, mode, depth, anim, frame, tool, icons
 local toolvp, propvp, palettevp, canvasvp, wpaper
 local cx, cy, modechecked, bppchecked
@@ -34,12 +34,11 @@ function _init(args)
       {
         label = "File",
         menu = {
-          {label = "Load..."},
-          {label = "Save"},
+          {label = "Load...", hotkey = "l", action = reqload},
+          {label = "Save", hotkey = "s"},
           {label = "Save as..."}
         }
       },
-      {label = "Edit"},
       {
         label = "Screen",
         menu = {
@@ -113,6 +112,9 @@ function _step(t)
   scrn:step(t)
 end
 
+function reqload()
+  local req = scrn:attachwindow("req", FileRequester:new())
+end
 function loadanim(filename)
   anim = image.load(filename)
   frame = 1

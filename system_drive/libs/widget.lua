@@ -36,6 +36,12 @@ do
       if screen == nil then
         screen = parent.screen
       end
+      self.darkcolor = parent.darkcolor
+      self.lightcolor = parent.lightcolor
+      self.fgcolor = parent.fgcolor
+      self.bgcolor = parent.bgcolor
+      self.fgtextcolor = parent.fgtextcolor
+      self.bgtextcolor = parent.bgtextcolor
     end
     if self.parent ~= parent then
       self.parent = parent

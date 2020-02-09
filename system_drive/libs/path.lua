@@ -58,6 +58,10 @@ function path.basename(pathname)
   end
 end
 
+function path.dirname(pathname)
+  return path.trailslash(path.resolve(pathname, ".."))
+end
+
 function path.trailslash(pathname)
   if string.sub(pathname, -1) == "/" then
     return pathname
