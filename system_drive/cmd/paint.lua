@@ -1,16 +1,11 @@
 local Screen, Menu, FileRequester = require("screen"), require("menu"), require("filerequester")
-local scrn, menu, mode, depth, anim, frame, tool, icons
-local toolvp, propvp, palettevp, canvasvp, wpaper
-local cx, cy, modechecked, bppchecked
-local updateonnextstep
+local scrn, anim, frame, filename, saved
+local canvasvp, toolbarvp, palettevp, sidebarvp
+local updateagain, icons, wpaper, menu
+local tool, fgcolor
 
 function _init(args)
-  anim = {image.new(32, 32, 5)}
-  frame = 1
-  local iw, ih = image.size(anim[frame])
-  depth = image.colordepth(anim[frame])
-  mode = 10
-  scrn = Screen:new(args[1], mode, depth)
+  scrn = Screen:new("Loading..", 10, 2)
   gfx.fgcolor(0)
   gfx.bar(0, 0, 2, 2)
   gfx.fgcolor(1)
@@ -19,186 +14,167 @@ function _init(args)
   wpaper = image.new(2, 2, 1)
   image.copy(wpaper, 0, 0, 0, 0, 2, 2)
   icons = image.load(_DIR .. "paint.gif")
-  local sw, top = view.size(scrn.titlevp)
   local sw, sh = view.size(scrn.rootvp)
-  canvasvp = view.new(scrn.rootvp, 16, 16, iw, ih)
-  makepointer()
-  toolvp = view.new(scrn.rootvp, 0, top, 10, #icons * 9 + 1)
-  propvp = view.new(scrn.rootvp, 0, 0, 40, sh)
-  palettevp = view.new(scrn.rootvp, 0, 0, sw, sh)
-  view.zindex(scrn.titlevp, -1)
   local hk = sh / 240
-  menu =
-    Menu:new(
+  menu = {
     {
-      {
-        label = "File",
-        menu = {
-          {label = "Load...", hotkey = "l", action = reqload},
-          {label = "Save", hotkey = "s"},
-          {label = "Save as..."}
-        }
-      },
-      {
-        label = "Screen",
-        menu = {
-          {
-            label = "Size",
-            menu = {
-              {label = " 80x" .. math.floor(60 * hk), _mode = 0, action = checkmode, hotkey = "0"},
-              {label = "160x" .. math.floor(60 * hk), _mode = 1, action = checkmode},
-              {label = "320x" .. math.floor(60 * hk), _mode = 2, action = checkmode},
-              {label = "640x" .. math.floor(60 * hk), _mode = 3, action = checkmode},
-              {label = " 80x" .. math.floor(120 * hk), _mode = 4, action = checkmode},
-              {label = "160x" .. math.floor(120 * hk), _mode = 5, action = checkmode, hotkey = "1"},
-              {label = "320x" .. math.floor(120 * hk), _mode = 6, action = checkmode},
-              {label = "640x" .. math.floor(120 * hk), _mode = 7, action = checkmode},
-              {label = " 80x" .. math.floor(240 * hk), _mode = 8, action = checkmode},
-              {label = "160x" .. math.floor(240 * hk), _mode = 9, action = checkmode},
-              {label = "320x" .. math.floor(240 * hk), _mode = 10, action = checkmode, hotkey = "2"},
-              {label = "640x" .. math.floor(240 * hk), _mode = 11, action = checkmode},
-              {label = " 80x" .. math.floor(480 * hk), _mode = 12, action = checkmode},
-              {label = "160x" .. math.floor(480 * hk), _mode = 13, action = checkmode},
-              {label = "320x" .. math.floor(480 * hk), _mode = 14, action = checkmode},
-              {label = "640x" .. math.floor(480 * hk), _mode = 15, action = checkmode, hotkey = "3"}
-            }
-          },
-          {
-            label = "Colors",
-            menu = {
-              {label = "  2"},
-              {label = "  4"},
-              {label = "  8"},
-              {label = " 16"},
-              {label = " 32"},
-              {label = " 64"},
-              {label = "128"},
-              {label = "256"}
-            }
+      label = "File",
+      menu = {
+        {label = "Load..", action = reqload, hotkey = "l"},
+        {label = "Save", hotkey = "s"},
+        {label = "Save as.."},
+        {label = "Quit", action = quit, hotkey = "q"}
+      }
+    },
+    {
+      label = "Screen",
+      menu = {
+        {
+          label = "Size",
+          onopen = updatesizemenu,
+          menu = {
+            {label = " 80x" .. math.floor(60 * hk), _mode = 0, action = reqmode, hotkey = "0"},
+            {label = "160x" .. math.floor(60 * hk), _mode = 1, action = reqmode},
+            {label = "320x" .. math.floor(60 * hk), _mode = 2, action = reqmode},
+            {label = "640x" .. math.floor(60 * hk), _mode = 3, action = reqmode},
+            {label = " 80x" .. math.floor(120 * hk), _mode = 4, action = reqmode},
+            {label = "160x" .. math.floor(120 * hk), _mode = 5, action = reqmode, hotkey = "1"},
+            {label = "320x" .. math.floor(120 * hk), _mode = 6, action = reqmode},
+            {label = "640x" .. math.floor(120 * hk), _mode = 7, action = reqmode},
+            {label = " 80x" .. math.floor(240 * hk), _mode = 8, action = reqmode},
+            {label = "160x" .. math.floor(240 * hk), _mode = 9, action = reqmode},
+            {label = "320x" .. math.floor(240 * hk), _mode = 10, action = reqmode, hotkey = "2"},
+            {label = "640x" .. math.floor(240 * hk), _mode = 11, action = reqmode},
+            {label = " 80x" .. math.floor(480 * hk), _mode = 12, action = reqmode},
+            {label = "160x" .. math.floor(480 * hk), _mode = 13, action = reqmode},
+            {label = "320x" .. math.floor(480 * hk), _mode = 14, action = reqmode},
+            {label = "640x" .. math.floor(480 * hk), _mode = 15, action = reqmode, hotkey = "3"}
+          }
+        },
+        {
+          label = "Colors",
+          onopen = updatecolorsmenu,
+          menu = {
+            {label = "  2", _bpp = 1, action = reqbpp},
+            {label = "  4", _bpp = 2, action = reqbpp},
+            {label = "  8", _bpp = 3, action = reqbpp},
+            {label = " 16", _bpp = 4, action = reqbpp},
+            {label = " 32", _bpp = 5, action = reqbpp},
+            {label = " 64", _bpp = 6, action = reqbpp},
+            {label = "128", _bpp = 7, action = reqbpp},
+            {label = "256", _bpp = 8, action = reqbpp}
           }
         }
       }
     }
-  )
-  menu:attachto(nil, scrn.rootvp, scrn.rootvp)
+  }
+  menu = scrn:attachwindow("menu", Menu:new(menu))
+
+  filename = "user:"
+  anim = {image.new(32, 32, 5)}
+  frame = 1
+  fgcolor = 1
+  canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
+  makepointer()
+  toolbarvp = view.new(scrn.rootvp, 0, 0, 10, #icons * 9 + 1)
+  sidebarvp = view.new(scrn.rootvp, 0, 0, 1, 1)
+  palettevp = view.new(scrn.rootvp, 0, 0, 1, 1)
+  view.zindex(scrn.titlevp, -1)
   sys.stepinterval(-2)
   if args[1] then
     loadanim(args[1])
+  else
+    screenmode(10, 5)
   end
-  gotoframe(1)
 end
 
 function _step(t)
-  if updateonnextstep then
+  if updateagain then
     updateui()
   end
   autohideui()
-  view.active(scrn.rootvp)
-  local mx, my, mb = input.mouse()
-  if mb == 1 then
-    view.position(canvasvp, mx - cx, my - cy)
-  else
-    cx = mx
-    cy = my
-  end
-
-  if input.hotkey() == "u" then
-    updateui()
-  end
-  if input.hotkey() == "\x1b" then
-    sys.exit(0)
-  end
-  menu:step(t)
   scrn:step(t)
 end
 
 function reqload()
-  local req = scrn:attachwindow("req", FileRequester:new())
+  if scrn.children["req"] then
+    return
+  end
+  local req = FileRequester:new("Load GIF..", {".gif"}, filename .. "/../")
+  req.ondone = function(self, filename)
+    if filename then
+      loadanim(filename)
+    end
+  end
+  scrn:attachwindow("req", req)
 end
-function loadanim(filename)
+function loadanim(_filename)
+  for i, img in ipairs(anim) do
+    image.forget(img)
+  end
+  filename = _filename
   anim = image.load(filename)
   frame = 1
   local iw, ih = image.size(anim[frame])
   view.size(canvasvp, iw, ih)
-  changemode(mode, image.colordepth(anim[frame]))
-  view.active(canvasvp)
-  changemode(mode, minbpp(anim))
+  local mode, bpp = scrn:mode()
+  screenmode(mode, minbpp(anim))
+  saved = true
 end
 
-function gotoframe(_frame)
-  frame = _frame
+function quit()
+  sys.exit()
+end
+
+function updatesizemenu(struct)
+  local mode, bpp = scrn:mode()
+  for i, item in ipairs(struct.menu) do
+    item.checked = mode == item._mode
+  end
+end
+function updatecolorsmenu(struct)
+  local mode, bpp = scrn:mode()
+  for i, item in ipairs(struct.menu) do
+    item.checked = bpp == item._bpp
+  end
+end
+
+function reqmode(struct)
+  local mode, bpp = scrn:mode()
+  screenmode(struct._mode, bpp)
+end
+function reqbpp(struct)
+  local mode, bpp = scrn:mode()
+  screenmode(mode, struct._bpp)
+end
+
+function screenmode(mode, bpp)
+  scrn:mode(mode, bpp)
+  local sw, sh = view.size(scrn.rootvp)
+  view.position(scrn.mainvp, 0, 0)
+  view.size(scrn.mainvp, sw, sh)
+  local vw, vh = view.size(canvasvp)
+  view.position(canvasvp, (sw - vw) / 2, (sh - vh) / 2)
+  view.size(palettevp, sw, sh)
+  view.size(sidebarvp, 24, sh)
+  updateui()
+  updateagain = true
+end
+function updateui()
   scrn:usepalette(anim[frame])
   scrn:autocolor()
-  view.active(scrn.rootvp)
-  menu.lightcolor = gfx.nearestcolor(15, 15, 15)
-  menu.darkcolor = gfx.nearestcolor(0, 0, 0)
-  menu.fgcolor = menu.darkcolor
-  menu.bgcolor = menu.lightcolor
-  menu.fgtextcolor = menu.lightcolor
-  menu.bgtextcolor = menu.darkcolor
-  updateui()
-end
+  scrn:title(filename .. "[" .. frame .. "/" .. #anim .. "]" .. (saved and "" or " *"))
 
-function checkmode(menuitem)
-  if modechecked then
-    modechecked.checked = false
-  end
-  changemode(menuitem._mode, depth)
-  modechecked = menuitem
-  modechecked.checked = true
-end
-
-function changemode(_mode, _depth)
-  mode = _mode
-  depth = _depth
-  scrn:mode(mode, depth)
-  gotoframe(frame)
-end
-
-function autohideui()
-  local sw, top = view.size(scrn.titlevp)
+  local mode, bpp = scrn:mode()
   local sw, sh = view.size(scrn.rootvp)
-  local mx, my, mb = input.mouse()
-  local vw, vh
-
-  view.active(toolvp)
-  mx, my, mb = input.mouse()
-  if mx < 18 then
-    view.position(toolvp, 0, top)
-  else
-    view.position(toolvp, -17, top)
-  end
-
-  view.active(propvp)
-  mx, my, mb = input.mouse()
-  if mx >= 0 then
-    view.position(propvp, sw - 40, top)
-  else
-    view.position(propvp, sw - 1, top)
-  end
-
-  view.active(palettevp)
-  vw, vh = view.size(palettevp)
-  mx, my, mb = input.mouse()
-  if my >= 0 then
-    view.position(palettevp, 0, sh - vh)
-  else
-    view.position(palettevp, 0, sh - 1)
-  end
-end
-
-function updateui()
-  sys.lookbusy()
-  local sw, top = view.size(scrn.titlevp)
-  local sw, sh = view.size(scrn.mainvp)
   local x, y, s = 0, 0, 0
 
   view.active(scrn.mainvp)
   image.copymode(7)
   image.draw(wpaper, 0, 0, 0, 0, sw, sh)
 
-  view.active(toolvp)
-  gfx.bgcolor(gfx.nearestcolor(0, 0, 0))
+  view.active(toolbarvp)
+  gfx.bgcolor(scrn.darkcolor)
   gfx.cls()
   image.copymode(7)
   x, y = 1, 1
@@ -208,30 +184,24 @@ function updateui()
   end
 
   view.active(palettevp)
-  gfx.bgcolor(gfx.nearestcolor(0, 0, 0))
-  gfx.cls()
   image.copymode(7)
-  x, y = 1, 1
-  for i = 1, #icons do
-    image.draw(icons[i], x, y, 0, 0, 8, 8)
-    x = x + 10
-  end
-  x, y = 0, 10
-  image.draw(wpaper, x, y, 0, 0, sw, sh)
+  x, y = view.size(palettevp)
+  image.draw(wpaper, 0, 0, x, y, sw, sh)
   s = math.min(10, math.floor(sw / 32))
-  for i = 0, math.pow(2, depth) - 1 do
+  x, y = 0, 0
+  for i = 0, math.pow(2, bpp) - 1 do
     if x > sw - s then
       x = 0
       y = y + s
     end
     gfx.fgcolor(i)
-    gfx.bar(x, y, s, s)
+    gfx.bar(x, y + (fgcolor == i and 0 or 1), s, s)
     x = x + s
   end
-  view.size(palettevp, sw, y + s)
+  view.size(palettevp, sw, y + s + 1)
 
   view.active(propvp)
-  gfx.bgcolor(gfx.nearestcolor(0, 0, 0))
+  gfx.bgcolor(scrn.darkcolor)
   gfx.cls()
 
   view.active(canvasvp)
@@ -239,7 +209,69 @@ function updateui()
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
   local gm, gc = view.screenmode(scrn.rootvp)
   local lm, lc = view.screenmode(canvasvp)
-  updateonnextstep = gm ~= lm or gc ~= lc
+  updateagain = (gm ~= lm) or (gc ~= lc)
+end
+function autohideui()
+  view.active(scrn.rootvp)
+  local mx, my, mb = input.mouse()
+  if mb > 0 or menu.struct.vp or scrn.children["req"] then
+    return
+  end
+  local sw, sh = view.size(scrn.rootvp)
+  local vw, vh
+  local x, y, smy = 0, 0, my
+
+  view.active(canvasvp)
+  vw, vh = view.size(canvasvp)
+  mx, my, mb = input.mouse()
+  if mx >= 0 and my >= 0 and mx < vw and my < vh then
+    view.focused(canvasvp, true)
+  end
+
+  view.active(scrn.titlevp)
+  vw, vh = view.size(scrn.titlevp)
+  mx, my, mb = input.mouse()
+  if my > vh then
+    view.position(scrn.titlevp, 0, -vh)
+  else
+    view.position(scrn.titlevp, 0, 0)
+    view.focused(scrn.mainvp, true)
+  end
+
+  view.active(toolbarvp)
+  vw, vh = view.size(toolbarvp)
+  mx, my, mb = input.mouse()
+  if vh < sh then
+    y = (1 / 2) * (sh - vh)
+  else
+    y = (smy / sh) * (sh - vh)
+  end
+  if mx > vw then
+    view.position(toolbarvp, -vw, y)
+  else
+    view.position(toolbarvp, 0, y)
+    view.focused(toolbarvp, true)
+  end
+
+  view.active(sidebarvp)
+  vw, vh = view.size(sidebarvp)
+  mx, my, mb = input.mouse()
+  if mx < -1 then
+    view.position(sidebarvp, sw, top)
+  else
+    view.position(sidebarvp, sw - vw, top)
+    view.focused(sidebarvp, true)
+  end
+
+  view.active(palettevp)
+  vw, vh = view.size(palettevp)
+  mx, my, mb = input.mouse()
+  if my < -1 then
+    view.position(palettevp, 0, sh)
+  else
+    view.position(palettevp, 0, sh - vh)
+    view.focused(palettevp, true)
+  end
 end
 
 function makepointer()

@@ -21,7 +21,8 @@ function _init(args)
               save(filename)
             end
           },
-          {label = "Save as..", action = reqsave}
+          {label = "Save as..", action = reqsave},
+          {label = "Quit", action = quit, hotkey = "q"}
         }
       }
     }
@@ -97,9 +98,6 @@ function _step(t)
   gfx.bar(0, 0, gutterw, 1024)
   gfx.fgcolor(3)
   text.draw(gutter, font, 0, top)
-  if input.hotkey() == "\x1b" then
-    sys.exit(0)
-  end
   scrn:step()
 end
 
@@ -107,6 +105,10 @@ function _shutdown()
   if input.text() ~= savedtxt then
     print("exiting without saving!")
   end
+end
+
+function quit()
+  sys.exit()
 end
 
 function reqload()

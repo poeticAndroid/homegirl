@@ -74,6 +74,9 @@ do
       struct = self.struct
     end
     if not struct.vp then
+      if struct.onopen and (struct:onopen() == false) then
+        return
+      end
       struct.vp = view.new(self.screen, ml, mt)
     end
     ml, mt = view.position(struct.vp)
@@ -191,7 +194,12 @@ do
       return " " .. struct.label .. " "
     else
       return (struct.checked and " *" or "  ") ..
-        struct.label .. (struct.menu and "  >" or (struct.hotkey and (" ^" .. struct.hotkey) or "   "))
+        struct.label ..
+          (struct.menu and "  >" or
+            (struct.hotkey and
+              (struct.hotkey == "\x1b" and " Esc" or
+                (struct.hotkey == "\t" and " Tab" or (" ^" .. string.upper(struct.hotkey)))) or
+              "   "))
     end
   end
 
