@@ -4,6 +4,12 @@ local Menu = Widget:extend()
 do
   function Menu:constructor(struct)
     self.struct = {
+      onopen = function(...)
+        if self.onopen then
+          return self.onopen(...)
+        end
+        return true
+      end,
       menu = struct
     }
     self.active = false

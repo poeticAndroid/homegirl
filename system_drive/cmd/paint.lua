@@ -2,7 +2,8 @@ local Screen, Menu, FileRequester = require("screen"), require("menu"), require(
 local scrn, anim, frame, filename, saved
 local canvasvp, toolbarvp, palettevp, sidebarvp
 local updateagain, icons, wpaper, menu
-local tool, fgcolor
+local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "box"}
+local tool, fgcolor, bgcolor
 
 function _init(args)
   scrn = Screen:new("Loading..", 10, 2)
@@ -69,10 +70,14 @@ function _init(args)
     }
   }
   menu = scrn:attachwindow("menu", Menu:new(menu))
+  menu.onopen = function()
+    return view.focused(canvasvp) == false and view.focused(palettevp) == false
+  end
 
   filename = "user:"
   anim = {image.new(32, 32, 5)}
   frame = 1
+  bgcolor = 0
   fgcolor = 1
   canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
   makepointer()
@@ -92,8 +97,9 @@ function _step(t)
   if updateagain then
     updateui()
   end
-  autohideui()
+  stepui(t)
   scrn:step(t)
+  autohideui()
 end
 
 function reqload()
@@ -169,36 +175,27 @@ function updateui()
   local sw, sh = view.size(scrn.rootvp)
   local x, y, s = 0, 0, 0
 
-  view.active(scrn.mainvp)
-  image.copymode(7)
-  image.draw(wpaper, 0, 0, 0, 0, sw, sh)
+  if updateagain then
+    view.active(scrn.mainvp)
+    image.copymode(7)
+    image.draw(wpaper, 0, 0, 0, 0, sw, sh)
+  end
 
   view.active(toolbarvp)
   gfx.bgcolor(scrn.darkcolor)
+  gfx.fgcolor(scrn.lightcolor)
   gfx.cls()
   image.copymode(7)
   x, y = 1, 1
   for i = 1, #icons do
-    image.draw(icons[i], x, y, 0, 0, 8, 8)
+    if tool == i then
+      gfx.bar(x - 1, y - 1, 1, 10)
+      image.draw(icons[i], x + 1, y, 0, 0, 8, 8)
+    else
+      image.draw(icons[i], x, y, 0, 0, 8, 8)
+    end
     y = y + 9
   end
-
-  view.active(palettevp)
-  image.copymode(7)
-  x, y = view.size(palettevp)
-  image.draw(wpaper, 0, 0, x, y, sw, sh)
-  s = math.min(10, math.floor(sw / 32))
-  x, y = 0, 0
-  for i = 0, math.pow(2, bpp) - 1 do
-    if x > sw - s then
-      x = 0
-      y = y + s
-    end
-    gfx.fgcolor(i)
-    gfx.bar(x, y + (fgcolor == i and 0 or 1), s, s)
-    x = x + s
-  end
-  view.size(palettevp, sw, y + s + 1)
 
   view.active(propvp)
   gfx.bgcolor(scrn.darkcolor)
@@ -207,6 +204,25 @@ function updateui()
   view.active(canvasvp)
   local iw, ih = image.size(anim[frame])
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+
+  view.active(palettevp)
+  image.copymode(7)
+  x, y = view.size(palettevp)
+  image.draw(wpaper, 0, 0, x, y, sw, sh)
+  s = math.min(math.max(3, math.floor(sw / 32)), 10)
+  x, y = 0, 1
+  for i = 0, math.pow(2, bpp) - 1 do
+    if x > sw - s then
+      x = 0
+      y = y + s
+    end
+    gfx.fgcolor(i)
+    local d = (fgcolor == i and -1 or (bgcolor == i and 1 or 0))
+    gfx.bar(x + d, y + d, s, s)
+    x = x + s
+  end
+  view.size(palettevp, sw, y + s)
+
   local gm, gc = view.screenmode(scrn.rootvp)
   local lm, lc = view.screenmode(canvasvp)
   updateagain = (gm ~= lm) or (gc ~= lc)
@@ -218,14 +234,14 @@ function autohideui()
     return
   end
   local sw, sh = view.size(scrn.rootvp)
-  local vw, vh
+  local vw, vh, foc
   local x, y, smy = 0, 0, my
 
   view.active(canvasvp)
   vw, vh = view.size(canvasvp)
   mx, my, mb = input.mouse()
   if mx >= 0 and my >= 0 and mx < vw and my < vh then
-    view.focused(canvasvp, true)
+    foc = canvasvp
   end
 
   view.active(scrn.titlevp)
@@ -235,7 +251,7 @@ function autohideui()
     view.position(scrn.titlevp, 0, -vh)
   else
     view.position(scrn.titlevp, 0, 0)
-    view.focused(scrn.mainvp, true)
+    foc = scrn.mainvp
   end
 
   view.active(toolbarvp)
@@ -250,7 +266,7 @@ function autohideui()
     view.position(toolbarvp, -vw, y)
   else
     view.position(toolbarvp, 0, y)
-    view.focused(toolbarvp, true)
+    foc = toolbarvp
   end
 
   view.active(sidebarvp)
@@ -260,7 +276,7 @@ function autohideui()
     view.position(sidebarvp, sw, top)
   else
     view.position(sidebarvp, sw - vw, top)
-    view.focused(sidebarvp, true)
+    foc = sidebarvp
   end
 
   view.active(palettevp)
@@ -270,7 +286,35 @@ function autohideui()
     view.position(palettevp, 0, sh)
   else
     view.position(palettevp, 0, sh - vh)
-    view.focused(palettevp, true)
+    foc = palettevp
+  end
+  if foc and view.focused(foc) == false then
+    view.focused(foc, true)
+  end
+end
+
+function stepui(t)
+  local mx, my, mb
+  view.active(palettevp)
+  mx, my, mb = input.mouse()
+  if mb == 1 then
+    fgcolor = gfx.pixel(mx, my)
+    view.active(canvasvp)
+    gfx.fgcolor(fgcolor)
+    updateui()
+  end
+  if mb == 2 then
+    bgcolor = gfx.pixel(mx, my)
+    view.active(canvasvp)
+    gfx.bgcolor(bgcolor)
+    updateui()
+  end
+
+  view.active(toolbarvp)
+  mx, my, mb = input.mouse()
+  if mb == 1 then
+    tool = math.floor(my / 9) + 1
+    updateui()
   end
 end
 
@@ -280,7 +324,7 @@ function makepointer()
   gfx.line(5, 0, 5, 10)
   gfx.fgcolor(0)
   gfx.plot(5, 5)
-  gfx.fgcolor(3)
+  gfx.fgcolor(2)
   for i = 2, 20, 2 do
     gfx.plot(5 - i, 5)
     gfx.plot(5 + i, 5)
