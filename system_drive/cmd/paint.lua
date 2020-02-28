@@ -161,7 +161,9 @@ function screenmode(mode, bpp)
   view.size(scrn.mainvp, sw, sh)
   local vw, vh = view.size(canvasvp)
   view.position(canvasvp, (sw - vw) / 2, (sh - vh) / 2)
+  view.position(palettevp, 0, 0)
   view.size(palettevp, sw, sh)
+  view.position(sidebarvp, 0, 0)
   view.size(sidebarvp, 24, sh)
   updateui()
   updateagain = true
@@ -235,10 +237,13 @@ function autohideui()
   end
   local sw, sh = view.size(scrn.rootvp)
   local vw, vh, foc
+  local focs = 0
   local x, y, smy = 0, 0, my
 
   view.active(canvasvp)
   vw, vh = view.size(canvasvp)
+  local cl, ct = view.position(canvasvp)
+  local cr, cb = sw - vw - cl, sh - vh - ct
   mx, my, mb = input.mouse()
   if mx >= 0 and my >= 0 and mx < vw and my < vh then
     foc = canvasvp
@@ -248,10 +253,13 @@ function autohideui()
   vw, vh = view.size(scrn.titlevp)
   mx, my, mb = input.mouse()
   if my > vh then
-    view.position(scrn.titlevp, 0, -vh)
+    if ct < vh then
+      view.position(scrn.titlevp, 0, -vh)
+    end
   else
     view.position(scrn.titlevp, 0, 0)
-    foc = scrn.mainvp
+    foc = scrn.titlevp
+    focs = focs + 1
   end
 
   view.active(toolbarvp)
@@ -263,33 +271,50 @@ function autohideui()
     y = (smy / sh) * (sh - vh)
   end
   if mx > vw then
-    view.position(toolbarvp, -vw, y)
+    if cl < vw then
+      view.position(toolbarvp, -vw, y)
+    end
   else
     view.position(toolbarvp, 0, y)
     foc = toolbarvp
+    focs = focs + 1
   end
 
   view.active(sidebarvp)
   vw, vh = view.size(sidebarvp)
   mx, my, mb = input.mouse()
   if mx < -1 then
-    view.position(sidebarvp, sw, top)
+    if cr < vw then
+      view.position(sidebarvp, sw, 0)
+    end
   else
-    view.position(sidebarvp, sw - vw, top)
+    view.position(sidebarvp, sw - vw, 0)
     foc = sidebarvp
+    focs = focs + 1
   end
 
   view.active(palettevp)
   vw, vh = view.size(palettevp)
   mx, my, mb = input.mouse()
   if my < -1 then
-    view.position(palettevp, 0, sh)
+    if cb < vh then
+      view.position(palettevp, 0, sh)
+    end
   else
     view.position(palettevp, 0, sh - vh)
     foc = palettevp
+    focs = focs + 1
+  end
+
+  if focs == 1 then
+    view.zindex(foc, -1)
+  end
+  if foc == scrn.titlevp then
+    foc = scrn.mainvp
   end
   if foc and view.focused(foc) == false then
     view.focused(foc, true)
+    updateui()
   end
 end
 
