@@ -1,9 +1,10 @@
 local Screen, Menu, FileRequester = require("screen"), require("menu"), require("filerequester")
-local scrn, anim, frame, filename, saved
+local scrn, anim, frame, filename, saved, history
 local canvasvp, toolbarvp, palettevp, sidebarvp
 local updateagain, icons, wpaper, menu
 local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "box"}
 local tool, fgcolor, bgcolor
+local startx, starty
 
 function _init(args)
   scrn = Screen:new("Loading..", 10, 2)
@@ -76,7 +77,9 @@ function _init(args)
 
   filename = "user:"
   anim = {image.new(32, 32, 5)}
+  history = {}
   frame = 1
+  tool = 1
   bgcolor = 0
   fgcolor = 1
   canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
@@ -97,7 +100,41 @@ function _step(t)
   if updateagain then
     updateui()
   end
+  view.active(scrn.rootvp)
+  local key = input.text()
+  if key == "1" then
+    frame = 1
+  elseif key == "2" then
+    if frame > 1 then
+      frame = frame - 1
+    end
+  elseif key == "3" then
+    if frame < #anim then
+      frame = frame + 1
+    end
+  elseif key == "4" then
+    frame = #anim
+  elseif key == " " then
+    tool = 1
+  elseif key == "b" then
+    tool = 2
+  elseif key == "x" then
+    tool = 8
+  else
+    if key ~= "" then
+      for i, v in ipairs(tools) do
+        if string.sub(v, 1, #key) == key then
+          tool = i
+        end
+      end
+    end
+  end
+  if key ~= "" then
+    updateagain = true
+  end
+  input.text("")
   stepui(t)
+  stepcanvas(t)
   scrn:step(t)
   autohideui()
 end
@@ -116,7 +153,13 @@ function reqload()
 end
 function loadanim(_filename)
   for i, img in ipairs(anim) do
-    image.forget(img)
+    pcall(image.forget, img)
+  end
+  while #history > 0 do
+    for i, v in ipairs(history[1]) do
+      pcall(image.forget, v)
+    end
+    table.remove(history, 1)
   end
   filename = _filename
   anim = image.load(filename)
@@ -125,6 +168,7 @@ function loadanim(_filename)
   view.size(canvasvp, iw, ih)
   local mode, bpp = scrn:mode()
   screenmode(mode, minbpp(anim))
+  commit()
   saved = true
 end
 
@@ -339,8 +383,109 @@ function stepui(t)
   mx, my, mb = input.mouse()
   if mb == 1 then
     tool = math.floor(my / 9) + 1
+    startx, starty = nil, nil
     updateui()
   end
+end
+function stepcanvas(t)
+  view.active(canvasvp)
+  local mx, my, mb = input.mouse()
+  if tools[tool] == "move" then
+    if mb == 1 then
+      local vx, vy = view.position(canvasvp)
+      view.position(canvasvp, vx + mx - startx, vy + my - starty)
+    else
+      startx, starty = mx, my
+    end
+  elseif tools[tool] == "brush" then
+    if mb > 0 then
+      if mb > 1 then
+        gfx.fgcolor(bgcolor)
+      else
+        gfx.fgcolor(fgcolor)
+      end
+      if startx then
+        gfx.line(startx, starty, mx, my)
+      else
+        gfx.plot(mx, my)
+      end
+      startx, starty = mx, my
+    else
+      if startx then
+        anim[frame] = copycanvas()
+        commit()
+      end
+      startx, starty = nil, nil
+    end
+  elseif tools[tool] == "picker" then
+    if mb == 1 then
+      fgcolor = gfx.pixel(mx, my)
+      gfx.fgcolor(fgcolor)
+      updateui()
+    end
+    if mb == 2 then
+      bgcolor = gfx.pixel(mx, my)
+      gfx.bgcolor(bgcolor)
+      updateui()
+    end
+  elseif tools[tool] == "line" then
+    if mb > 0 then
+      if mb > 1 then
+        gfx.fgcolor(bgcolor)
+      else
+        gfx.fgcolor(fgcolor)
+      end
+      if startx then
+        local iw, ih = image.size(anim[frame])
+        image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+        gfx.line(startx, starty, mx, my)
+      else
+        gfx.plot(mx, my)
+        startx, starty = mx, my
+      end
+    else
+      if startx then
+        anim[frame] = copycanvas()
+        commit()
+      end
+      startx, starty = nil, nil
+    end
+  end
+end
+
+function commit()
+  local commit = {}
+  for i, v in ipairs(anim) do
+    table.insert(commit, v)
+  end
+  table.insert(history, commit)
+  while #history > 8 do
+    for i, v in ipairs(history[1]) do
+      local uniq = true
+      for j, w in ipairs(history[2]) do
+        if v == w then
+          uniq = false
+        end
+      end
+      if uniq then
+        image.forget(v)
+      end
+    end
+    table.remove(history, 1)
+  end
+  saved = false
+end
+function copycanvas()
+  view.active(canvasvp)
+  local w, h = image.size(anim[1])
+  local mode, bpp = scrn:mode()
+
+  local newframe = image.new(w, h, bpp)
+  image.copypalette(newframe)
+  image.copy(newframe, 0, 0, 0, 0, w, h)
+  image.bgcolor(newframe, bgcolor)
+  image.duration(newframe, image.duration(anim[frame]))
+  return newframe
 end
 
 function makepointer()
