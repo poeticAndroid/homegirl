@@ -149,6 +149,10 @@ function _step(t)
     updateagain = true
   end
   input.text("")
+  key = input.hotkey()
+  if key == "z" then
+    undo()
+  end
   stepui(t)
   stepcanvas(t)
   scrn:step(t)
@@ -529,6 +533,41 @@ function commit()
     table.remove(history, 1)
   end
   saved = false
+end
+function undo()
+  local commit = table.remove(history)
+  local same = #commit == #anim
+  while same do
+    for i, v in ipairs(anim) do
+      if anim[i] ~= commit[i] then
+        same = false
+      end
+    end
+    if same and #history > 1 then
+      commit = table.remove(history)
+      same = #commit == #anim
+    else
+      same = false
+    end
+  end
+  table.insert(history, commit)
+  for i, v in ipairs(anim) do
+    local uniq = true
+    for j, w in ipairs(commit) do
+      if v == w then
+        uniq = false
+      end
+    end
+    if uniq then
+      image.forget(v)
+    end
+  end
+  anim = {}
+  for j, w in ipairs(commit) do
+    table.insert(anim, w)
+  end
+  saved = false
+  updateui()
 end
 function copycanvas()
   view.active(canvasvp)
