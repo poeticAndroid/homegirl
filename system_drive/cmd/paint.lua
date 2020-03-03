@@ -5,6 +5,7 @@ local updateagain, icons, wpaper, menu
 local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "box"}
 local tool, fgcolor, bgcolor
 local startx, starty
+local globalpal, fixedfps = true, true
 
 function _init(args)
   scrn = Screen:new("Loading..", 10, 2)
@@ -26,6 +27,17 @@ function _init(args)
         {label = "Save", hotkey = "s"},
         {label = "Save as.."},
         {label = "Quit", action = quit, hotkey = "q"}
+      }
+    },
+    {
+      label = "Anim",
+      onopen = updateanimmenu,
+      menu = {
+        {label = "Global palette", action = toggleglobalpal},
+        {label = "Fixed framerate", action = togglefixedfps},
+        {label = "Insert frame", action = insertframe, hotkey = "n"},
+        {label = "Remove frame", action = removeframe, hotkey = "e"},
+        {label = "Clear frame", action = clearframe, hotkey = "k"}
       }
     },
     {
@@ -107,10 +119,14 @@ function _step(t)
   elseif key == "2" then
     if frame > 1 then
       frame = frame - 1
+    else
+      frame = #anim
     end
   elseif key == "3" then
     if frame < #anim then
       frame = frame + 1
+    else
+      frame = 1
     end
   elseif key == "4" then
     frame = #anim
@@ -188,6 +204,10 @@ function updatecolorsmenu(struct)
     item.checked = bpp == item._bpp
   end
 end
+function updateanimmenu(struct)
+  struct.menu[1].checked = globalpal
+  struct.menu[2].checked = fixedfps
+end
 
 function reqmode(struct)
   local mode, bpp = scrn:mode()
@@ -196,6 +216,38 @@ end
 function reqbpp(struct)
   local mode, bpp = scrn:mode()
   screenmode(mode, struct._bpp)
+end
+function toggleglobalpal(struct)
+  globalpal = not globalpal
+  updateui()
+end
+function togglefixedfps(struct)
+  fixedfps = not fixedfps
+  updateui()
+end
+
+function insertframe()
+  table.insert(anim, frame, copycanvas())
+  commit()
+  frame = frame + 1
+  updateui()
+end
+function removeframe()
+  if #anim > 1 then
+    table.remove(anim, frame)
+    commit()
+  end
+  if frame > #anim then
+    frame = #anim
+  end
+  updateui()
+end
+function clearframe()
+  view.active(canvasvp)
+  gfx.cls()
+  anim[frame] = copycanvas()
+  commit()
+  updateui()
 end
 
 function screenmode(mode, bpp)
@@ -213,7 +265,7 @@ function screenmode(mode, bpp)
   updateagain = true
 end
 function updateui()
-  scrn:usepalette(anim[frame])
+  scrn:usepalette(anim[globalpal and 1 or frame])
   scrn:autocolor()
   scrn:title(filename .. "[" .. frame .. "/" .. #anim .. "]" .. (saved and "" or " *"))
 
@@ -243,13 +295,14 @@ function updateui()
     y = y + 9
   end
 
-  view.active(propvp)
+  view.active(sidebarvp)
   gfx.bgcolor(scrn.darkcolor)
   gfx.cls()
 
   view.active(canvasvp)
   local iw, ih = image.size(anim[frame])
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+  bgcolor = gfx.bgcolor(image.bgcolor(anim[frame]))
 
   view.active(palettevp)
   image.copymode(7)
@@ -376,6 +429,7 @@ function stepui(t)
     bgcolor = gfx.pixel(mx, my)
     view.active(canvasvp)
     gfx.bgcolor(bgcolor)
+    image.bgcolor(anim[frame], bgcolor)
     updateui()
   end
 
@@ -426,6 +480,7 @@ function stepcanvas(t)
     if mb == 2 then
       bgcolor = gfx.pixel(mx, my)
       gfx.bgcolor(bgcolor)
+      image.bgcolor(anim[frame], bgcolor)
       updateui()
     end
   elseif tools[tool] == "line" then
@@ -484,7 +539,7 @@ function copycanvas()
   image.copypalette(newframe)
   image.copy(newframe, 0, 0, 0, 0, w, h)
   image.bgcolor(newframe, bgcolor)
-  image.duration(newframe, image.duration(anim[frame]))
+  image.duration(newframe, image.duration(anim[fixedfps and 1 or frame]))
   return newframe
 end
 
