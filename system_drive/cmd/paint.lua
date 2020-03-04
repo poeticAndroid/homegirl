@@ -6,6 +6,7 @@ local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "b
 local tool, fgcolor, bgcolor
 local startx, starty
 local globalpal, fixedfps = true, true
+local playing = false
 
 function _init(args)
   scrn = Screen:new("Loading..", 10, 2)
@@ -109,11 +110,26 @@ function _init(args)
 end
 
 function _step(t)
+  if playing then
+    frame = frame + 1
+    if frame > #anim then
+      frame = 1
+    end
+    if not globalpal then
+      scrn:usepalette(anim[frame])
+    end
+    scrn:title(filename .. "[" .. frame .. "/" .. #anim .. "]" .. (saved and "" or " *"))
+    view.active(canvasvp)
+    local iw, ih = image.size(anim[frame])
+    image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+    sys.stepinterval(image.duration(anim[fixedfps and 1 or frame]))
+  end
   if updateagain then
     updateui()
   end
   view.active(scrn.rootvp)
   local key = input.text()
+  input.text("")
   if key == "1" then
     frame = 1
   elseif key == "2" then
@@ -130,6 +146,9 @@ function _step(t)
     end
   elseif key == "4" then
     frame = #anim
+  elseif key == "5" then
+    playing = not playing
+    sys.stepinterval(-2)
   elseif key == " " then
     tool = 1
   elseif key == "b" then
@@ -146,9 +165,8 @@ function _step(t)
     end
   end
   if key ~= "" then
-    updateagain = true
+    updateui()
   end
-  input.text("")
   key = input.hotkey()
   if key == "z" then
     undo()
@@ -172,6 +190,8 @@ function reqload()
   scrn:attachwindow("req", req)
 end
 function loadanim(_filename)
+  playing = false
+  sys.stepinterval(-2)
   for i, img in ipairs(anim) do
     pcall(image.forget, img)
   end
@@ -188,6 +208,8 @@ function loadanim(_filename)
   view.size(canvasvp, iw, ih)
   local mode, bpp = scrn:mode()
   screenmode(mode, minbpp(anim))
+  globalpal = hasglobalpal(anim)
+  fixedfps = hasfixedfps(anim)
   commit()
   saved = true
 end
@@ -259,6 +281,8 @@ function screenmode(mode, bpp)
   local sw, sh = view.size(scrn.rootvp)
   view.position(scrn.mainvp, 0, 0)
   view.size(scrn.mainvp, sw, sh)
+  view.position(scrn.titlevp, 0, 0)
+  view.position(toolbarvp, 0, 16)
   local vw, vh = view.size(canvasvp)
   view.position(canvasvp, (sw - vw) / 2, (sh - vh) / 2)
   view.position(palettevp, 0, 0)
@@ -518,7 +542,7 @@ function commit()
     table.insert(commit, v)
   end
   table.insert(history, commit)
-  while #history > 8 do
+  while #history > 32 do
     for i, v in ipairs(history[1]) do
       local uniq = true
       for j, w in ipairs(history[2]) do
@@ -541,6 +565,7 @@ function undo()
     for i, v in ipairs(anim) do
       if anim[i] ~= commit[i] then
         same = false
+        frame = i
       end
     end
     if same and #history > 1 then
@@ -567,6 +592,9 @@ function undo()
     table.insert(anim, w)
   end
   saved = false
+  if frame > #anim then
+    frame = #anim
+  end
   updateui()
 end
 function copycanvas()
@@ -618,4 +646,29 @@ function minbpp(anim)
     bpp = bpp + 1
   end
   return bpp
+end
+
+function hasglobalpal(anim)
+  local bpp = image.colordepth(anim[1])
+  local colors = math.pow(2, bpp)
+  for i = 2, #anim do
+    for c = 0, colors - 1 do
+      local r1, g1, b1 = image.palette(anim[1], c)
+      local r2, g2, b2 = image.palette(anim[i], c)
+      if r1 ~= r2 or g1 ~= g2 or b1 ~= b2 then
+        return false
+      end
+    end
+  end
+  return true
+end
+
+function hasfixedfps(anim)
+  local firstint = image.duration(anim[1])
+  for i = 2, #anim do
+    if firstint ~= image.duration(anim[i]) then
+      return false
+    end
+  end
+  return true
 end
