@@ -25,8 +25,8 @@ function _init(args)
       label = "File",
       menu = {
         {label = "Load..", action = reqload, hotkey = "l"},
-        {label = "Save", hotkey = "s"},
-        {label = "Save as.."},
+        {label = "Save", action = save, hotkey = "s"},
+        {label = "Save as..", action = reqsave},
         {label = "Quit", action = quit, hotkey = "q"}
       }
     },
@@ -89,7 +89,7 @@ function _init(args)
   end
 
   filename = "user:"
-  anim = {image.new(32, 32, 5)}
+  anim = {}
   history = {}
   frame = 1
   tool = 1
@@ -102,11 +102,7 @@ function _init(args)
   palettevp = view.new(scrn.rootvp, 0, 0, 1, 1)
   view.zindex(scrn.titlevp, -1)
   sys.stepinterval(-2)
-  if args[1] then
-    loadanim(args[1])
-  else
-    screenmode(10, 5)
-  end
+  loadanim(args[1] or "user:new.gif")
 end
 
 function _step(t)
@@ -118,7 +114,12 @@ function _step(t)
     if not globalpal then
       scrn:usepalette(anim[frame])
     end
-    scrn:title(filename .. "[" .. frame .. "/" .. #anim .. "]" .. (saved and "" or " *"))
+    scrn:title(
+      filename ..
+        "[" ..
+          frame ..
+            "/" .. #anim .. " " .. image.duration(anim[fixedfps and 1 or frame]) .. "ms]" .. (saved and "" or " *")
+    )
     view.active(canvasvp)
     local iw, ih = image.size(anim[frame])
     image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
@@ -149,12 +150,31 @@ function _step(t)
   elseif key == "5" then
     playing = not playing
     sys.stepinterval(-2)
+  elseif key == "6" then
+    local f = fixedfps and 1 or frame
+    if image.duration(anim[f]) >= 10 then
+      makeuniq(f)
+      image.duration(anim[f], math.abs(image.duration(anim[f]) - 10))
+    end
+  elseif key == "7" then
+    local f = fixedfps and 1 or frame
+    makeuniq(f)
+    image.duration(anim[f], image.duration(anim[f]) + 10)
   elseif key == " " then
     tool = 1
+    while tools[tool] ~= "move" do
+      tool = tool + 1
+    end
   elseif key == "b" then
-    tool = 2
+    tool = 1
+    while tools[tool] ~= "brush" do
+      tool = tool + 1
+    end
   elseif key == "x" then
-    tool = 8
+    tool = 1
+    while tools[tool] ~= "box" do
+      tool = tool + 1
+    end
   else
     if key ~= "" then
       for i, v in ipairs(tools) do
@@ -202,7 +222,7 @@ function loadanim(_filename)
     table.remove(history, 1)
   end
   filename = _filename
-  anim = image.load(filename)
+  anim = image.load(filename) or {defaultimage()}
   frame = 1
   local iw, ih = image.size(anim[frame])
   view.size(canvasvp, iw, ih)
@@ -212,6 +232,42 @@ function loadanim(_filename)
   fixedfps = hasfixedfps(anim)
   commit()
   saved = true
+end
+
+function reqsave()
+  if scrn.children["req"] then
+    return
+  end
+  local req = FileRequester:new("Save GIF..", {".gif"}, filename .. "/../")
+  req.ondone = function(self, filename)
+    if filename then
+      saveanim(filename)
+    end
+  end
+  scrn:attachwindow("req", req)
+end
+function save()
+  saveanim(filename)
+end
+function saveanim(_filename)
+  filename = _filename or filename
+  if globalpal and not hasglobalpal(anim) then
+    for i, v in ipairs(anim) do
+      makeuniq(i)
+    end
+  end
+  if fixedfps then
+    local ms = image.duration(anim[1])
+    for i, v in ipairs(anim) do
+      if image.duration(v) ~= ms then
+        makeuniq(i)
+        image.duration(anim[i], ms)
+      end
+    end
+  end
+  image.save(filename, anim)
+  saved = true
+  updateagain=true
 end
 
 function quit()
@@ -253,7 +309,7 @@ function togglefixedfps(struct)
 end
 
 function insertframe()
-  table.insert(anim, frame, copycanvas())
+  table.insert(anim, frame, makeuniq(frame))
   commit()
   frame = frame + 1
   updateui()
@@ -270,8 +326,9 @@ function removeframe()
 end
 function clearframe()
   view.active(canvasvp)
+  makeuniq(frame)
   gfx.cls()
-  anim[frame] = copycanvas()
+  copycanvas(anim[frame])
   commit()
   updateui()
 end
@@ -295,7 +352,11 @@ end
 function updateui()
   scrn:usepalette(anim[globalpal and 1 or frame])
   scrn:autocolor()
-  scrn:title(filename .. "[" .. frame .. "/" .. #anim .. "]" .. (saved and "" or " *"))
+  scrn:title(
+    filename ..
+      "[" ..
+        frame .. "/" .. #anim .. " " .. image.duration(anim[fixedfps and 1 or frame]) .. "ms]" .. (saved and "" or " *")
+  )
 
   local mode, bpp = scrn:mode()
   local sw, sh = view.size(scrn.rootvp)
@@ -489,12 +550,13 @@ function stepcanvas(t)
       if startx then
         gfx.line(startx, starty, mx, my)
       else
+        makeuniq()
         gfx.plot(mx, my)
       end
       startx, starty = mx, my
     else
       if startx then
-        anim[frame] = copycanvas()
+        copycanvas(anim[frame])
         commit()
       end
       startx, starty = nil, nil
@@ -523,12 +585,13 @@ function stepcanvas(t)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
         gfx.line(startx, starty, mx, my)
       else
+        makeuniq()
         gfx.plot(mx, my)
         startx, starty = mx, my
       end
     else
       if startx then
-        anim[frame] = copycanvas()
+        copycanvas(anim[frame])
         commit()
       end
       startx, starty = nil, nil
@@ -597,17 +660,40 @@ function undo()
   end
   updateui()
 end
-function copycanvas()
+function copycanvas(img)
   view.active(canvasvp)
   local w, h = image.size(anim[1])
   local mode, bpp = scrn:mode()
 
-  local newframe = image.new(w, h, bpp)
+  local newframe = img or image.new(w, h, bpp)
   image.copypalette(newframe)
   image.copy(newframe, 0, 0, 0, 0, w, h)
   image.bgcolor(newframe, bgcolor)
   image.duration(newframe, image.duration(anim[fixedfps and 1 or frame]))
   return newframe
+end
+
+function makeuniq(framenum)
+  framenum = framenum or frame
+  local oldframe = frame
+  local commit = history[#history]
+  local uniq = true
+  for i, v in ipairs(commit) do
+    if anim[framenum] == v then
+      uniq = false
+    end
+  end
+  if not uniq then
+    frame = framenum
+    updateui()
+    anim[frame] = copycanvas()
+    if frame ~= oldframe then
+      frame = oldframe
+      updateui()
+    end
+    saved = false
+  end
+  return anim[framenum]
 end
 
 function makepointer()
@@ -671,4 +757,10 @@ function hasfixedfps(anim)
     end
   end
   return true
+end
+
+function defaultimage()
+  local img = image.new(160, 90, 6)
+  image.pixel(img, 0, 0, 255)
+  return img
 end
