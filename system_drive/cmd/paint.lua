@@ -96,7 +96,7 @@ function _init(args)
   tool = 1
   bgcolor = 0
   fgcolor = 1
-  brushsize = 1
+  brushsize = 0
   canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
   makepointer()
   toolbarvp = view.new(scrn.rootvp, 0, 0, 10, #icons * 9 + 1)
@@ -126,6 +126,10 @@ function _step(t)
     local iw, ih = image.size(anim[frame])
     image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
     sys.stepinterval(image.duration(anim[fixedfps and 1 or frame]))
+    if #anim <= 1 then
+      view.active(scrn.rootvp)
+      input.text("5")
+    end
   end
   if updateagain then
     updateui()
@@ -427,6 +431,7 @@ function updateui()
 
   view.active(canvasvp)
   local iw, ih = image.size(anim[frame])
+  view.size(canvasvp, iw, ih)
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
   bgcolor = gfx.bgcolor(image.bgcolor(anim[globalpal and 1 or frame]))
 
@@ -446,7 +451,8 @@ function updateui()
     gfx.bar(x + d, y + d, s, s)
     x = x + s
   end
-  view.size(palettevp, sw, y + s)
+  x, y = view.size(palettevp, sw, y + s)
+  view.size(sidebarvp, 24, sh - y - 11)
 
   local gm, gc = view.screenmode(scrn.rootvp)
   local lm, lc = view.screenmode(canvasvp)
@@ -508,10 +514,10 @@ function autohideui()
   mx, my, mb = input.mouse()
   if mx < -1 then
     if cr < vw then
-      view.position(sidebarvp, sw, 0)
+      view.position(sidebarvp, sw, 11)
     end
   else
-    view.position(sidebarvp, sw - vw, 0)
+    view.position(sidebarvp, sw - vw, 11)
     foc = sidebarvp
     focs = focs + 1
   end
@@ -555,7 +561,7 @@ function stepui(t)
     bgcolor = gfx.pixel(mx, my)
     view.active(canvasvp)
     gfx.bgcolor(bgcolor)
-    image.bgcolor(anim[frame], bgcolor)
+    image.bgcolor(anim[globalpal and 1 or frame], bgcolor)
     updateui()
   end
 
@@ -588,11 +594,48 @@ function stepcanvas(t)
   view.active(canvasvp)
   local mx, my, mb = input.mouse()
   if tools[tool] == "move" then
+    local vx, vy = view.position(canvasvp)
+    local vw, vh = view.size(canvasvp)
+    local iw, ih = image.size(anim[frame])
     if mb == 1 then
-      local vx, vy = view.position(canvasvp)
-      view.position(canvasvp, vx + mx - startx, vy + my - starty)
+      if startx then
+        view.position(canvasvp, vx + mx - startx, vy + my - starty)
+      else
+        startx, starty = mx, my
+      end
+    elseif mb == 2 then
+      if not startx then
+        clipx, clipy = (mx - vw / 2) / vw, (my - vh / 2) / vh
+        if math.abs(clipx) > math.abs(clipy) then
+          clipy = 0
+        else
+          clipx = 0
+        end
+        startx, starty = 0, 0
+      end
+      if clipx > 0 then
+        view.size(canvasvp, mx, vh)
+      elseif clipy > 0 then
+        view.size(canvasvp, vw, my)
+      elseif clipx < 0 then
+        startx = startx - mx
+        view.size(canvasvp, vw - mx, vh)
+        view.position(canvasvp, vx + mx, vy)
+      elseif clipy < 0 then
+        starty = starty - my
+        view.size(canvasvp, vw, vh - my)
+        view.position(canvasvp, vx, vy + my)
+      end
+      gfx.cls()
+      image.draw(anim[frame], startx, starty, 0, 0, iw, ih)
     else
-      startx, starty = mx, my
+      if clipx and startx then
+        resizeanim(startx, starty, vw - iw - startx, vh - ih - starty)
+        commit()
+        updateui()
+      end
+      clipx, clipy = nil, nil
+      startx, starty = nil, nil
     end
   elseif tools[tool] == "brush" then
     if mb > 0 then
@@ -646,10 +689,10 @@ function stepcanvas(t)
         gfx.line(startx, my, mx, my)
         gfx.line(mx, starty, mx, my)
         gfx.fgcolor(scrn.lightcolor)
-        gfx.line(startx-1, starty-1, mx-1, starty-1)
-        gfx.line(startx-1, starty-1, startx-1, my-1)
-        gfx.line(startx-1, my-1, mx-1, my-1)
-        gfx.line(mx-1, starty-1, mx-1, my-1)
+        gfx.line(startx - 1, starty - 1, mx - 1, starty - 1)
+        gfx.line(startx - 1, starty - 1, startx - 1, my - 1)
+        gfx.line(startx - 1, my - 1, mx - 1, my - 1)
+        gfx.line(mx - 1, starty - 1, mx - 1, my - 1)
       else
         makeuniq()
         startx, starty = mx, my
@@ -858,7 +901,7 @@ function undo()
 end
 function copycanvas(img)
   view.active(canvasvp)
-  local w, h = image.size(anim[1])
+  local w, h = view.size(canvasvp)
   local mode, bpp = scrn:mode()
 
   local newframe = img or image.new(w, h, bpp)
@@ -867,6 +910,17 @@ function copycanvas(img)
   image.bgcolor(newframe, bgcolor)
   image.duration(newframe, image.duration(anim[fixedfps and 1 or frame]))
   return newframe
+end
+
+function resizeanim(l, t, r, b)
+  view.active(canvasvp)
+  local iw, ih = image.size(anim[1])
+  view.size(canvasvp, l + iw + r, t + ih + b)
+  for i, v in ipairs(anim) do
+    gfx.cls()
+    image.draw(v, l, t, 0, 0, iw, ih)
+    anim[i] = copycanvas()
+  end
 end
 
 function makeuniq(framenum)
