@@ -267,7 +267,7 @@ function saveanim(_filename)
   end
   image.save(filename, anim)
   saved = true
-  updateagain=true
+  updateagain = true
 end
 
 function quit()
@@ -387,11 +387,20 @@ function updateui()
   view.active(sidebarvp)
   gfx.bgcolor(scrn.darkcolor)
   gfx.cls()
+  local f = globalpal and 1 or frame
+  local r, g, b = image.palette(anim[f], fgcolor)
+  x, y = view.size(sidebarvp)
+  gfx.fgcolor(gfx.nearestcolor(15, 0, 0))
+  gfx.bar(0, (1 - r / 15) * y, 8, y)
+  gfx.fgcolor(gfx.nearestcolor(0, 15, 0))
+  gfx.bar(8, (1 - g / 15) * y, 8, y)
+  gfx.fgcolor(gfx.nearestcolor(0, 0, 15))
+  gfx.bar(16, (1 - b / 15) * y, 8, y)
 
   view.active(canvasvp)
   local iw, ih = image.size(anim[frame])
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
-  bgcolor = gfx.bgcolor(image.bgcolor(anim[frame]))
+  bgcolor = gfx.bgcolor(image.bgcolor(anim[globalpal and 1 or frame]))
 
   view.active(palettevp)
   image.copymode(7)
@@ -529,6 +538,23 @@ function stepui(t)
     startx, starty = nil, nil
     updateui()
   end
+
+  view.active(sidebarvp)
+  local vw, vh = view.size(sidebarvp)
+  mx, my, mb = input.mouse()
+  if mb == 1 then
+    local f = globalpal and 1 or frame
+    local r, g, b = image.palette(makeuniq(f), fgcolor)
+    local ch = math.floor(mx / (vw / 3))
+    if ch == 0 then
+      image.palette(anim[f], fgcolor, (1 - my / vh) * 15, g, b)
+    elseif ch == 1 then
+      image.palette(anim[f], fgcolor, r, (1 - my / vh) * 15, b)
+    elseif ch == 2 then
+      image.palette(anim[f], fgcolor, r, g, (1 - my / vh) * 15)
+    end
+    updateui()
+  end
 end
 function stepcanvas(t)
   view.active(canvasvp)
@@ -631,7 +657,7 @@ function undo()
         frame = i
       end
     end
-    if same and #history > 1 then
+    if same and #history > 0 then
       commit = table.remove(history)
       same = #commit == #anim
     else
