@@ -3,8 +3,9 @@ local scrn, anim, frame, filename, saved, history
 local canvasvp, toolbarvp, palettevp, sidebarvp
 local updateagain, icons, wpaper, menu
 local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "box"}
-local tool, fgcolor, bgcolor
+local tool, fgcolor, bgcolor, brushsize
 local startx, starty
+local clipx, clipy, clipw, cliph, clip = 0, 0, 1, 1
 local globalpal, fixedfps = true, true
 local playing = false
 
@@ -95,6 +96,7 @@ function _init(args)
   tool = 1
   bgcolor = 0
   fgcolor = 1
+  brushsize = 1
   canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
   makepointer()
   toolbarvp = view.new(scrn.rootvp, 0, 0, 10, #icons * 9 + 1)
@@ -160,6 +162,12 @@ function _step(t)
     local f = fixedfps and 1 or frame
     makeuniq(f)
     image.duration(anim[f], image.duration(anim[f]) + 10)
+  elseif key == "-" then
+    if brushsize > 0 then
+      brushsize = brushsize - 1
+    end
+  elseif key == "+" then
+    brushsize = brushsize + 1
   elseif key == " " then
     tool = 1
     while tools[tool] ~= "move" do
@@ -190,6 +198,26 @@ function _step(t)
   key = input.hotkey()
   if key == "z" then
     undo()
+  elseif key == "c" then
+    if tools[tool] == "select" then
+      local mode, bpp = scrn:mode()
+      if clip then
+        image.forget(clip)
+      end
+      clip = image.new(clipw, cliph, bpp)
+      updateui()
+      view.active(canvasvp)
+      image.copy(clip, clipx, clipy, 0, 0, clipw, cliph)
+    end
+  elseif key == "v" then
+    if tools[tool] == "select" then
+      makeuniq()
+      updateui()
+      view.active(canvasvp)
+      image.draw(clip, clipx, clipy, 0, 0, image.size(clip))
+      copycanvas(anim[frame])
+      commit()
+    end
   end
   stepui(t)
   stepcanvas(t)
@@ -574,10 +602,18 @@ function stepcanvas(t)
         gfx.fgcolor(fgcolor)
       end
       if startx then
-        gfx.line(startx, starty, mx, my)
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.line(startx + _x, starty + _y, mx + _x, my + _y)
+          end
+        end
       else
         makeuniq()
-        gfx.plot(mx, my)
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.plot(mx + _x, my + _y)
+          end
+        end
       end
       startx, starty = mx, my
     else
@@ -599,6 +635,64 @@ function stepcanvas(t)
       image.bgcolor(anim[frame], bgcolor)
       updateui()
     end
+  elseif tools[tool] == "select" then
+    if mb > 0 then
+      if startx then
+        local iw, ih = image.size(anim[frame])
+        image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+        gfx.fgcolor(scrn.darkcolor)
+        gfx.line(startx, starty, mx, starty)
+        gfx.line(startx, starty, startx, my)
+        gfx.line(startx, my, mx, my)
+        gfx.line(mx, starty, mx, my)
+        gfx.fgcolor(scrn.lightcolor)
+        gfx.line(startx-1, starty-1, mx-1, starty-1)
+        gfx.line(startx-1, starty-1, startx-1, my-1)
+        gfx.line(startx-1, my-1, mx-1, my-1)
+        gfx.line(mx-1, starty-1, mx-1, my-1)
+      else
+        makeuniq()
+        startx, starty = mx, my
+      end
+    else
+      if startx then
+        clipx, clipy = math.min(mx, startx), math.min(my, starty)
+        clipw, cliph = math.abs(mx - startx), math.abs(my - starty)
+      end
+      startx, starty = nil, nil
+    end
+  elseif tools[tool] == "fill" then
+    if mb > 0 then
+      if mb > 1 then
+        gfx.fgcolor(bgcolor)
+      else
+        gfx.fgcolor(fgcolor)
+      end
+      makeuniq()
+      local target = gfx.pixel(mx, my)
+      local pool = {{mx, my}}
+      if gfx.fgcolor() == target then
+        table.remove(pool)
+      end
+      local iw, ih = image.size(anim[frame])
+      while #pool > 0 do
+        local p = table.remove(pool)
+        if gfx.pixel(p[1], p[2]) == target and p[1] >= 0 and p[2] >= 0 and p[1] < iw and p[2] < ih then
+          gfx.plot(p[1], p[2])
+          table.insert(pool, {p[1], p[2] - 1})
+          table.insert(pool, {p[1], p[2] + 1})
+          table.insert(pool, {p[1] - 1, p[2]})
+          table.insert(pool, {p[1] + 1, p[2]})
+        end
+      end
+      startx, starty = mx, my
+    else
+      if startx then
+        copycanvas(anim[frame])
+        commit()
+      end
+      startx, starty = nil, nil
+    end
   elseif tools[tool] == "line" then
     if mb > 0 then
       if mb > 1 then
@@ -609,10 +703,86 @@ function stepcanvas(t)
       if startx then
         local iw, ih = image.size(anim[frame])
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
-        gfx.line(startx, starty, mx, my)
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.line(startx + _x, starty + _y, mx + _x, my + _y)
+          end
+        end
       else
         makeuniq()
-        gfx.plot(mx, my)
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.plot(mx + _x, my + _y)
+          end
+        end
+        startx, starty = mx, my
+      end
+    else
+      if startx then
+        copycanvas(anim[frame])
+        commit()
+      end
+      startx, starty = nil, nil
+    end
+  elseif tools[tool] == "circle" then
+    if mb > 0 then
+      if mb > 1 then
+        gfx.fgcolor(bgcolor)
+      else
+        gfx.fgcolor(fgcolor)
+      end
+      if startx then
+        local iw, ih = image.size(anim[frame])
+        image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+        local circ = math.pi * math.sqrt(2 * (math.pow(math.abs(mx - startx), 2) + math.pow(math.abs(my - starty), 2)))
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            for _a = -math.pi, math.pi, math.pi / circ do
+              gfx.plot((mx - startx) * math.sin(_a) + startx + _x, (my - starty) * math.cos(_a) + starty + _y)
+            end
+          end
+        end
+      else
+        makeuniq()
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.plot(mx + _x, my + _y)
+          end
+        end
+        startx, starty = mx, my
+      end
+    else
+      if startx then
+        copycanvas(anim[frame])
+        commit()
+      end
+      startx, starty = nil, nil
+    end
+  elseif tools[tool] == "box" then
+    if mb > 0 then
+      if mb > 1 then
+        gfx.fgcolor(bgcolor)
+      else
+        gfx.fgcolor(fgcolor)
+      end
+      if startx then
+        local iw, ih = image.size(anim[frame])
+        image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.line(startx + _x, starty + _y, mx + _x, starty + _y)
+            gfx.line(startx + _x, starty + _y, startx + _x, my + _y)
+            gfx.line(startx + _x, my + _y, mx + _x, my + _y)
+            gfx.line(mx + _x, starty + _y, mx + _x, my + _y)
+          end
+        end
+      else
+        makeuniq()
+        for _y = -brushsize / 2, brushsize / 2 do
+          for _x = -brushsize / 2, brushsize / 2 do
+            gfx.plot(mx + _x, my + _y)
+          end
+        end
         startx, starty = mx, my
       end
     else
