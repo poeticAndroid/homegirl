@@ -262,10 +262,9 @@ int view_focused(lua_State* L) nothrow
         throw new Exception("no permission to manage the main screen!");
       vp = prog.machine.mainScreen;
     }
-    if (set)
+    if (set && prog.canFocus)
     {
-      if (focused && prog.machine.focusedViewport
-          && prog.machine.focusedViewport.program.filename == prog.filename)
+      if (focused)
       {
         if (!vp.containsViewport(prog.machine.focusedViewport))
           prog.machine.focusViewport(vp);
@@ -276,6 +275,7 @@ int view_focused(lua_State* L) nothrow
           prog.machine.focusViewport(null);
       }
     }
+
     lua_pushboolean(L, vp.containsViewport(prog.machine.focusedViewport));
     return 1;
   }

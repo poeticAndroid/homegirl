@@ -40,6 +40,7 @@ class Program
 
   Viewport[] viewports; /// the viewports accessible by this program
   Viewport activeViewport; /// viewport currently active for graphics operations
+  bool canFocus = false; /// can this program focus viewports?
 
   Pixmap[] pixmaps; /// pixmap images created or loaded by this program
   Pixmap[][] fonts; /// fonts loaded by this program
