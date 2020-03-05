@@ -264,7 +264,8 @@ int view_focused(lua_State* L) nothrow
     }
     if (set)
     {
-      if (focused)
+      if (focused && prog.machine.focusedViewport
+          && prog.machine.focusedViewport.program.filename == prog.filename)
       {
         if (!vp.containsViewport(prog.machine.focusedViewport))
           prog.machine.focusViewport(vp);
