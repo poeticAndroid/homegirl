@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.2.2"; /// version of the software
+const VERSION = "1.2.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -400,7 +400,7 @@ class Machine
           this.focusedViewport.program.canFocus = false;
       }
       this.focusedViewport = vp;
-      if (this.focusedViewport.program)
+      if (this.focusedViewport && this.focusedViewport.program)
         this.focusedViewport.program.canFocus = true;
     }
   }
