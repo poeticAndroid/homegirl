@@ -43,7 +43,7 @@ function _step()
     sys.exit(0)
   end
   lasthead = head
-  if input.hotkey() == "\x1b" then
+  if input.hotkey() == "q" then
     sys.exit(0)
   end
   scrn:step()

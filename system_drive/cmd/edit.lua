@@ -35,8 +35,8 @@ function _init(args)
   scrn:palette(3, 0, 10, 15)
   gfx.bgcolor(0)
   gfx.fgcolor(1)
-  load(args[1] or "user:")
   input.linesperpage(20)
+  load(args[1] or "user:new.txt")
 end
 
 function _step(t)

@@ -79,7 +79,7 @@ function _step(t)
   gfx.bgcolor(0)
   scrn:autocolor()
   image.draw(anim[f], x, y, 0, 0, width, height)
-  if input.hotkey() == "\x1b" then
+  if input.hotkey() == "q" then
     sys.exit(0)
   end
   scrn:step()
