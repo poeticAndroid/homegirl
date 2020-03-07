@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.2.3"; /// version of the software
+const VERSION = "1.3.0"; /// version of the software
 
 /**
   Class representing "the machine"!

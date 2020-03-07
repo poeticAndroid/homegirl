@@ -20,8 +20,10 @@ class Pixmap
   ubyte[] pixels; /// all the pixels
   ubyte[] palette; /// the color palette
   uint duration = 100; /// number of milliseconds this pixmap is meant to be displayed
-  CopyMode copymode = CopyMode.replace; /// the mode by which to copy other pixmaps onto this one
-  CopyMode textCopymode = CopyMode.color; /// the mode by which to copy other pixmaps onto this one
+  CopyMode copymode = CopyMode.source; /// the mode by which to copy other pixmaps onto this one
+  bool copyMasked = false; /// whether to skip bg pixels when copying from another source
+  CopyMode textCopymode = CopyMode.fgcolor; /// the mode by which to copy font pixmaps onto this one
+  bool textCopyMasked = true; /// whether to skip bg pixels when copying from fonts
   Viewport viewport; /// associated viewport
 
   /**
@@ -185,9 +187,9 @@ class Pixmap
   ubyte nearestColor(ubyte red, ubyte green, ubyte blue)
   {
     uint l = cast(uint)(this.palette.length / 3);
-    red = (red % 16) * 17;
-    green = (green % 16) * 17;
-    blue = (blue % 16) * 17;
+    // red = (red % 16) * 17;
+    // green = (green % 16) * 17;
+    // blue = (blue % 16) * 17;
     ubyte best = 3;
     real record = 1024;
     for (uint i = 0; i < l; i++)
@@ -222,22 +224,250 @@ class Pixmap
   /**
     set color of specific pixel
   */
-  void pset(uint x, uint y, ubyte c)
+  void pset(uint x, uint y, ubyte s, ubyte sr = 0, ubyte sg = 0, ubyte sb = 0)
   {
     if (x >= this.width || y >= this.height)
       return;
     uint i = y * this.width + x;
-    this.pixels[i] = c & this.pixelMask;
+    ubyte d = pixels[i];
+    ubyte dr, dg, db;
+    if (this.copymode > CopyMode.sourceColor)
+    {
+      dr = this.palette[d * 3 + 0];
+      dg = this.palette[d * 3 + 1];
+      db = this.palette[d * 3 + 2];
+    }
+
+    switch (this.copymode)
+    {
+    case CopyMode.zero:
+      d = 0;
+      break;
+    case CopyMode.conNonimpl:
+      d = (d ^ s) & s;
+      break;
+    case CopyMode.and:
+      d = d & s;
+      break;
+    case CopyMode.source:
+      d = s;
+      break;
+    case CopyMode.matNonimpl:
+      d = (s ^ d) & d;
+      break;
+    case CopyMode.xor:
+      d = d ^ s;
+      break;
+    case CopyMode.dest:
+      d = d;
+      break;
+    case CopyMode.or:
+      d = d | s;
+      break;
+    case CopyMode.not:
+      d = d ^ ubyte.max;
+      break;
+    case CopyMode.min:
+      d = min(d, s);
+      break;
+    case CopyMode.max:
+      d = max(d, s);
+      break;
+    case CopyMode.average:
+      d = cast(ubyte)(min(d, s) + (max(d, s) - min(d, s)) / 2);
+      break;
+    case CopyMode.add:
+      d = cast(ubyte)(d + s);
+      break;
+    case CopyMode.subtract:
+      d = cast(ubyte)(d - s);
+      break;
+    case CopyMode.multiply:
+      d = cast(ubyte)(d * s);
+      break;
+    case CopyMode.divide:
+      d = d / s;
+      break;
+    case CopyMode.bgcolor:
+      d = this.bgColor;
+      break;
+    case CopyMode.fgcolor:
+      d = this.fgColor;
+      break;
+    case CopyMode.srcbgColor:
+    case CopyMode.sourceColor:
+      d = this.nearestColor(sr, sg, sb);
+      break;
+    case CopyMode.darkerColor:
+      d = this.nearestColor(min(dr, sr), min(dg, sg), min(db, sb));
+      break;
+    case CopyMode.lighterColor:
+      d = this.nearestColor(max(dr, sr), max(dg, sg), max(db, sb));
+      break;
+    case CopyMode.averageColor:
+      d = this.nearestColor((dr + sr) / 2, (dg + sg) / 2, (db + sb) / 2);
+      break;
+    case CopyMode.addColor:
+      d = this.nearestColor(cast(ubyte) min(255, dr + sr),
+          cast(ubyte) min(255, dg + sg), cast(ubyte) min(255, db + sb));
+      break;
+    case CopyMode.subtractColor:
+      d = this.nearestColor(cast(ubyte) max(0,
+          dr - sr), cast(ubyte) max(0, dg - sg), cast(ubyte) max(0, db - sb));
+      break;
+    case CopyMode.multiplyColor:
+      d = this.nearestColor(cast(ubyte)(cast(float)(dr / 255) * cast(float)(sr / 255)),
+          cast(ubyte)(cast(float)(dg / 255) * cast(float)(sg / 255)),
+          cast(ubyte)(cast(float)(db / 255) * cast(float)(sb / 255)),);
+      break;
+    case CopyMode.hueColor:
+      const smin = min(sr, sg, sb);
+      const smax = max(sr, sg, sb);
+      const smid = (sr == smin || sr == smax) ? ((sg == smin || sg == smax) ? sb : sg) : sr;
+      const dmin = min(dr, dg, db);
+      const dmax = max(dr, dg, db);
+      const midk = cast(float)(smid - smin) / cast(float)(smax - smin);
+      const dmid = cast(ubyte)(dmin + midk * (dmax - dmin));
+
+      if (sr == smin)
+        dr = dmin;
+      if (sg == smin)
+        dg = dmin;
+      if (sb == smin)
+        db = dmin;
+      if (sr == smid)
+        dr = dmid;
+      if (sg == smid)
+        dg = dmid;
+      if (sb == smid)
+        db = dmid;
+      if (sr == smax)
+        dr = dmax;
+      if (sg == smax)
+        dg = dmax;
+      if (sb == smax)
+        db = dmax;
+
+      d = this.nearestColor(dr, dg, db);
+      break;
+    case CopyMode.saturationColor:
+      const ssat = max(sr, sg, sb) - min(sr, sg, sb);
+      const dmin = min(dr, dg, db);
+      const dmax = max(dr, dg, db);
+      const dmid = (dr == dmin || dr == dmax) ? ((dg == dmin || dg == dmax) ? db : dg) : dr;
+      const dlit = cast(float) dmin / cast(float)(255 - dmax + dmin);
+      const midk = cast(float)(dmid - dmin) / cast(float)(dmax - dmin);
+
+      const nmin = cast(ubyte)(dlit * (255 - ssat));
+      const nmax = cast(ubyte)(nmin + ssat);
+      const nmid = cast(ubyte)(nmin + midk * (nmax - nmin));
+
+      if (dr == dmin)
+        dr = nmin;
+      if (dg == dmin)
+        dg = nmin;
+      if (db == dmin)
+        db = nmin;
+      if (dr == dmid)
+        dr = nmid;
+      if (dg == dmid)
+        dg = nmid;
+      if (db == dmid)
+        db = nmid;
+      if (dr == dmax)
+        dr = nmax;
+      if (dg == dmax)
+        dg = nmax;
+      if (db == dmax)
+        db = nmax;
+
+      d = this.nearestColor(dr, dg, db);
+      break;
+    case CopyMode.lightnessColor:
+      const smin = min(sr, sg, sb);
+      const smax = max(sr, sg, sb);
+      const slit = cast(float) smin / cast(float)(255 - smax + smin);
+      const dmin = min(dr, dg, db);
+      const dmax = max(dr, dg, db);
+      const dmid = (dr == dmin || dr == dmax) ? ((dg == dmin || dg == dmax) ? db : dg) : dr;
+      const dsat = dmax - dmin;
+
+      const nmin = cast(ubyte)(slit * (255 - dsat));
+      const nmax = cast(ubyte)(nmin + dsat);
+      const nmid = cast(ubyte)(nmin + dmid - dmin);
+
+      if (dr == dmin)
+        dr = nmin;
+      if (dg == dmin)
+        dg = nmin;
+      if (db == dmin)
+        db = nmin;
+      if (dr == dmid)
+        dr = nmid;
+      if (dg == dmid)
+        dg = nmid;
+      if (db == dmid)
+        db = nmid;
+      if (dr == dmax)
+        dr = nmax;
+      if (dg == dmax)
+        dg = nmax;
+      if (db == dmax)
+        db = nmax;
+
+      d = this.nearestColor(dr, dg, db);
+      break;
+    case CopyMode.graynessColor:
+      const dmin = min(dr, dg, db);
+      const dmax = max(dr, dg, db);
+      const dmid = (dr == dmin || dr == dmax) ? ((dg == dmin || dg == dmax) ? db : dg) : dr;
+      const smin = min(sr, sg, sb);
+      const smax = max(sr, sg, sb);
+      const midk = cast(float)(dmid - dmin) / cast(float)(dmax - dmin);
+      const smid = cast(ubyte)(smin + midk * (smax - smin));
+
+      if (dr == dmin)
+        dr = smin;
+      if (dg == dmin)
+        dg = dmin;
+      if (db == dmin)
+        db = dmin;
+      if (dr == dmid)
+        dr = smid;
+      if (dg == dmid)
+        dg = dmid;
+      if (db == dmid)
+        db = dmid;
+      if (dr == dmax)
+        dr = smax;
+      if (dg == dmax)
+        dg = dmax;
+      if (db == dmax)
+        db = dmax;
+
+      d = this.nearestColor(dr, dg, db);
+      break;
+    default:
+      break;
+    }
+    this.pixels[i] = d & this.pixelMask;
     if (this.viewport)
       this.viewport.setDirty();
   }
 
   /**
-    set specific pixel to foreground color
+    paint specific pixel with foreground color
   */
   void plot(int x, int y)
   {
-    this.pset(x, y, this.fgColor);
+    if (this.copymode == CopyMode.srcbgColor)
+      this.pset(x, y, this.bgColor, this.palette[this.bgColor * 3 + 0],
+          this.palette[this.bgColor * 3 + 1], this.palette[this.bgColor * 3 + 2]);
+    else if (this.copymode > CopyMode.fgcolor)
+      this.pset(x, y, this.fgColor, this.palette[this.fgColor * 3 + 0],
+          this.palette[this.fgColor * 3 + 1], this.palette[this.fgColor * 3 + 2]);
+    else
+      this.pset(x, y, this.fgColor);
   }
 
   /**
@@ -382,61 +612,16 @@ class Pixmap
     sx %= src.width;
     sy %= src.height;
 
-    const c = src.pget(sx, sy);
-    switch (this.copymode)
-    {
-    case CopyMode.replace:
-      this.pset(dx, dy, c);
-      break;
-    case CopyMode.matte:
-      if (c != src.bgColor)
-        this.pset(dx, dy, c);
-      break;
-    case CopyMode.color:
-      if (c != src.bgColor)
-        this.pset(dx, dy, this.fgColor);
-      break;
-    case CopyMode.xor:
-      this.pset(dx, dy, this.pget(dx, dy) ^ c);
-      break;
-    case CopyMode.min:
-      this.pset(dx, dy, min(this.pget(dx, dy), c));
-      break;
-    case CopyMode.max:
-      this.pset(dx, dy, max(this.pget(dx, dy), c));
-      break;
-    case CopyMode.add:
-      this.pset(dx, dy, cast(ubyte)(this.pget(dx, dy) + c));
-      break;
-    case CopyMode.matchReplace:
-      this.pset(dx, dy,
-          this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
-      break;
-    case CopyMode.matchMatte:
-      if (c != src.bgColor)
-        this.pset(dx, dy,
-            this.nearestColor(src.palette[c * 3 + 0], src.palette[c * 3 + 1], src.palette[c * 3 + 2]));
-      break;
-    case CopyMode.averageColor:
-      const _c = this.pget(dx, dy);
-      this.pset(dx, dy, this.nearestColor((this.palette[_c * 3 + 0] + src.palette[c * 3 + 0]) / 32,
-          (this.palette[_c * 3 + 1] + src.palette[c * 3 + 1]) / 32,
-          (this.palette[_c * 3 + 2] + src.palette[c * 3 + 2]) / 32));
-      break;
-    case CopyMode.darkerColor:
-      const _c = this.pget(dx, dy);
-      this.pset(dx, dy, this.nearestColor(min(this.palette[_c * 3 + 0],
-          src.palette[c * 3 + 0]), min(this.palette[_c * 3 + 1],
-          src.palette[c * 3 + 1]), min(this.palette[_c * 3 + 2], src.palette[c * 3 + 2])));
-      break;
-    case CopyMode.lighterColor:
-      const _c = this.pget(dx, dy);
-      this.pset(dx, dy, this.nearestColor(max(this.palette[_c * 3 + 0],
-          src.palette[c * 3 + 0]), max(this.palette[_c * 3 + 1],
-          src.palette[c * 3 + 1]), max(this.palette[_c * 3 + 2], src.palette[c * 3 + 2])));
-      break;
-    default:
-    }
+    const s = src.pget(sx, sy);
+    if (this.copyMasked && s == src.bgColor)
+      return;
+    if (this.copymode == CopyMode.srcbgColor)
+      this.pset(dx, dy, src.bgColor, src.palette[src.bgColor * 3 + 0],
+          src.palette[src.bgColor * 3 + 1], src.palette[src.bgColor * 3 + 2]);
+    else if (this.copymode > CopyMode.fgcolor)
+      this.pset(dx, dy, s, src.palette[s * 3 + 0], src.palette[s * 3 + 1], src.palette[s * 3 + 2]);
+    else
+      this.pset(dx, dy, s);
   }
 
   /** 
@@ -617,7 +802,9 @@ class Pixmap
     if (font.length == 0)
       return [0, 0];
     CopyMode oldmode = this.copymode;
+    bool oldmasked = this.copyMasked;
     this.copymode = this.textCopymode;
+    this.copyMasked = this.textCopyMasked;
     dstring text = toUTF32(_text);
     int margin = x;
     int width = 0;
@@ -651,13 +838,14 @@ class Pixmap
           glyph = font[code - 32];
         else
           glyph = font[font.length - 1];
-        this.copyRectFrom(glyph, 0, 0, x, y, glyph.width, glyph.height);
+        this.copyRectFrom(glyph, 0, 0, x, y, glyph.width, glyph.height, 1, 1);
         x += glyph.duration / 10;
       }
       if ((x - margin) > width)
         width = x - margin;
     }
     this.copymode = oldmode;
+    this.copyMasked = oldmasked;
     return [width, height];
   }
 
@@ -795,16 +983,46 @@ class Pixmap
 */
 enum CopyMode
 {
-  replace,
-  matte,
-  color,
-  xor,
-  min,
-  max,
-  add,
-  matchReplace,
-  matchMatte,
-  averageColor,
-  darkerColor,
-  lighterColor,
+  // bitwise
+  zero, //0
+  conNonimpl, //1
+  and, //2
+  source, //3 (0,1)
+
+  matNonimpl, //4
+  xor, //5 (3)
+  dest, //6
+  or, //7
+
+  // arithmetic?
+  not, //8
+  min, //9 (4)
+  max, //10 (5)
+  average, //11
+
+  add, //12 (6)
+  subtract, //13
+  multiply, //14
+  divide, //15
+
+  // color based
+  bgcolor, //16
+  fgcolor, //17 (,2)
+  srcbgColor, //18
+  unused1, //19
+
+  sourceColor, //20 (7,8)
+  darkerColor, //21 (10)
+  lighterColor, //22 (11)
+  averageColor, //23 (9)
+
+  addColor, //24
+  subtractColor, //25
+  multiplyColor, //26
+  unused2, //27
+
+  hueColor, //28
+  saturationColor, //29
+  lightnessColor, //30
+  graynessColor, //31
 }

@@ -111,8 +111,9 @@ int gfx_nearestcolor(lua_State* L) nothrow
   {
     if (!prog.activeViewport)
       throw new Exception("No active viewport!");
-    lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.nearestColor(cast(ubyte) r,
-        cast(ubyte) g, cast(ubyte) b));
+    lua_pushinteger(L,
+        cast(int) prog.activeViewport.pixmap.nearestColor(cast(ubyte)(r * 17),
+          cast(ubyte)(g * 17), cast(ubyte)(b * 17)));
     return 1;
   }
   catch (Exception err)

@@ -176,7 +176,6 @@ function out(data)
 end
 
 function scroll(amount)
-  image.copymode(0)
   image.copy(spare, 0, 0, 0, 0, scrnw, scrnh)
   gfx.cls()
   image.draw(spare, 0, -amount, 0, 0, scrnw, scrnh)

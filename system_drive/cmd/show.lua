@@ -96,7 +96,6 @@ function zoom(amount)
   end
   scrn:mode(mode, 8)
   scrnw, scrnh = view.size(scrn.rootvp)
-  image.copymode(0)
   x = scrnw / 2 - width / 2
   y = scrnh / 2 - height / 2
 end

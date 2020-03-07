@@ -12,7 +12,7 @@ import network;
 
 int main(string[] args)
 {
-  writeln("Powering on...");
+  writeln("Powering on..");
   Machine machine;
   JSONValue config;
   string configFileName;

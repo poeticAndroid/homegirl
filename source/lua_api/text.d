@@ -29,10 +29,11 @@ int text_loadfont(lua_State* L) nothrow
   }
 }
 
-/// text.copymode([mode]): mode
+/// text.copymode([mode, masked]): mode, masked
 int text_copymode(lua_State* L) nothrow
 {
   const mode = lua_tointeger(L, 1);
+  const masked = lua_toboolean(L, 2);
   const set = 1 - lua_isnoneornil(L, 1);
   lua_getglobal(L, "__program");
   auto prog = cast(Program*) lua_touserdata(L, -1);
@@ -41,9 +42,13 @@ int text_copymode(lua_State* L) nothrow
     if (!prog.activeViewport)
       throw new Exception("No active viewport!");
     if (set)
+    {
       prog.activeViewport.pixmap.textCopymode = cast(CopyMode) mode;
+      prog.activeViewport.pixmap.textCopyMasked = cast(bool) masked;
+    }
     lua_pushinteger(L, cast(int) prog.activeViewport.pixmap.textCopymode);
-    return 1;
+    lua_pushboolean(L, cast(int) prog.activeViewport.pixmap.textCopyMasked);
+    return 2;
   }
   catch (Exception err)
   {
