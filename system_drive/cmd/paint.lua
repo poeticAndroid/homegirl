@@ -142,7 +142,6 @@ function _init(args)
   }
   menu = scrn:attachwindow("menu", Menu:new(menu))
   menu.onopen = function()
-    menu:close()
     return view.focused(canvasvp) == false and view.focused(palettevp) == false
   end
 
@@ -267,6 +266,9 @@ function _step(t)
   stepcanvas(t)
   scrn:step(t)
   autohideui()
+  if view.focused(canvasvp) == true or view.focused(palettevp) == true then
+    menu:close()
+  end
 end
 
 function reqload()
@@ -736,6 +738,7 @@ function stepcanvas(t)
     local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if startx then
+        image.copymode(3)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
         gfx.fgcolor(scrn.darkcolor)
         gfx.line(startx - 1, starty - 1, mx, starty - 1)
@@ -844,14 +847,7 @@ function stepcanvas(t)
         image.copymode(3)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
         image.copymode(brushmode, brushmasked)
-        local circ =
-          math.pi * math.sqrt(2 * (math.pow(math.abs(mx - startx), 2) + math.pow(math.abs(my - starty), 2))) / 3
-        for _a = 0, math.pi / 2, math.pi / circ do
-          paintat((mx - startx) * -math.sin(_a) + startx + .5, (my - starty) * -math.cos(_a) + starty + .5)
-          paintat((mx - startx) * -math.sin(_a) + startx + .5, (my - starty) * math.cos(_a) + starty + .5)
-          paintat((mx - startx) * math.sin(_a) + startx + .5, (my - starty) * -math.cos(_a) + starty + .5)
-          paintat((mx - startx) * math.sin(_a) + startx + .5, (my - starty) * math.cos(_a) + starty + .5)
-        end
+        paintcircle(startx, starty, mx - startx, my - starty)
       else
         makeuniq()
         image.copymode(brushmode, brushmasked)
@@ -1038,11 +1034,15 @@ function updatebrush(fgcolor)
       end
       brushcolor = fgcolor
       image.copypalette(brush)
-      image.bgcolor(brush, fgcolor + 1)
+      image.bgcolor(brush, fgcolor == bgcolor and fgcolor + 1 or bgcolor)
     end
   end
 end
 
+function paintat(x, y)
+  local bw, bh = image.size(brush)
+  image.draw(brush, x - math.floor(bw / 2), y - math.floor(bh / 2), 0, 0, bw, bh)
+end
 function paintline(x1, y1, x2, y2, s)
   local l = math.max(math.abs(x1 - x2), math.abs(y1 - y2))
   if l == 0 then
@@ -1055,10 +1055,29 @@ function paintline(x1, y1, x2, y2, s)
     paintat(x1 + .5 + (i / l) * (x2 - x1), y1 + .5 + (i / l) * (y2 - y1))
   end
 end
-
-function paintat(x, y)
-  local bw, bh = image.size(brush)
-  image.draw(brush, x - math.floor(bw / 2), y - math.floor(bh / 2), 0, 0, bw, bh)
+function paintcircle(cx, cy, rx, ry)
+  if rx == 0 and ry == 0 then
+    paintat(cx, cy)
+  else
+    div = rx == ry and 4 or 2
+    step = 8 / (2 * math.pi * math.abs(math.min(rx, ry)))
+    for a = 0, math.pi / div, step do
+      x1 = math.round(rx * math.sin(a))
+      y1 = math.round(ry * math.cos(a))
+      x2 = math.round(rx * math.sin(a + step))
+      y2 = math.round(ry * math.cos(a + step))
+      paintline(cx + x1, cy - y1, cx + x2, cy - y2)
+      paintline(cx + x1, cy + y1, cx + x2, cy + y2)
+      paintline(cx - x1, cy - y1, cx - x2, cy - y2)
+      paintline(cx - x1, cy + y1, cx - x2, cy + y2)
+      if div == 4 then
+        paintline(cx + y1, cy - x1, cx + y2, cy - x2)
+        paintline(cx + y1, cy + x1, cx + y2, cy + x2)
+        paintline(cx - y1, cy - x1, cx - y2, cy - x2)
+        paintline(cx - y1, cy + x1, cx - y2, cy + x2)
+      end
+    end
+  end
 end
 
 function makepointer()
@@ -1128,4 +1147,8 @@ function defaultimage()
   local img = image.new(160, 90, 6)
   image.pixel(img, 0, 0, 255)
   return img
+end
+
+function math.round(x)
+  return x >= 0 and math.floor(x + 0.5) or math.ceil(x - 0.5)
 end
