@@ -239,6 +239,7 @@ do
   function Menu:close(struct)
     if not struct then
       struct = self.struct
+      self.active = false
     end
     if struct.vp then
       for i, menu in ipairs(struct.menu) do
