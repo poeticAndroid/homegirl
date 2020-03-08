@@ -4,8 +4,9 @@ local canvasvp, toolbarvp, palettevp, sidebarvp
 local updateagain, icons, wpaper, menu
 local tools = {"move", "brush", "picker", "select", "fill", "line", "circle", "box"}
 local tool, fgcolor, bgcolor, brushsize
+local brushmode, brushmasked, brushcolor, brush = 3, true, 1024, nil
 local startx, starty
-local clipx, clipy, clipw, cliph, clip = 0, 0, 1, 1
+local clipx, clipy, clipw, cliph = 0, 0, 1, 1
 local globalpal, fixedfps = true, true
 local playing = false
 
@@ -32,6 +33,61 @@ function _init(args)
       }
     },
     {
+      label = "Brush",
+      onopen = updatebrushmenu,
+      menu = {
+        {label = "Masked", _masked = true, action = reqbrushmode, hotkey = "m"},
+        {
+          label = "Bitwise",
+          onopen = updatebrushmenu,
+          menu = {
+            {label = "Zero", _mode = 0, action = reqbrushmode},
+            {label = "ConNonimpl", _mode = 1, action = reqbrushmode},
+            {label = "And", _mode = 2, action = reqbrushmode},
+            {label = "Source", _mode = 3, action = reqbrushmode, hotkey = "0"},
+            {label = "MatNonimpl", _mode = 4, action = reqbrushmode},
+            {label = "Xor", _mode = 5, action = reqbrushmode},
+            {label = "Dest", _mode = 6, action = reqbrushmode},
+            {label = "Or", _mode = 7, action = reqbrushmode},
+            {label = "Not", _mode = 8, action = reqbrushmode}
+          }
+        },
+        {
+          label = "Index math",
+          onopen = updatebrushmenu,
+          menu = {
+            {label = "Min", _mode = 9, action = reqbrushmode},
+            {label = "Max", _mode = 10, action = reqbrushmode},
+            {label = "Average", _mode = 11, action = reqbrushmode},
+            {label = "Add", _mode = 12, action = reqbrushmode},
+            {label = "Subtract", _mode = 13, action = reqbrushmode},
+            {label = "Multiply", _mode = 14, action = reqbrushmode},
+            {label = "Divide", _mode = 15, action = reqbrushmode}
+          }
+        },
+        {
+          label = "Color",
+          onopen = updatebrushmenu,
+          menu = {
+            {label = "Background", _mode = 16, action = reqbrushmode},
+            {label = "Foreground", _mode = 17, action = reqbrushmode, hotkey = "9"},
+            {label = "Src bg", _mode = 18, action = reqbrushmode},
+            {label = "Source", _mode = 20, action = reqbrushmode},
+            {label = "Darker", _mode = 21, action = reqbrushmode},
+            {label = "Lighter", _mode = 22, action = reqbrushmode},
+            {label = "Average", _mode = 23, action = reqbrushmode},
+            {label = "Add", _mode = 24, action = reqbrushmode},
+            {label = "Subtract", _mode = 25, action = reqbrushmode},
+            {label = "Multiply", _mode = 26, action = reqbrushmode},
+            {label = "Hue", _mode = 28, action = reqbrushmode},
+            {label = "Saturation", _mode = 29, action = reqbrushmode},
+            {label = "Lightness", _mode = 30, action = reqbrushmode},
+            {label = "Grayness", _mode = 31, action = reqbrushmode}
+          }
+        }
+      }
+    },
+    {
       label = "Anim",
       onopen = updateanimmenu,
       menu = {
@@ -49,22 +105,22 @@ function _init(args)
           label = "Size",
           onopen = updatesizemenu,
           menu = {
-            {label = " 80x" .. math.floor(60 * hk), _mode = 0, action = reqmode, hotkey = "0"},
+            {label = " 80x" .. math.floor(60 * hk), _mode = 0, action = reqmode, hotkey = "1"},
             {label = "160x" .. math.floor(60 * hk), _mode = 1, action = reqmode},
             {label = "320x" .. math.floor(60 * hk), _mode = 2, action = reqmode},
             {label = "640x" .. math.floor(60 * hk), _mode = 3, action = reqmode},
             {label = " 80x" .. math.floor(120 * hk), _mode = 4, action = reqmode},
-            {label = "160x" .. math.floor(120 * hk), _mode = 5, action = reqmode, hotkey = "1"},
+            {label = "160x" .. math.floor(120 * hk), _mode = 5, action = reqmode, hotkey = "2"},
             {label = "320x" .. math.floor(120 * hk), _mode = 6, action = reqmode},
             {label = "640x" .. math.floor(120 * hk), _mode = 7, action = reqmode},
             {label = " 80x" .. math.floor(240 * hk), _mode = 8, action = reqmode},
             {label = "160x" .. math.floor(240 * hk), _mode = 9, action = reqmode},
-            {label = "320x" .. math.floor(240 * hk), _mode = 10, action = reqmode, hotkey = "2"},
+            {label = "320x" .. math.floor(240 * hk), _mode = 10, action = reqmode, hotkey = "3"},
             {label = "640x" .. math.floor(240 * hk), _mode = 11, action = reqmode},
             {label = " 80x" .. math.floor(480 * hk), _mode = 12, action = reqmode},
             {label = "160x" .. math.floor(480 * hk), _mode = 13, action = reqmode},
             {label = "320x" .. math.floor(480 * hk), _mode = 14, action = reqmode},
-            {label = "640x" .. math.floor(480 * hk), _mode = 15, action = reqmode, hotkey = "3"}
+            {label = "640x" .. math.floor(480 * hk), _mode = 15, action = reqmode, hotkey = "4"}
           }
         },
         {
@@ -86,6 +142,7 @@ function _init(args)
   }
   menu = scrn:attachwindow("menu", Menu:new(menu))
   menu.onopen = function()
+    menu:close()
     return view.focused(canvasvp) == false and view.focused(palettevp) == false
   end
 
@@ -96,7 +153,8 @@ function _init(args)
   tool = 1
   bgcolor = 0
   fgcolor = 1
-  brushsize = 0
+  brushsize = 1
+  brush = image.new(brushsize, brushsize, 8)
   canvasvp = view.new(scrn.rootvp, 0, 0, 32, 32)
   makepointer()
   toolbarvp = view.new(scrn.rootvp, 0, 0, 10, #icons * 9 + 1)
@@ -167,11 +225,13 @@ function _step(t)
     makeuniq(f)
     image.duration(anim[f], image.duration(anim[f]) + 10)
   elseif key == "-" then
-    if brushsize > 0 then
+    if brushsize > 1 then
       brushsize = brushsize - 1
     end
+    brushcolor = 1024
   elseif key == "+" then
     brushsize = brushsize + 1
+    brushcolor = 1024
   elseif key == " " then
     tool = 1
     while tools[tool] ~= "move" do
@@ -202,26 +262,6 @@ function _step(t)
   key = input.hotkey()
   if key == "z" then
     undo()
-  elseif key == "c" then
-    if tools[tool] == "select" then
-      local mode, bpp = scrn:mode()
-      if clip then
-        image.forget(clip)
-      end
-      clip = image.new(clipw, cliph, bpp)
-      updateui()
-      view.active(canvasvp)
-      image.copy(clip, clipx, clipy, 0, 0, clipw, cliph)
-    end
-  elseif key == "v" then
-    if tools[tool] == "select" then
-      makeuniq()
-      updateui()
-      view.active(canvasvp)
-      image.draw(clip, clipx, clipy, 0, 0, image.size(clip))
-      copycanvas(anim[frame])
-      commit()
-    end
   end
   stepui(t)
   stepcanvas(t)
@@ -318,6 +358,14 @@ function updatecolorsmenu(struct)
     item.checked = bpp == item._bpp
   end
 end
+function updatebrushmenu(struct)
+  for i, item in ipairs(struct.menu) do
+    item.checked = brushmode == item._mode
+    if item._masked then
+      item.checked = brushmasked
+    end
+  end
+end
 function updateanimmenu(struct)
   struct.menu[1].checked = globalpal
   struct.menu[2].checked = fixedfps
@@ -330,6 +378,13 @@ end
 function reqbpp(struct)
   local mode, bpp = scrn:mode()
   screenmode(mode, struct._bpp)
+end
+function reqbrushmode(struct)
+  if struct._masked then
+    brushmasked = not brushmasked
+  else
+    brushmode = struct._mode
+  end
 end
 function toggleglobalpal(struct)
   globalpal = not globalpal
@@ -396,7 +451,7 @@ function updateui()
 
   if updateagain then
     view.active(scrn.mainvp)
-    image.copymode(7)
+    image.copymode(20)
     image.draw(wpaper, 0, 0, 0, 0, sw, sh)
   end
 
@@ -404,7 +459,7 @@ function updateui()
   gfx.bgcolor(scrn.darkcolor)
   gfx.fgcolor(scrn.lightcolor)
   gfx.cls()
-  image.copymode(7)
+  image.copymode(20)
   x, y = 1, 1
   for i = 1, #icons do
     if tool == i then
@@ -432,11 +487,12 @@ function updateui()
   view.active(canvasvp)
   local iw, ih = image.size(anim[frame])
   view.size(canvasvp, iw, ih)
+  image.copymode(3)
   image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
   bgcolor = gfx.bgcolor(image.bgcolor(anim[globalpal and 1 or frame]))
 
   view.active(palettevp)
-  image.copymode(7)
+  image.copymode(20)
   x, y = view.size(palettevp)
   image.draw(wpaper, 0, 0, x, y, sw, sh)
   s = math.min(math.max(3, math.floor(sw / 32)), 10)
@@ -632,38 +688,36 @@ function stepcanvas(t)
       if clipx and startx then
         resizeanim(startx, starty, vw - iw - startx, vh - ih - starty)
         commit()
-        updateui()
       end
       clipx, clipy = nil, nil
       startx, starty = nil, nil
     end
   elseif tools[tool] == "brush" then
+    local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if mb > 1 then
-        gfx.fgcolor(bgcolor)
+        updatebrush(gfx.fgcolor(bgcolor))
       else
-        gfx.fgcolor(fgcolor)
+        updatebrush(gfx.fgcolor(fgcolor))
       end
       if startx then
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.line(startx + _x, starty + _y, mx + _x, my + _y)
-          end
-        end
+        paintline(startx, starty, mx, my, 1)
       else
         makeuniq()
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.plot(mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintat(mx, my)
       end
       startx, starty = mx, my
     else
+      image.copymode(3)
       if startx then
         copycanvas(anim[frame])
         commit()
       end
+      image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+      image.copymode(brushmode, brushmasked)
+      updatebrush(gfx.fgcolor(fgcolor))
+      paintat(mx, my)
       startx, starty = nil, nil
     end
   elseif tools[tool] == "picker" then
@@ -679,29 +733,40 @@ function stepcanvas(t)
       updateui()
     end
   elseif tools[tool] == "select" then
+    local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if startx then
-        local iw, ih = image.size(anim[frame])
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
         gfx.fgcolor(scrn.darkcolor)
-        gfx.line(startx, starty, mx, starty)
-        gfx.line(startx, starty, startx, my)
-        gfx.line(startx, my, mx, my)
-        gfx.line(mx, starty, mx, my)
+        gfx.line(startx - 1, starty - 1, mx, starty - 1)
+        gfx.line(startx - 1, starty - 1, startx - 1, my)
+        gfx.line(startx - 1, my, mx, my)
+        gfx.line(mx, starty - 1, mx, my)
         gfx.fgcolor(scrn.lightcolor)
-        gfx.line(startx - 1, starty - 1, mx - 1, starty - 1)
-        gfx.line(startx - 1, starty - 1, startx - 1, my - 1)
-        gfx.line(startx - 1, my - 1, mx - 1, my - 1)
-        gfx.line(mx - 1, starty - 1, mx - 1, my - 1)
+        gfx.line(startx - 2, starty - 2, mx + 1, starty - 2)
+        gfx.line(startx - 2, starty - 2, startx - 2, my + 1)
+        gfx.line(startx - 2, my + 1, mx + 1, my + 1)
+        gfx.line(mx + 1, starty - 2, mx + 1, my + 1)
       else
         makeuniq()
         startx, starty = mx, my
       end
     else
+      image.copymode(3)
+      image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
       if startx then
-        clipx, clipy = math.min(mx, startx), math.min(my, starty)
-        clipw, cliph = math.abs(mx - startx), math.abs(my - starty)
+        clipx, clipy = math.max(0, math.min(mx, startx)), math.max(0, math.min(my, starty))
+        clipw, cliph = math.min(iw, math.abs(mx - startx)), math.min(ih, math.abs(my - starty))
+        image.forget(brush)
+        brush = image.new(clipw, cliph, 8)
+        image.copy(brush, clipx, clipy, 0, 0, clipw, cliph)
+        image.copypalette(brush)
+        image.bgcolor(brush, bgcolor)
+        brushcolor = clipw == 0 or cliph == 0
       end
+      image.copymode(brushmode, brushmasked)
+      updatebrush(gfx.fgcolor(fgcolor))
+      paintat(mx, my)
       startx, starty = nil, nil
     end
   elseif tools[tool] == "fill" then
@@ -737,102 +802,106 @@ function stepcanvas(t)
       startx, starty = nil, nil
     end
   elseif tools[tool] == "line" then
+    local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if mb > 1 then
-        gfx.fgcolor(bgcolor)
+        updatebrush(gfx.fgcolor(bgcolor))
       else
-        gfx.fgcolor(fgcolor)
+        updatebrush(gfx.fgcolor(fgcolor))
       end
       if startx then
-        local iw, ih = image.size(anim[frame])
+        image.copymode(3)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.line(startx + _x, starty + _y, mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintline(startx, starty, mx, my)
       else
         makeuniq()
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.plot(mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintat(mx, my)
         startx, starty = mx, my
       end
     else
+      image.copymode(3)
       if startx then
         copycanvas(anim[frame])
         commit()
       end
+      image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+      image.copymode(brushmode, brushmasked)
+      updatebrush(gfx.fgcolor(fgcolor))
+      paintat(mx, my)
       startx, starty = nil, nil
     end
   elseif tools[tool] == "circle" then
+    local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if mb > 1 then
-        gfx.fgcolor(bgcolor)
+        updatebrush(gfx.fgcolor(bgcolor))
       else
-        gfx.fgcolor(fgcolor)
+        updatebrush(gfx.fgcolor(fgcolor))
       end
       if startx then
-        local iw, ih = image.size(anim[frame])
+        image.copymode(3)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
-        local circ = math.pi * math.sqrt(2 * (math.pow(math.abs(mx - startx), 2) + math.pow(math.abs(my - starty), 2)))
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            for _a = -math.pi, math.pi, math.pi / circ do
-              gfx.plot((mx - startx) * math.sin(_a) + startx + _x, (my - starty) * math.cos(_a) + starty + _y)
-            end
-          end
+        image.copymode(brushmode, brushmasked)
+        local circ =
+          math.pi * math.sqrt(2 * (math.pow(math.abs(mx - startx), 2) + math.pow(math.abs(my - starty), 2))) / 3
+        for _a = 0, math.pi / 2, math.pi / circ do
+          paintat((mx - startx) * -math.sin(_a) + startx + .5, (my - starty) * -math.cos(_a) + starty + .5)
+          paintat((mx - startx) * -math.sin(_a) + startx + .5, (my - starty) * math.cos(_a) + starty + .5)
+          paintat((mx - startx) * math.sin(_a) + startx + .5, (my - starty) * -math.cos(_a) + starty + .5)
+          paintat((mx - startx) * math.sin(_a) + startx + .5, (my - starty) * math.cos(_a) + starty + .5)
         end
       else
         makeuniq()
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.plot(mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintat(mx, my)
         startx, starty = mx, my
       end
     else
+      image.copymode(3)
       if startx then
         copycanvas(anim[frame])
         commit()
       end
+      image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+      image.copymode(brushmode, brushmasked)
+      updatebrush(gfx.fgcolor(fgcolor))
+      paintat(mx, my)
       startx, starty = nil, nil
     end
   elseif tools[tool] == "box" then
+    local iw, ih = image.size(anim[frame])
     if mb > 0 then
       if mb > 1 then
-        gfx.fgcolor(bgcolor)
+        updatebrush(gfx.fgcolor(bgcolor))
       else
-        gfx.fgcolor(fgcolor)
+        updatebrush(gfx.fgcolor(fgcolor))
       end
       if startx then
-        local iw, ih = image.size(anim[frame])
+        image.copymode(3)
         image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.line(startx + _x, starty + _y, mx + _x, starty + _y)
-            gfx.line(startx + _x, starty + _y, startx + _x, my + _y)
-            gfx.line(startx + _x, my + _y, mx + _x, my + _y)
-            gfx.line(mx + _x, starty + _y, mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintline(startx, starty, mx, starty, 1)
+        paintline(mx, starty, mx, my, 1)
+        paintline(mx, my, startx, my, 1)
+        paintline(startx, my, startx, starty, 1)
       else
         makeuniq()
-        for _y = -brushsize / 2, brushsize / 2 do
-          for _x = -brushsize / 2, brushsize / 2 do
-            gfx.plot(mx + _x, my + _y)
-          end
-        end
+        image.copymode(brushmode, brushmasked)
+        paintat(mx, my)
         startx, starty = mx, my
       end
     else
+      image.copymode(3)
       if startx then
         copycanvas(anim[frame])
         commit()
       end
+      image.draw(anim[frame], 0, 0, 0, 0, iw, ih)
+      image.copymode(brushmode, brushmasked)
+      updatebrush(gfx.fgcolor(fgcolor))
+      paintat(mx, my)
       startx, starty = nil, nil
     end
   end
@@ -911,18 +980,6 @@ function copycanvas(img)
   image.duration(newframe, image.duration(anim[fixedfps and 1 or frame]))
   return newframe
 end
-
-function resizeanim(l, t, r, b)
-  view.active(canvasvp)
-  local iw, ih = image.size(anim[1])
-  view.size(canvasvp, l + iw + r, t + ih + b)
-  for i, v in ipairs(anim) do
-    gfx.cls()
-    image.draw(v, l, t, 0, 0, iw, ih)
-    anim[i] = copycanvas()
-  end
-end
-
 function makeuniq(framenum)
   framenum = framenum or frame
   local oldframe = frame
@@ -944,6 +1001,64 @@ function makeuniq(framenum)
     saved = false
   end
   return anim[framenum]
+end
+
+function resizeanim(l, t, r, b)
+  view.active(canvasvp)
+  local iw, ih = image.size(anim[1])
+  view.size(canvasvp, l + iw + r, t + ih + b)
+  for i, v in ipairs(anim) do
+    if not globalpal then
+      scrn:usepalette(v)
+      bgcolor = image.bgcolor(v)
+    end
+    gfx.cls()
+    image.draw(v, l, t, 0, 0, iw, ih)
+    anim[i] = copycanvas()
+    if not fixedfps then
+      image.duration(anim[i], image.duration(v))
+    end
+  end
+  updateui()
+end
+
+function updatebrush(fgcolor)
+  if brushcolor then
+    local bw, bh = image.size(brush)
+    if bw ~= brushsize or bh ~= brushsize then
+      image.forget(brush)
+      brush = image.new(brushsize, brushsize, 8)
+      brushcolor = 1024
+    end
+    if brushcolor ~= fgcolor then
+      for y = 0, brushsize do
+        for x = 0, brushsize do
+          image.pixel(brush, x, y, fgcolor)
+        end
+      end
+      brushcolor = fgcolor
+      image.copypalette(brush)
+      image.bgcolor(brush, fgcolor + 1)
+    end
+  end
+end
+
+function paintline(x1, y1, x2, y2, s)
+  local l = math.max(math.abs(x1 - x2), math.abs(y1 - y2))
+  if l == 0 then
+    if s then
+      return
+    end
+    return paintat(x1, y1)
+  end
+  for i = (s or 0), l do
+    paintat(x1 + .5 + (i / l) * (x2 - x1), y1 + .5 + (i / l) * (y2 - y1))
+  end
+end
+
+function paintat(x, y)
+  local bw, bh = image.size(brush)
+  image.draw(brush, x - math.floor(bw / 2), y - math.floor(bh / 2), 0, 0, bw, bh)
 end
 
 function makepointer()
