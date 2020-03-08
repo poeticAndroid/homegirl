@@ -75,15 +75,20 @@ do
     local sw, sh = view.size(self.screen)
     local topmenu = false
     local mw, mh, tw, th = 0, 0, 0, 0
+    local newvp
     if not struct then
       topmenu = true
       struct = self.struct
     end
     if not struct.vp then
+      newvp = true
       if struct.onopen and (struct:onopen() == false) then
         return
       end
-      struct.vp = view.new(self.screen, ml, mt)
+      struct.vp = view.new(self.screen, math.max(0, ml or 0), math.max(0, mt or 0))
+      struct._frozen = false
+      input.text("\n\n")
+      input.cursor(1)
     end
     ml, mt = view.position(struct.vp)
     view.active(struct.vp)
@@ -94,7 +99,7 @@ do
         tl = math.max(tl, #(menu.label))
       end
       if topmenu then
-        mw = sw
+        mw = mw + tw
       else
         mh = mh + th
       end
@@ -107,16 +112,20 @@ do
     end
     mw = mw + 2
     mh = mh + 2
+    if topmenu then
+      mw = math.max(mw, sw)
+    end
     view.size(struct.vp, mw, mh)
     if not topmenu then
       if ml + mw > sw then
-        ml, mt = 0, sh - mh - 1
+        self:_scrollX(ml + mw - sw)
+        ml, mt = view.position(struct.vp)
       end
-      if mt + mh > sh then
-        mt = sh - mh - 1
+      if newvp and mt + mh > sh then
+        mt = math.max(0, sh - mh)
+        view.position(struct.vp, ml, mt)
       end
     end
-    view.position(struct.vp, ml, mt)
     gfx.bgcolor(self.lightcolor)
     gfx.cls()
     local mx, my, mb = input.mouse()
@@ -124,35 +133,80 @@ do
     if mx >= 0 and my >= 0 and mx < mw and my < mh then
       inside = true
     end
+    if inside then
+      local mscroll = input.cursor()
+      input.cursor(1)
+      if topmenu then
+        if mscroll < 1 and ml < 0 then
+          ml = ml + 5
+        end
+        if mscroll > 1 and ml + mw > sw then
+          ml = ml - 5
+        end
+        if mx + ml < 8 and ml < 0 then
+          ml = ml + 1
+        end
+        if mx + ml > sw - 8 and ml + mw > sw then
+          ml = ml - 1
+        end
+      else
+        if mscroll < 1 and mt < 0 then
+          mt = mt + 5
+        end
+        if mscroll > 1 and mt + mh > sh then
+          mt = mt - 5
+        end
+        if my + mt < 8 and mt < 0 then
+          mt = mt + 1
+        end
+        if my + mt > sh - 8 and mt + mh > sh then
+          mt = mt - 1
+        end
+      end
+      view.position(struct.vp, ml, mt)
+    end
     local x = topmenu and 3 or 0
     local y = topmenu and 0 or 1
     for i, menu in ipairs(struct.menu) do
       if inside then
-        if topmenu then
-          tw, th = text.draw(self:_label(menu, topmenu), self.font, mw, mh)
-          if mx >= x and mx < x + tw then
-            menu.active = true
-            if mb > 0 then
-              self._selected = menu
+        if struct._parent and not struct._frozen then
+          struct._parent._frozen = true
+        end
+        if not struct._frozen then
+          if topmenu then
+            tw, th = text.draw(self:_label(menu, topmenu), self.font, mw, mh)
+            if mx >= x and mx < x + tw then
+              menu.active = true
+              if mb == 1 then
+                self._selected = menu
+              end
+            else
+              menu.active = false
             end
           else
-            menu.active = false
-          end
-        else
-          if my >= y and my < y + th then
-            menu.active = true
-            if mb > 0 then
-              self._selected = menu
+            if my >= y and my < y + th then
+              menu.active = true
+              if mb == 1 then
+                self._selected = menu
+              end
+            else
+              menu.active = false
             end
-          else
-            menu.active = false
           end
+        end
+      else
+        if struct._parent and not struct._frozen then
+          struct._parent._frozen = false
         end
       end
       if menu.active and menu.menu then
+        if struct._parent then
+          struct._parent._frozen = true
+        end
+        menu._parent = struct
         if topmenu then
-          self:open(menu, x, th + 1)
-        else
+          self:open(menu, ml + x, th + 1)
+        elseif mx > mw - 8 then
           self:open(menu, ml + mw - 4, mt + y - 1)
         end
       else
@@ -220,6 +274,21 @@ do
     if struct.menu then
       for i, menu in ipairs(struct.menu) do
         self:_gethotkeys(menu)
+      end
+    end
+  end
+
+  function Menu:_scrollX(amount, struct)
+    if not struct then
+      struct = self.struct
+    end
+    if struct.vp and struct ~= self.struct then
+      local ml, mt = view.position(struct.vp)
+      view.position(struct.vp, ml - amount, mt)
+    end
+    if struct.menu then
+      for i, menu in ipairs(struct.menu) do
+        self:_scrollX(amount, menu)
       end
     end
   end
