@@ -316,9 +316,9 @@ class Pixmap
           dr - sr), cast(ubyte) max(0, dg - sg), cast(ubyte) max(0, db - sb));
       break;
     case CopyMode.multiplyColor:
-      d = this.nearestColor(cast(ubyte)(cast(float)(dr / 255) * cast(float)(sr / 255)),
-          cast(ubyte)(cast(float)(dg / 255) * cast(float)(sg / 255)),
-          cast(ubyte)(cast(float)(db / 255) * cast(float)(sb / 255)),);
+      d = this.nearestColor(cast(ubyte)(cast(float)(dr / 255.0) * cast(float)(sr / 255.0) * 255.0),
+          cast(ubyte)(cast(float)(dg / 255.0) * cast(float)(sg / 255.0) * 255.0),
+          cast(ubyte)(cast(float)(db / 255.0) * cast(float)(sb / 255.0) * 255.0));
       break;
     case CopyMode.hueColor:
       const smin = min(sr, sg, sb);
@@ -429,21 +429,21 @@ class Pixmap
       if (dr == dmin)
         dr = smin;
       if (dg == dmin)
-        dg = dmin;
+        dg = smin;
       if (db == dmin)
-        db = dmin;
+        db = smin;
       if (dr == dmid)
         dr = smid;
       if (dg == dmid)
-        dg = dmid;
+        dg = smid;
       if (db == dmid)
-        db = dmid;
+        db = smid;
       if (dr == dmax)
         dr = smax;
       if (dg == dmax)
-        dg = dmax;
+        dg = smax;
       if (db == dmax)
-        db = dmax;
+        db = smax;
 
       d = this.nearestColor(dr, dg, db);
       break;
