@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.3.1"; /// version of the software
+const VERSION = "1.3.2"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -35,6 +35,7 @@ class Machine
 {
   uint memoryUsed = 0; /// amount of memory used (in bytes)
   SDL_Window* win; /// the main window
+  string title; /// custom window title
   bool running = true; /// is the machine running?
   bool fullscreen = false; /// is the machine running in full screen?
   Screen[] screens; /// all the screens
@@ -162,6 +163,11 @@ class Machine
           break;
         case SDLK_F8:
           this.audio.sync();
+          break;
+        case SDLK_F9:
+          this.CRTfilter = !this.CRTfilter;
+          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, this.CRTfilter ? "1" : "0");
+          this.initWindow();
           break;
         case SDLK_F11:
           this.toggleFullscren();
@@ -713,7 +719,8 @@ class Machine
       this.destroyWindow();
     }
     // Create a window
-    this.win = SDL_CreateWindow(toStringz("Homegirl " ~ VERSION), x, y, w, h, flags);
+    this.win = SDL_CreateWindow(toStringz(this.title ? this.title
+        : ("Homegirl " ~ VERSION)), x, y, w, h, flags);
     if (win == null)
     {
       SDL_Quit();

@@ -5,6 +5,7 @@ import std.json;
 import std.process : environment;
 import bindbc.sdl;
 import bindbc.freeimage;
+import std.string;
 
 import machine;
 import program;
@@ -158,6 +159,11 @@ int main(string[] args)
     machine.widescreen = config["widescreen"].type == JSONType.true_;
   if ("crtfilter" in config)
     machine.CRTfilter = config["crtfilter"].type == JSONType.true_;
+  if ("title" in config)
+  {
+    machine.title = config["title"].str;
+    SDL_SetWindowTitle(machine.win, toStringz(machine.title));
+  }
   if ("gameBindings" in config && config["gameBindings"].type == JSONType.object)
   {
   }
