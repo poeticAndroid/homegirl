@@ -1,5 +1,5 @@
 # Lua API overview
-[See wiki for details.](https://github.com/poeticAndroid/homegirl/wiki)
+[See docs for details.](https://github.com/poeticAndroid/homegirl/tree/master/system_drive/docs/core/)
 ##  _basic_
     dofile(filename): result
     loadfile(filename): function
@@ -10,6 +10,7 @@
     audio.load(filename): sampl
     audio.save(filename, sampl): success
     audio.play(channel, sampl)
+    audio.record(sampl): bytes
     audio.channelfreq(channel[, freq]): freq
     audio.channelhead(channel[, pos]): pos
     audio.channelvolume(channel[, volume]): volume

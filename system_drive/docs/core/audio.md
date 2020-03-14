@@ -51,3 +51,6 @@ Get/set the inherent playback frequency of the given audio sample.
 **`audio.sampleloop(sampl[, start, end]): start, end`**  
 Get/set the inherent loop markers of the given audio sample.
 
+**`audio.record(sampl): bytes`**  
+Record from the input audio device to the given sample at the given sample's frequency and return number of bytes added to given sample.
+

@@ -6,6 +6,7 @@ import std.process : environment;
 import bindbc.sdl;
 import bindbc.freeimage;
 import std.string;
+import std.conv;
 
 import machine;
 import program;
@@ -53,6 +54,8 @@ int main(string[] args)
   }
 
   // read config
+  if (!exists(dirName(configFileName)))
+    mkdirRecurse(dirName(configFileName));
   try
   {
     config = parseJSON(readText(configFileName));
@@ -116,10 +119,22 @@ int main(string[] args)
     config["crtfilter"] = parseJSON("false");
     writeConfig = true;
   }
+  if (!("recordingdevice" in config))
+  {
+    auto count = SDL_GetNumAudioDevices(1);
+    auto recdevFile = File(buildNormalizedPath(dirName(configFileName),
+        "recordingdevices.txt"), "w");
+
+    for (uint i = 0; i < count; ++i)
+    {
+      recdevFile.writeln(to!string(SDL_GetAudioDeviceName(i, 1)));
+    }
+    recdevFile.close();
+    config["recordingdevice"] = to!string(SDL_GetAudioDeviceName(0, 1));
+    writeConfig = true;
+  }
   if (writeConfig)
   {
-    if (!exists(dirName(configFileName)))
-      mkdirRecurse(dirName(configFileName));
     auto configFile = File(configFileName, "w");
     configFile.write(toJSON(config, true,
         JSONOptions.doNotEscapeSlashes | JSONOptions.escapeNonAsciiChars));
@@ -159,6 +174,8 @@ int main(string[] args)
     machine.widescreen = config["widescreen"].type == JSONType.true_;
   if ("crtfilter" in config)
     machine.CRTfilter = config["crtfilter"].type == JSONType.true_;
+  if ("recordingdevice" in config)
+    machine.audio.recDevName = config["recordingdevice"].str;
   if ("title" in config)
   {
     machine.title = config["title"].str;

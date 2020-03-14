@@ -19,6 +19,7 @@ class SoundChip
   double[4] loopEnd; /// loop end for each channel
   double[4] rate; /// playback rate for each channel
   double[4] volume; /// volume for each channel
+  string recDevName; /// name of recording device
 
   /**
     create a SoundChip
@@ -82,6 +83,11 @@ class SoundChip
     {
       SDL_QueueAudio(this.dev, this.buffer, cast(uint)(p * float.sizeof));
       SDL_PauseAudioDevice(this.dev, 0);
+    }
+    if (this.recdev && t > this.lastRec + this.spec.freq)
+    {
+      SDL_PauseAudioDevice(this.recdev, 1);
+      SDL_ClearQueuedAudio(this.recdev);
     }
   }
 
@@ -192,14 +198,50 @@ class SoundChip
     this.lastTick = 0;
   }
 
+  /**
+  */
+  byte[] record(int freq)
+  {
+    byte[] data;
+    if (this.recdev && this.recspec.freq != freq)
+    {
+      SDL_CloseAudioDevice(this.recdev);
+      this.recdev = 0;
+    }
+    if (!this.recdev)
+    {
+      this.recspec.freq = freq;
+      this.recspec.format = AUDIO_F32SYS;
+      this.recspec.channels = 1;
+      this.recdev = SDL_OpenAudioDevice(this.recDevName
+          ? toStringz(this.recDevName) : null, 1, this.recspec, this.recspec, 0);
+    }
+    SDL_PauseAudioDevice(this.recdev, 0);
+    auto len = SDL_DequeueAudio(this.recdev, this.buffer,
+        cast(uint)(this.buflen * this.spec.channels * float.sizeof));
+    len /= this.recspec.channels;
+    len /= float.sizeof;
+    data.length = len;
+    for (uint i = 0; i < len; i++)
+    {
+      data[i] = cast(byte)(this.buffer[i] * 127);
+    }
+    this.lastRec = SDL_GetTicks() * (this.spec.freq / 1000);
+
+    return data;
+  }
+
   // --- _privates --- //
   private SDL_AudioSpec* spec = new SDL_AudioSpec();
+  private SDL_AudioSpec* recspec = new SDL_AudioSpec();
   private SDL_AudioDeviceID dev;
+  private SDL_AudioDeviceID recdev;
   private float* buffer;
   private uint buflen;
   private float[4] value;
   private long timeToSync = 10;
   private long timeToIdle = 10;
+  private long lastRec = 10;
 
   private void initDevice()
   {

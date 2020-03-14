@@ -91,6 +91,28 @@ int audio_play(lua_State* L) nothrow
   }
 }
 
+/// audio.record(sampl): bytes
+int audio_record(lua_State* L) nothrow
+{
+  const smplID = lua_tointeger(L, 1);
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
+      throw new Exception("Invalid sample!");
+    byte[] data = prog.machine.audio.record(prog.samples[cast(uint) smplID].freq);
+    lua_pushinteger(L, cast(int) data.length);
+    prog.samples[cast(uint) smplID].data ~= data;
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
 /// audio.channelfreq(channel[, freq]): freq
 int audio_channelfreq(lua_State* L) nothrow
 {
@@ -320,6 +342,9 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &audio_play);
   luaL_dostring(lua, "audio.play = _");
+
+  lua_register(lua, "_", &audio_record);
+  luaL_dostring(lua, "audio.record = _");
 
   lua_register(lua, "_", &audio_channelfreq);
   luaL_dostring(lua, "audio.channelfreq = _");
