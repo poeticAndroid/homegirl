@@ -12,7 +12,3 @@ path = "homegirl.sh"
 platform = "osx"
 name = "play"
 path = "homegirl.sh"
-
-[[actions]]
-name = "manual"
-path = "https://github.com/poeticAndroid/homegirl/wiki"

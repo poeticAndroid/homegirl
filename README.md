@@ -18,7 +18,7 @@ The software for it, is based on Lua, which is a pretty simple and fast scriptin
 
 Specs
 -----
- - **Programming language:** Lua ([See wiki for API documentation](https://github.com/poeticAndroid/homegirl/wiki))
+ - **Programming language:** Lua ([See API documentation](https://github.com/poeticAndroid/homegirl/tree/master/system_drive/docs/core/))
  - **Screen resolutions:** Multiple screen modes ranging from 80x45 to 640x480 pixels
  - **Number of colors:** Up to 256 colors from a palette of 4096 colors
  - **Audio:** Four 8-bit PCM channels in stereo, playback up to 32 kHz
