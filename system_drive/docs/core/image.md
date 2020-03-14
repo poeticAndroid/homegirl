@@ -5,7 +5,7 @@ Homegirl and load and save frames from GIF animations. Each frame has its own pa
 Creating and managing images
 ----------------------------
 **`image.new(width, height, colorbits): img`**  
-Create a blank image with given width, height and [colorbits](view) and return it.
+Create a blank image with given width, height and [colorbits](view.md) and return it.
 
 **`image.load(filename[, maxframes]): img[]`**  
 Read a GIF file and return a table of its frames.
@@ -40,7 +40,7 @@ Get/set the current background color of a given image.
 
 Drawing images
 --------------
-These functions require that a [screen or other viewport](view) is created and active.
+These functions require that a [screen or other viewport](view.md) is created and active.
 
 **`image.copymode([mode, masked]): mode, masked`**  
 Get/set the current copy mode of the active viewport. If `masked` is `true` then all background pixels from source will not be copied.

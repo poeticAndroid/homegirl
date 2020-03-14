@@ -1,6 +1,6 @@
 `gfx` module
 ============
-These functions require that a [screen or other viewport](view) is created and active.
+These functions require that a [screen or other viewport](view.md) is created and active.
 
 **`gfx.cls()`**  
 Fill the entire active viewport with the current background color.

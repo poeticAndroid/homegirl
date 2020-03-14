@@ -14,10 +14,10 @@ Forget about that font.
 
 Printing text on the screen
 ---------------------------
-These functions require that a [screen or other viewport](view) is created and active.
+These functions require that a [screen or other viewport](view.md) is created and active.
 
 **`text.copymode([mode, masked]): mode, masked`**  
-Get/set the [copy mode](image) regarding text.
+Get/set the [copy mode](image.md) regarding text.
 
 **`text.draw(text, font, x, y): width, height`**  
 Draw given text with given font at given spot and return the size of the text in pixels.
