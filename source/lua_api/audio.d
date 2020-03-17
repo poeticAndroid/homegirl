@@ -99,6 +99,8 @@ int audio_record(lua_State* L) nothrow
   auto prog = cast(Program*) lua_touserdata(L, -1);
   try
   {
+    if (!prog.hasPermission(Permissions.recordAudio))
+      throw new Exception("no permission to record audio!");
     if (smplID >= prog.samples.length || !prog.samples[cast(uint) smplID])
       throw new Exception("Invalid sample!");
     byte[] data = prog.machine.audio.record(prog.samples[cast(uint) smplID].freq);

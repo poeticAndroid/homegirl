@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.4.2"; /// version of the software
+const VERSION = "1.4.3"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -1371,5 +1371,6 @@ enum Permissions
   readOtherDrives = 256,
   writeOtherDrives = 512,
   readEnv = 1024,
-  writeEnv = 2048
+  writeEnv = 2048,
+  recordAudio = 4096
 }

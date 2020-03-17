@@ -8,7 +8,8 @@ local SYMS = {
   "rod",
   "wod",
   "rev",
-  "wev"
+  "wev",
+  "rec"
 }
 local PERM = {
   mpm = 1,
@@ -20,7 +21,8 @@ local PERM = {
   rod = 256,
   wod = 512,
   rev = 1024,
-  wev = 2048
+  wev = 2048,
+  rec = 4096
 }
 local PERMDESC = {
   mpm = "Manage permissions",
@@ -32,7 +34,8 @@ local PERMDESC = {
   rod = "Read other drives",
   wod = "Write to other drives",
   rev = "Read environment variables",
-  wev = "Set environment variables"
+  wev = "Set environment variables",
+  rec = "Record audio"
 }
 
 function _init(args)

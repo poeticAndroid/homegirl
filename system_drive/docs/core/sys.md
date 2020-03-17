@@ -56,6 +56,7 @@ Value | Permission
 512 | Write to other drives
 1024 | Read environment variables
 2048 | Set environment variables
+4096 | Record audio
 
 Child programs
 --------------
