@@ -88,6 +88,7 @@ class SoundChip
     {
       SDL_PauseAudioDevice(this.recdev, 1);
       SDL_ClearQueuedAudio(this.recdev);
+      this.recmax /= 2;
     }
   }
 
@@ -224,10 +225,15 @@ class SoundChip
     data.length = len;
     for (uint i = 0; i < len; i++)
     {
-      data[i] = cast(byte)(this.buffer[i] * 127);
+      if (abs(this.buffer[i] * this.recgain) > 1)
+        this.recgain = 1 / abs(this.buffer[i]);
+      data[i] = cast(byte)(this.buffer[i] * this.recgain * 127);
+      if (abs(this.buffer[i]) > this.recmax)
+        this.recmax = abs(this.buffer[i] * this.recgain);
+      if (abs(this.buffer[i]) > (this.recmax / 2))
+        this.recgain += 1.0 / 256;
     }
     this.lastRec = SDL_GetTicks() * (this.spec.freq / 1000);
-
     return data;
   }
 
@@ -236,6 +242,8 @@ class SoundChip
   private SDL_AudioSpec* recspec = new SDL_AudioSpec();
   private SDL_AudioDeviceID dev;
   private SDL_AudioDeviceID recdev;
+  private float recgain = 1;
+  private float recmax = 0;
   private float* buffer;
   private uint buflen;
   private float[4] value;
