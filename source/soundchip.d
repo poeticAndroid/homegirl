@@ -197,6 +197,9 @@ class SoundChip
   {
     SDL_ClearQueuedAudio(this.dev);
     this.lastTick = 0;
+
+    this.recgain *= 2;
+    this.recmax /= 2;
   }
 
   /**
