@@ -2,7 +2,10 @@ function _init(args)
   sys.stepinterval(0)
   snd = audio.new()
   filename = args[1]
-  print("(press enter to stoprecording)")
+  if not filename then
+    print("No filename was given!")
+  end
+  print("(press enter to stop recording)")
 end
 
 function _step()
