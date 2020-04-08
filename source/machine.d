@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.4.3"; /// version of the software
+const VERSION = "1.4.4"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -820,7 +820,7 @@ class Machine
     }
     if (mb == 0)
     {
-      if (vp && vp.getBasket())
+      if (vp && vp.getBasket() && this.draggedObjects.length > 0)
       {
         vp.getBasket().deposit(this.draggedObjects);
         vp.queueProgramStep(-1);
