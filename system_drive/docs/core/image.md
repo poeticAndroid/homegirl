@@ -79,6 +79,9 @@ Mode | Name | Effect
 31|  graynessColor,   | destination color with the saturation and lightness of source color
 
 
+**`image.errordiffusion([enabled]): enabled`**  
+Get/set whether or not error diffusion is enabled when using copymodes above 17 or the `gfx.nearestcolor` function.
+
 **`image.tri(img, x1,y1, x2,y2, x3,y3, imgx1,imgy1, imgx2,imgy2, imgx3,imgy3)`**  
 Draw a given triangular portion of given image to a given triangular spot on the active viewport.
 

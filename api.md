@@ -59,6 +59,7 @@
     image.palette(img, color[, red, green, blue]): red, green, blue
     image.bgcolor(img[, color]): color
     image.copymode([mode, masked]): mode, masked
+    image.errordiffusion([enabled]): enabled
     image.tri(img, x1,y1, x2,y2, x3,y3, imgx1,imgy1, imgx2,imgy2, imgx3,imgy3)
     image.draw(img, x, y, imgx, imgy, width, height[, imgwidth, imgheight])
     image.copy(img, x, y, imgx, imgy, width, height)

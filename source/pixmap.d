@@ -24,6 +24,7 @@ class Pixmap
   bool copyMasked = false; /// whether to skip bg pixels when copying from another source
   CopyMode textCopymode = CopyMode.fgcolor; /// the mode by which to copy font pixmaps onto this one
   bool textCopyMasked = true; /// whether to skip bg pixels when copying from fonts
+  bool errorDiffusion = false; /// whether or not to use error diffusion when searching for nearest color
   Viewport viewport; /// associated viewport
 
   /**
@@ -187,9 +188,12 @@ class Pixmap
   ubyte nearestColor(ubyte red, ubyte green, ubyte blue)
   {
     uint l = cast(uint)(this.palette.length / 3);
-    // red = (red % 16) * 17;
-    // green = (green % 16) * 17;
-    // blue = (blue % 16) * 17;
+    if (this.errorDiffusion)
+    {
+      red = cast(ubyte) min(max(0, red + this.redErr), 255);
+      green = cast(ubyte) min(max(0, green + this.greenErr), 255);
+      blue = cast(ubyte) min(max(0, blue + this.blueErr), 255);
+    }
     ubyte best = 3;
     real record = 1024;
     for (uint i = 0; i < l; i++)
@@ -206,6 +210,18 @@ class Pixmap
         record = diff;
         best = cast(ubyte) i;
       }
+    }
+    if (this.errorDiffusion)
+    {
+      red = cast(ubyte) min(max(0, red - this.redErr), 255);
+      green = cast(ubyte) min(max(0, green - this.greenErr), 255);
+      blue = cast(ubyte) min(max(0, blue - this.blueErr), 255);
+      ubyte _red = this.palette[best * 3 + 0];
+      ubyte _green = this.palette[best * 3 + 1];
+      ubyte _blue = this.palette[best * 3 + 2];
+      this.redErr += red - _red;
+      this.greenErr += green - _green;
+      this.blueErr += blue - _blue;
     }
     return best;
   }
@@ -871,6 +887,9 @@ class Pixmap
   private bool textureLocked;
   private ubyte pixelMask;
   private ubyte[4] uicolors;
+  private int redErr = 0;
+  private int greenErr = 0;
+  private int blueErr = 0;
 
   private double interpolate(double a1, double a2, double n, double b1, double b2)
   {

@@ -57,7 +57,10 @@ class Screen : Viewport
       this.pixmap.setFGColor(oldpix.fgColor);
       this.pixmap.setBGColor(oldpix.bgColor);
       this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.copyMasked = oldpix.copyMasked;
       this.pixmap.textCopymode = oldpix.textCopymode;
+      this.pixmap.textCopyMasked = oldpix.textCopyMasked;
+      this.pixmap.errorDiffusion = oldpix.errorDiffusion;
       if (oldpix.palette.length == this.pixmap.palette.length)
         this.pixmap.palette = oldpix.palette;
       this.setDirty();

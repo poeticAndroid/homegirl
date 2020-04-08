@@ -272,6 +272,29 @@ int image_copymode(lua_State* L) nothrow
   }
 }
 
+/// image.errordiffusion([enabled]): enabled
+int image_errordiffusion(lua_State* L) nothrow
+{
+  const enabled = lua_toboolean(L, 1);
+  const set = 1 - lua_isnoneornil(L, 1);
+  lua_getglobal(L, "__program");
+  auto prog = cast(Program*) lua_touserdata(L, -1);
+  try
+  {
+    if (!prog.activeViewport)
+      throw new Exception("No active viewport!");
+    if (set)
+      prog.activeViewport.pixmap.errorDiffusion = cast(bool) enabled;
+    lua_pushboolean(L, cast(int) prog.activeViewport.pixmap.errorDiffusion);
+    return 1;
+  }
+  catch (Exception err)
+  {
+    luaL_error(L, toStringz(err.msg));
+    return 0;
+  }
+}
+
 /// image.tri(img, x1,y1, x2,y2, x3,y3, imgx1,imgy1, imgx2,imgy2, imgx3,imgy3)
 int image_tri(lua_State* L) nothrow
 {
@@ -546,6 +569,9 @@ void registerFunctions(Program program)
 
   lua_register(lua, "_", &image_copymode);
   luaL_dostring(lua, "image.copymode = _");
+
+  lua_register(lua, "_", &image_errordiffusion);
+  luaL_dostring(lua, "image.errordiffusion = _");
 
   lua_register(lua, "_", &image_tri);
   luaL_dostring(lua, "image.tri = _");

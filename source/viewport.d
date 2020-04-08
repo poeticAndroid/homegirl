@@ -206,7 +206,10 @@ class Viewport
       this.pixmap.setFGColor(oldpix.fgColor);
       this.pixmap.setBGColor(oldpix.bgColor);
       this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.copyMasked = oldpix.copyMasked;
       this.pixmap.textCopymode = oldpix.textCopymode;
+      this.pixmap.textCopyMasked = oldpix.textCopyMasked;
+      this.pixmap.errorDiffusion = oldpix.errorDiffusion;
       this.pixmap.palette = oldpix.palette;
       this.setDirty();
       if (this.program)
@@ -381,11 +384,14 @@ class Viewport
           viewport.pixmap.setFGColor(oldpix.fgColor);
           viewport.pixmap.setBGColor(oldpix.bgColor);
           viewport.pixmap.copymode = oldpix.copymode;
+          viewport.pixmap.copyMasked = oldpix.copyMasked;
           viewport.pixmap.textCopymode = oldpix.textCopymode;
-          viewport.pixmap.palette = this.pixmap.palette;
+          viewport.pixmap.textCopyMasked = oldpix.textCopyMasked;
+          viewport.pixmap.errorDiffusion = oldpix.errorDiffusion;
           if (viewport.program)
             viewport.program.useMemory(viewport.memoryUsed());
         }
+        viewport.pixmap.palette = this.pixmap.palette;
         viewport.render();
         this.pixmap.copyRectFrom(viewport.pixmap, 0, 0, viewport.left,
             viewport.top, viewport.pixmap.width, viewport.pixmap.height);
