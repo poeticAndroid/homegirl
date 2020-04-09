@@ -961,11 +961,10 @@ class Pixmap
 
   private void defaultPalette(uint colors)
   {
-    uint d = 6;
+    uint d = 8;
     while ((d * d * d) > colors)
       d--;
-    d--;
-    if (d == 0)
+    if (d == 1)
     {
       this.setColor(2, 10, 10, 10);
       this.setColor(1, 5, 5, 5);
@@ -974,7 +973,15 @@ class Pixmap
     }
     else
     {
+      uint e = colors - (d * d * d) + 1;
       uint i = 0;
+      while (i < e)
+      {
+        this.setColor(i++, cast(ubyte)(i * 15 / e), cast(ubyte)(i * 15 / e), cast(ubyte)(i * 15 / e));
+      }
+      e--;
+      i--;
+      d--;
       for (uint r = 0; r <= d; r++)
       {
         for (uint g = 0; g <= d; g++)
