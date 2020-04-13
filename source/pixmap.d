@@ -201,8 +201,7 @@ class Pixmap
       ubyte _red = this.palette[i * 3 + 0];
       ubyte _green = this.palette[i * 3 + 1];
       ubyte _blue = this.palette[i * 3 + 2];
-      const diff = sqrt(cast(real)(pow(red - _red, 2) + pow(green - _green, 2) + pow(blue - _blue,
-          2)));
+      const diff = sqrt(cast(real)(pow(red - _red, 2) + pow(green - _green, 2) + pow(blue - _blue, 2)));
       if (diff == 0)
         return cast(ubyte) i;
       if (diff < record)
@@ -213,15 +212,12 @@ class Pixmap
     }
     if (this.errorDiffusion)
     {
-      red = cast(ubyte) min(max(0, red - this.redErr), 255);
-      green = cast(ubyte) min(max(0, green - this.greenErr), 255);
-      blue = cast(ubyte) min(max(0, blue - this.blueErr), 255);
       ubyte _red = this.palette[best * 3 + 0];
       ubyte _green = this.palette[best * 3 + 1];
-      ubyte _blue = this.palette[best * 3 + 2];
-      this.redErr += red - _red;
-      this.greenErr += green - _green;
-      this.blueErr += blue - _blue;
+      ubyte _blue  = this.palette[best * 3 + 2];
+      this.redErr = red - _red; 
+      this.greenErr = green - _green;
+      this.blueErr = blue - _blue;
     }
     return best;
   }
