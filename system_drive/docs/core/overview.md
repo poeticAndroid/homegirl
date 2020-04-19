@@ -1,5 +1,5 @@
 # Lua API overview
-[See docs for details.](https://github.com/poeticAndroid/homegirl/tree/master/system_drive/docs/core/)
+[See docs for details.](./)
 ##  _basic_
     dofile(filename): result
     loadfile(filename): function
