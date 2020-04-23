@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.5.4"; /// version of the software
+const VERSION = "1.5.5"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -157,6 +157,10 @@ class Machine
         this.handleTextEdit(event.key.keysym.sym);
         switch (event.key.keysym.sym)
         {
+        case SDLK_F4:
+          if ((SDL_GetModState() & KMOD_CTRL) && this.screens.length > 0 && this.screens[$-1].program && this.screens[$-1] != this.mainScreen)
+            this.shutdownProgram(this.screens[$-1].program);
+          break;
         case SDLK_F7:
           SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 32)
               * scale);

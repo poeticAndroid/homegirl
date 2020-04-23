@@ -6,11 +6,12 @@ Keyboard hotkeys
 ----------------
 Key | Action
 ----|---------
-F7  | Auto-resize and center window
-F8  | Sync audio buffer
-F9  | Toggle CRT filter
-F11 | Toggle Fullscreen
-F12 | Open config folder
+Ctrl+F4 | Kill the program of the front-most screen (unless it's the main screen).
+F7      | Auto-resize and center window
+F8      | Sync audio buffer
+F9      | Toggle CRT filter
+F11     | Toggle Fullscreen
+F12     | Open config folder
 
 Configuration
 -------------
