@@ -1,6 +1,6 @@
 function _init(args)
   if #args < 1 then
-    print("Usage: reimage <source> <destination>")
+    print("Usage: resample <source> <destination>")
     return sys.exit(1)
   end
   snd = audio.load(args[1])

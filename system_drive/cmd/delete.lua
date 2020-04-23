@@ -5,5 +5,6 @@ function _init(args)
   end
   if not fs.delete(args[1]) then
     print("Could not delete '" .. args[1] .. "'!")
+    return sys.exit(1)
   end
 end
