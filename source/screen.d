@@ -8,8 +8,9 @@ import pixmap;
 */
 class Screen : Viewport
 {
-  ubyte pixelWidth; /// width of each pixel (1 or 2)
-  ubyte pixelHeight; /// height of each pixel (1 or 2)
+  static bool widescreen; /// whether to do 16:9 or 4:3 aspect ratio
+  ubyte pixelWidth; /// width of each pixel
+  ubyte pixelHeight; /// height of each pixel
 
   /**
     create a new screen
@@ -33,6 +34,8 @@ class Screen : Viewport
         throw new Exception("Unsupported screen mode!");
       if (colorBits > 8)
         throw new Exception("Unsupported number of colorBits!");
+      mode = mode % 16;
+      this.mode = mode;
       this.pixelWidth = 8;
       this.pixelHeight = 8;
       for (uint i = 0; i < (mode % 4); i++)
@@ -42,9 +45,27 @@ class Screen : Viewport
         this.pixelHeight /= 2;
       mode /= 4;
       uint height = 360;
-      if (mode)
+      if (!Screen.widescreen)
         height = 480;
+      if (this.program)
+        this.program.freeMemory(this.memoryUsed());
+      this.pixmap.destroyTexture();
+      Pixmap oldpix = this.pixmap;
       this.pixmap = new Pixmap(640 / this.pixelWidth, height / this.pixelHeight, colorBits);
+      this.pixmap.viewport = this;
+      this.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+      this.pixmap.setFGColor(oldpix.fgColor);
+      this.pixmap.setBGColor(oldpix.bgColor);
+      this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.copyMasked = oldpix.copyMasked;
+      this.pixmap.textCopymode = oldpix.textCopymode;
+      this.pixmap.textCopyMasked = oldpix.textCopyMasked;
+      this.pixmap.errorDiffusion = oldpix.errorDiffusion;
+      if (oldpix.palette.length == this.pixmap.palette.length)
+        this.pixmap.palette = oldpix.palette;
+      this.setDirty();
+      if (this.program)
+        this.program.useMemory(this.memoryUsed());
     }
 
     /**
@@ -58,12 +79,13 @@ class Screen : Viewport
   void defaultPointer()
   {
     this.pointer = new Pixmap(11, 11, 2);
-    this.pointer.pixels = [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2,
-      1, 0, 0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0,
-      0, 0, 0, 1, 3, 3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 1, 3, 3, 2, 1, 0, 0,
-      0, 0, 1, 1, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0,
-      0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 1, 0, 0];
+    this.pointer.pixels = [
+      1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 1, 3,
+      3, 3, 3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 3, 2, 1, 0, 0, 0, 0, 0, 1, 3, 3, 3,
+      3, 2, 1, 0, 0, 0, 0, 1, 3, 3, 1, 3, 3, 2, 1, 0, 0, 0, 0, 1, 1, 0, 1, 3,
+      3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3,
+      3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0
+    ];
     this.pointerX = 0;
     this.pointerY = 0;
   }

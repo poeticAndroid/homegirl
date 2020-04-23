@@ -23,10 +23,12 @@ class Viewport
   char hotkey; /// hotkey just pressed if this viewport has focus
   ubyte[2] gameBtn; /// Game state for each player if this viewport has focus
   TextEditor textinput; /// text editor
+  Basket basket; /// drop basket for drag-and-drop
   string[string] attributes; /// attributes
   Pixmap pointer; /// mouse pointer
   int pointerX; /// mouse pointer anchor
   int pointerY; /// mouse pointer anchor
+  bool dirty = true; /// whether this viewport needs to be rerendered;
 
   /**
     create a new Viewport
@@ -37,6 +39,17 @@ class Viewport
     this.left = left;
     this.top = top;
     this.pixmap = new Pixmap(width, height, colorBits);
+    if (this.parent)
+      this.pixmap.palette = this.parent.pixmap.palette;
+    this.pixmap.viewport = this;
+  }
+
+  /**
+    calculate memory usage of this pixmap
+  */
+  uint memoryUsed()
+  {
+    return this.pixmap.memoryUsed();
   }
 
   Viewport getParent()
@@ -83,6 +96,7 @@ class Viewport
       this.children = this.children.remove(i);
       vp.detach();
     }
+    this.setDirty();
   }
 
   /**
@@ -166,8 +180,13 @@ class Viewport
   */
   void move(int left, int top)
   {
-    this.left = left;
-    this.top = top;
+    if (this.left != left || this.top != top)
+    {
+      this.left = left;
+      this.top = top;
+      if (this.parent)
+        this.parent.setDirty();
+    }
   }
 
   /**
@@ -175,8 +194,27 @@ class Viewport
   */
   void resize(uint width, uint height)
   {
-    this.pixmap.destroyTexture();
-    this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+    if (this.pixmap.width != width || this.pixmap.height != height)
+    {
+      if (this.program)
+        this.program.freeMemory(this.memoryUsed());
+      this.pixmap.destroyTexture();
+      Pixmap oldpix = this.pixmap;
+      this.pixmap = new Pixmap(width, height, this.pixmap.colorBits);
+      this.pixmap.viewport = this;
+      this.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
+      this.pixmap.setFGColor(oldpix.fgColor);
+      this.pixmap.setBGColor(oldpix.bgColor);
+      this.pixmap.copymode = oldpix.copymode;
+      this.pixmap.copyMasked = oldpix.copyMasked;
+      this.pixmap.textCopymode = oldpix.textCopymode;
+      this.pixmap.textCopyMasked = oldpix.textCopyMasked;
+      this.pixmap.errorDiffusion = oldpix.errorDiffusion;
+      this.pixmap.palette = oldpix.palette;
+      this.setDirty();
+      if (this.program)
+        this.program.useMemory(this.memoryUsed());
+    }
   }
 
   /**
@@ -261,11 +299,31 @@ class Viewport
   /**
     get text input for this viewport
   */
-  TextEditor getTextinput()
+  TextEditor getTextinput(bool create = false)
   {
     if (!this.textinput)
-      this.textinput = new TextEditor();
+    {
+      if (create)
+        this.textinput = new TextEditor();
+      else if (this.parent)
+        return this.parent.getTextinput(create);
+    }
     return this.textinput;
+  }
+
+  /**
+    get drop basket for this viewport
+  */
+  Basket getBasket(bool create = false)
+  {
+    if (!this.basket)
+    {
+      if (create)
+        this.basket = new Basket();
+      else if (this.parent)
+        return this.parent.getBasket(create);
+    }
+    return this.basket;
   }
 
   /**
@@ -280,11 +338,34 @@ class Viewport
   }
 
   /**
+    set this viewport as being dirty
+  */
+  void setDirty()
+  {
+    this.dirty = true;
+    if (this.parent)
+      this.parent.setDirty();
+  }
+
+  /**
+    make sure programs owned by this and parent viewports get stepped
+  */
+  void queueProgramStep(double interval)
+  {
+    if (this.program && this.program.stepInterval <= interval)
+      this.program.nextStep = 16;
+    if (this.parent)
+      this.parent.queueProgramStep(interval);
+  }
+
+  /**
     Render any visible children onto this viewport
   */
   void render()
   {
     this.visible = true;
+    if (!this.dirty)
+      return;
     foreach (viewport; this.children)
     {
       if (viewport && viewport.visible)
@@ -293,24 +374,61 @@ class Viewport
           viewport.mode = this.mode;
         if (this.pixmap.colorBits != viewport.pixmap.colorBits)
         {
+          if (viewport.program)
+            viewport.program.freeMemory(viewport.memoryUsed());
           viewport.pixmap.destroyTexture();
           Pixmap oldpix = viewport.pixmap;
           viewport.pixmap = new Pixmap(oldpix.width, oldpix.height, this.pixmap.colorBits);
+          viewport.pixmap.viewport = viewport;
           viewport.pixmap.copyRectFrom(oldpix, 0, 0, 0, 0, oldpix.width, oldpix.height);
           viewport.pixmap.setFGColor(oldpix.fgColor);
           viewport.pixmap.setBGColor(oldpix.bgColor);
           viewport.pixmap.copymode = oldpix.copymode;
+          viewport.pixmap.copyMasked = oldpix.copyMasked;
           viewport.pixmap.textCopymode = oldpix.textCopymode;
+          viewport.pixmap.textCopyMasked = oldpix.textCopyMasked;
+          viewport.pixmap.errorDiffusion = oldpix.errorDiffusion;
+          if (viewport.program)
+            viewport.program.useMemory(viewport.memoryUsed());
         }
+        viewport.pixmap.palette = this.pixmap.palette;
         viewport.render();
         this.pixmap.copyRectFrom(viewport.pixmap, 0, 0, viewport.left,
             viewport.top, viewport.pixmap.width, viewport.pixmap.height);
       }
     }
+    this.dirty = false;
   }
 
   // -- _privates -- //
   private Viewport parent; /// parent of this viewport
   private Viewport[] children; /// children of this viewport
   // private uint nextVPid = 0;
+}
+
+/**
+  basket for catching drops
+*/
+class Basket
+{
+  string[] drops;
+
+  this()
+  {
+    this.drops = [];
+  }
+
+  void deposit(string[] drops)
+  {
+    this.drops ~= drops;
+  }
+
+  string dispense()
+  {
+    if (this.drops.length == 0)
+      return null;
+    string drop = this.drops[0];
+    this.drops = this.drops.remove(0);
+    return drop;
+  }
 }

@@ -2,6 +2,7 @@ module image_loader;
 
 import std.string;
 import std.file;
+import std.stdio;
 import bindbc.freeimage;
 
 import pixmap;
@@ -13,7 +14,9 @@ Pixmap loadImage(string filename)
 {
   if (!exists(filename) || !isFile(filename))
     throw new Exception("No such file " ~ filename);
-  FIBITMAP* img = FreeImage_Load(FIF_GIF, toStringz(filename));
+  FIMEMORY* mem = readfile(filename);
+  FIBITMAP* img = FreeImage_LoadFromMemory(FIF_GIF, mem);
+  FreeImage_CloseMemory(mem);
   Pixmap pix = fibitmapToPixmap(img, null);
   FreeImage_Unload(img);
   return pix;
@@ -26,7 +29,9 @@ Pixmap[] loadAnimation(string filename, uint maxframes = -1)
 {
   Pixmap[] frames;
   Pixmap canvas = loadImage(filename);
-  FIMULTIBITMAP* anim = FreeImage_OpenMultiBitmap(FIF_GIF, toStringz(filename), false, true, true);
+  // FIMULTIBITMAP* anim;
+  FIMEMORY* mem = readfile(filename);
+  FIMULTIBITMAP* anim = FreeImage_LoadMultiBitmapFromMemory(FIF_GIF, mem);
   uint count = FreeImage_GetPageCount(anim);
   if (maxframes < count)
     count = maxframes;
@@ -37,6 +42,7 @@ Pixmap[] loadAnimation(string filename, uint maxframes = -1)
     FreeImage_UnlockPage(anim, img, false);
   }
   FreeImage_CloseMultiBitmap(anim);
+  FreeImage_CloseMemory(mem);
   return frames;
 }
 
@@ -54,6 +60,31 @@ void saveAnimation(string filename, Pixmap[] frames)
     FreeImage_Unload(img);
   }
   FreeImage_CloseMultiBitmap(anim);
+}
+
+/**
+  read file into a FIMEMORY stream
+*/
+FIMEMORY* readfile(string filename)
+{
+  ubyte[] bin = cast(ubyte[]) read(filename);
+  FIMEMORY* mem = FreeImage_OpenMemory(cast(ubyte*) bin, cast(uint) bin.length);
+  return mem;
+}
+
+/**
+  write a FIMEMORY stream to a file
+*/
+void writefile(string filename, FIMEMORY* mem)
+{
+  ubyte* bin;
+  DWORD len;
+  FreeImage_AcquireMemory(mem, &bin, &len);
+  auto f = File(filename, "wb");
+  for (uint i = 0; i < len; i++)
+    f.write(bin[i]);
+  f.close();
+  // write(filename, staticArray(bin, len));
 }
 
 /**
@@ -124,7 +155,12 @@ Pixmap fibitmapToPixmap(FIBITMAP* img, Pixmap pixmap)
 */
 FIBITMAP* pixmapToFibitmap(Pixmap pixmap)
 {
-  FIBITMAP* img = FreeImage_Allocate(pixmap.width, pixmap.height, pixmap.colorBits);
+  auto bpp = pixmap.colorBits;
+  if (bpp > 8)
+    bpp = 8;
+  while (bpp != 1 && bpp != 4 && bpp != 8)
+    bpp++;
+  FIBITMAP* img = FreeImage_Allocate(pixmap.width, pixmap.height, bpp);
   FITAG* tag = FreeImage_CreateTag();
   FreeImage_SetTagKey(tag, "FrameTime");
   FreeImage_SetTagType(tag, FIDT_LONG);

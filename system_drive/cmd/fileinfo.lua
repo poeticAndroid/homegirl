@@ -1,4 +1,4 @@
-wdays = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}
+wdays = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"}
 months = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"}
 function _init(args)
   if #args < 1 then
@@ -11,6 +11,16 @@ function _init(args)
   th, tm, ts, tu = fs.time(args[1])
   dy, dm, dd, dw = fs.date(args[1])
   print(
-    string.format("Modified: %d-%s-%02d %s %d:%02d:%02d UTC%+gh", dy, months[dm], dd, wdays[dw], th, tm, ts, tu / 60)
+    string.format(
+      "Modified: %d-%s-%02d %s %d:%02d:%02d UTC%+gh",
+      dy,
+      months[dm],
+      dd,
+      wdays[dw + 1],
+      th,
+      tm,
+      ts,
+      tu / 60
+    )
   )
 end

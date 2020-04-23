@@ -1,11 +1,9 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"bindbc-freeimage": "0.2.0",
+		"bindbc-freeimage": "0.3.2",
 		"bindbc-loader": "0.2.1",
-		"bindbc-sdl": "0.11.0",
-		"htmld": "0.3.7",
-		"minuit": "0.1.1",
-		"riverd-loader": "1.0.2"
+		"bindbc-sdl": "0.13.0",
+		"htmld": "0.3.7"
 	}
 }

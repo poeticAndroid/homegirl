@@ -17,14 +17,10 @@
 		"dlls/x86_64/*.dll"
 	],
 	"copyright": "Copyright © 2019, poeticAndroid",
-	"dependencies-windows": {
-		"minuit": "~>0.1.1"
-	},
 	"dependencies": {
-		"bindbc-freeimage": "~>0.2.0",
-		"bindbc-sdl": "~>0.11.0",
-		"htmld": "~>0.3.7",
-		"riverd-loader": "~>1.0.2"
+		"bindbc-freeimage": "~>0.3.1",
+		"bindbc-sdl": "~>0.13.0",
+		"htmld": "~>0.3.7"
 	},
 	"description": "A fantasy console inspired by the Amiga.",
 	"license": "MIT",
@@ -40,6 +36,7 @@
 	},
 	"versions": [
 		"SDL_208",
-		"FI_318"
+		"FI_318",
+		"LUA_53"
 	]
 }

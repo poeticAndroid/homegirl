@@ -1,4 +1,4 @@
-Screen = require("screen")
+Screen, Menu, FileRequester = require("screen"), require("menu"), require("filerequester")
 
 filename = nil
 lasttxt = ""
@@ -7,23 +7,36 @@ statusto = 0
 
 function _init(args)
   scrn = Screen:new("Edit", 11, 2)
+  menu =
+    Menu:new(
+    {
+      {
+        label = "File",
+        menu = {
+          {label = "Load..", hotkey = "l", action = reqload},
+          {
+            label = "Save",
+            hotkey = "s",
+            action = function(self)
+              save(filename)
+            end
+          },
+          {label = "Save as..", action = reqsave},
+          {label = "Quit", action = quit, hotkey = "q"}
+        }
+      }
+    }
+  )
+  scrn:attach("menu", menu)
   font = text.loadfont("Victoria.8b")
   scrn:palette(0, 0, 0, 0)
   scrn:palette(1, 13, 14, 15)
-  scrn:palette(2, 0, 0, 5)
+  scrn:palette(2, 0, 3, 8)
   scrn:palette(3, 0, 10, 15)
   gfx.bgcolor(0)
   gfx.fgcolor(1)
-  if #args > 0 then
-    filename = args[1]
-    input.text(fs.read(filename))
-    input.clearhistory()
-    scrn:title(args[1])
-  else
-    print("filename missing!")
-    sys.exit(1)
-  end
-  input.cursor(0)
+  input.linesperpage(20)
+  load(args[1] or "user:new.txt")
 end
 
 function _step(t)
@@ -44,10 +57,6 @@ function _step(t)
     left = 0
   end
   if deltalen > 0 then
-    if string.sub(txt, pos, pos) == "\n" then
-      input.selected(getindent(lines[line - 1]))
-      txt = input.text()
-    end
     if string.sub(txt, pos - 1, pos) == "\n\t" or string.sub(txt, pos - 2, pos) == "  \t" then
       pos = pos - 1
       sel = 1
@@ -57,11 +66,11 @@ function _step(t)
     end
     pos, sel = input.cursor()
   end
-  if input.hotkey() == "s" then
-    if fs.write(filename, input.text()) then
-      setstatus("saved " .. filename, t)
+  if change then
+    if txt == savedtxt then
+      scrn:title(filename)
     else
-      setstatus("could not save " .. filename, t)
+      scrn:title(filename .. " *")
     end
   end
   lasttxt = txt
@@ -89,22 +98,62 @@ function _step(t)
   gfx.bar(0, 0, gutterw, 1024)
   gfx.fgcolor(3)
   text.draw(gutter, font, 0, top)
-  if statusto > t then
-    gfx.fgcolor(3)
-    gutterw = scrn:size()
-    gutterw = gutterw - text.draw(statustxt, font, gutterw, 0)
-    text.draw(statustxt, font, gutterw, 0)
-  end
-  if input.hotkey() == "\x1b" then
-    sys.exit(0)
-  end
   scrn:step()
 end
 
 function _shutdown()
-  if input.text() ~= fs.read(filename) then
+  if input.text() ~= savedtxt then
     print("exiting without saving!")
   end
+end
+
+function quit()
+  sys.exit()
+end
+
+function reqload()
+  if scrn.children["req"] then
+    return
+  end
+  local req = FileRequester:new("Load..", {""}, filename .. "/../")
+  req.ondone = function(self, filename)
+    if filename then
+      load(filename)
+    end
+  end
+  scrn:attachwindow("req", req)
+end
+function load(_filename)
+  filename = _filename
+  savedtxt = fs.read(filename)
+  lasttxt = savedtxt or ""
+  view.active(scrn.mainvp)
+  input.text(lasttxt)
+  input.clearhistory()
+  input.cursor(0)
+  scrn:title(filename)
+end
+function reqsave()
+  if scrn.children["req"] then
+    return
+  end
+  local req = FileRequester:new("Save as..", {""}, filename)
+  req.ondone = function(self, filename)
+    if filename then
+      save(filename)
+    end
+  end
+  scrn:attachwindow("req", req)
+end
+function save(_filename)
+  filename = _filename
+  if fs.write(filename, input.text()) then
+    setstatus("saved!")
+    savedtxt = input.text()
+  else
+    setstatus("could not save!")
+  end
+  lasttxt = savedtxt or ""
 end
 
 function txtpos(txt, pos)
@@ -147,7 +196,6 @@ function getindent(line)
   return indent
 end
 
-function setstatus(txt, t)
-  statustxt = txt
-  statusto = t + 1024
+function setstatus(txt)
+  scrn:title(filename .. " - " .. txt)
 end

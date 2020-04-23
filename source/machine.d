@@ -1,6 +1,5 @@
 module machine;
 
-import std.stdio;
 import std.string;
 import std.format;
 import std.math;
@@ -13,10 +12,10 @@ import std.process;
 import std.algorithm;
 import bindbc.sdl;
 
-version (Win64)
+/* version (Win64)
 {
   import minuit;
-}
+} */
 
 import viewport;
 import screen;
@@ -27,19 +26,22 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "0.6.2"; /// version of the software
+const VERSION = "1.5.5"; /// version of the software
 
 /**
   Class representing "the machine"!
 */
 class Machine
 {
+  uint memoryUsed = 0; /// amount of memory used (in bytes)
   SDL_Window* win; /// the main window
+  string title; /// custom window title
   bool running = true; /// is the machine running?
   bool fullscreen = false; /// is the machine running in full screen?
   Screen[] screens; /// all the screens
   Screen mainScreen; /// the first screen ever created
   Viewport focusedViewport; /// the viewport that has focus
+  bool widescreen; /// whether to do 16:9 or 4:3 aspect ratio
   Program[] programs; /// all the programs currently running on the machine
   ubyte[uint][2] gameBindings; /// keyboard bindings to game input
   bool hasGamepad = false; /// has a gamepad been used?
@@ -52,6 +54,12 @@ class Machine
   string[string] env; /// environment variables
   Pixmap[][string] fonts; /// fonts loaded
   string configFile; /// path of the config file
+  Pixmap[] draggedIcons; /// icons representing the objects currently being dragged
+  string[] draggedObjects; /// objects currently being dragged
+  Pixmap busyPointer; /// mouse pointer to show when busy
+  int busyPointerX; /// mouse pointer anchor
+  int busyPointerY; /// mouse pointer anchor
+  bool CRTfilter; /// enable TV filter
 
   /**
     Create a new machine
@@ -59,15 +67,34 @@ class Machine
   this()
   {
     if (loadSDL() != sdlSupport)
-      throw new Exception("SDL not work! :(");
+      throw new Exception("SDL2 2.0.8 is required!");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) != 0)
       throw new Exception(format("SDL_Init Error: %s", SDL_GetError()));
 
     this.initWindow();
     this.audio = new SoundChip();
     this.initMidi();
+    this.defaultBusyPointer();
     this.env["ENGINE"] = "Homegirl";
     this.env["ENGINE_VERSION"] = VERSION;
+  }
+
+  /** 
+    add the the amount of memory used
+  */
+  void useMemory(uint bytes)
+  {
+    this.memoryUsed += bytes;
+  }
+
+  /** 
+    subtract the the amount of memory used
+  */
+  void freeMemory(uint bytes)
+  {
+    if (bytes > this.memoryUsed)
+      bytes = this.memoryUsed;
+    this.memoryUsed -= bytes;
   }
 
   /**
@@ -91,15 +118,37 @@ class Machine
       case SDL_MOUSEMOTION:
         this.cursorBlank = SDL_GetTicks() + 8192;
         break;
+      case SDL_MOUSEWHEEL:
+        if (this.focusedViewport && this.focusedViewport.getTextinput())
+        {
+          auto te = this.focusedViewport.getTextinput();
+          if (event.wheel.y < 0)
+          {
+            this.focusedViewport.queueProgramStep(-1);
+            te.down();
+            te.down();
+            te.down();
+          }
+          else if (event.wheel.y > 0)
+          {
+            this.focusedViewport.queueProgramStep(-1);
+            te.up();
+            te.up();
+            te.up();
+          }
+        }
+        break;
       case SDL_TEXTINPUT:
-        this.newInput = true;
-        if (this.focusedViewport && this.focusedViewport.textinput)
-          this.focusedViewport.textinput.insertText(to!string(cast(char*) event.text.text));
+        if (this.focusedViewport)
+          this.focusedViewport.queueProgramStep(-1);
+        if (this.focusedViewport && this.focusedViewport.getTextinput())
+          this.handleTextInput(this.focusedViewport.getTextinput(),
+              to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
-        this.newInput = true;
         if (this.focusedViewport)
         {
+          this.focusedViewport.queueProgramStep(-1);
           if ((SDL_GetModState() & KMOD_CTRL && event.key.keysym.sym < 128)
               || event.key.keysym.sym == 9 || event.key.keysym.sym == 27)
             this.focusedViewport.setHotkey(cast(char) event.key.keysym.sym);
@@ -108,13 +157,22 @@ class Machine
         this.handleTextEdit(event.key.keysym.sym);
         switch (event.key.keysym.sym)
         {
+        case SDLK_F4:
+          if ((SDL_GetModState() & KMOD_CTRL) && this.screens.length > 0 && this.screens[$-1].program && this.screens[$-1] != this.mainScreen)
+            this.shutdownProgram(this.screens[$-1].program);
+          break;
         case SDLK_F7:
-          SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 18)
+          SDL_SetWindowSize(this.win, (640 + 32) * scale, ((this.oldAspect ? 480 : 360) + 32)
               * scale);
           SDL_SetWindowPosition(this.win, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           break;
         case SDLK_F8:
           this.audio.sync();
+          break;
+        case SDLK_F9:
+          this.CRTfilter = !this.CRTfilter;
+          SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, this.CRTfilter ? "1" : "0");
+          this.initWindow();
           break;
         case SDLK_F11:
           this.toggleFullscren();
@@ -137,7 +195,8 @@ class Machine
         }
         break;
       case SDL_KEYUP:
-        this.newInput = true;
+        if (this.focusedViewport)
+          this.focusedViewport.queueProgramStep(-1);
         break;
       default:
         // writeln("event ", event.type);
@@ -155,20 +214,17 @@ class Machine
       Program program = this.programs[i];
       if (program)
       {
+        this.net.referer = program.url;
         runningPrograms++;
         if (!program.running)
           this.shutdownProgram(program);
         else
         {
-          if (program.nextStep == 0)
-            this.newInput = true;
-          if ((program.stepInterval < 0 && newInput)
-              || (program.stepInterval >= 0 && program.nextStep <= SDL_GetTicks()))
+          if (program.nextStep <= SDL_GetTicks())
             program.step(SDL_GetTicks());
         }
       }
     }
-    this.newInput = false;
 
     if (runningPrograms == 0)
     {
@@ -206,7 +262,8 @@ class Machine
       }
     }
     this.audio.step(SDL_GetTicks());
-    this.drawScreens();
+    this.drawScreens(this.isBusy);
+    this.isBusy = false;
   }
 
   /**
@@ -222,11 +279,11 @@ class Machine
         this.shutdownProgram(program);
     }
     this.net.shutdown();
-    version (Win64)
+    /* version (Win64)
     {
       foreach (MnInput input; this.midiDevs)
         input.close();
-    }
+    } */
     SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
@@ -238,6 +295,8 @@ class Machine
   Program startProgram(string filename, string[] args = [], string cwd = null)
   {
     Program program = new Program(this, filename, args, cwd);
+    if (this.net.isUrl(this.drives[program.drive]))
+      program.url = this.drives[program.drive] ~ program.filename[program.drive.length + 1 .. $];
     this.programs ~= program;
     return program;
   }
@@ -279,6 +338,7 @@ class Machine
   */
   Screen createScreen(ubyte mode, ubyte colorBits)
   {
+    Screen.widescreen = this.widescreen;
     Screen screen = new Screen(mode, colorBits);
     this.screens ~= screen;
     if (this.mainScreen)
@@ -347,8 +407,13 @@ class Machine
         this.focusedViewport.setMouseBtn(0);
         this.focusedViewport.setGameBtn(0, 1);
         this.focusedViewport.setGameBtn(0, 2);
+        this.focusedViewport.queueProgramStep(-1);
+        if (this.focusedViewport.program)
+          this.focusedViewport.program.canFocus = false;
       }
       this.focusedViewport = vp;
+      if (this.focusedViewport && this.focusedViewport.program)
+        this.focusedViewport.program.canFocus = true;
     }
   }
 
@@ -386,7 +451,7 @@ class Machine
       throw new Exception("Invalid path!");
     if (!isValidPath(path))
       throw new Exception("Invalid path!");
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     path = absolutePath(path);
     if (this.drives.get(name, null))
       throw new Exception("Drive '" ~ name ~ "' already mounted!");
@@ -411,7 +476,7 @@ class Machine
   {
     if (!this.net.isUrl(url))
       throw new Exception("Invalid URL!");
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     if (url[$ - 1 .. $] != "/")
       url ~= "/";
     if (this.drives.get(name, null))
@@ -427,7 +492,7 @@ class Machine
   */
   void unmountDrive(string name, bool force = false)
   {
-    name = toUpper(this.getDrive(name ~ ":", ""));
+    name = toLower(this.getDrive(name ~ ":", ""));
     if (!this.drives.get(name, null))
       return;
     uint inUse = 0;
@@ -455,7 +520,11 @@ class Machine
   Pixmap[] getFont(string filename)
   {
     if (!this.fonts.get(filename, null))
+    {
       this.fonts[filename] = image_loader.loadAnimation(filename);
+      foreach (pix; this.fonts[filename])
+        this.useMemory(pix.memoryUsed());
+    }
     return this.fonts[filename];
   }
 
@@ -464,6 +533,7 @@ class Machine
   */
   string actualPath(string consolePath, bool dir = false)
   {
+    string actual;
     string drive = this.getDrive(consolePath, "");
     if (!drive)
       throw new Exception("Path is not absolute!");
@@ -473,12 +543,15 @@ class Machine
     if (this.net.isUrl(this.drives[drive]))
     {
       if (dir)
-        return this.net.get(this.drives[drive] ~ path)[0 .. $ - 6] ~ ".~dir/";
+        actual = this.net.get(this.drives[drive] ~ path)[0 .. $ - 6] ~ ".~dir/";
       else
-        return this.net.get(this.drives[drive] ~ path);
+        actual = this.net.get(this.drives[drive] ~ path);
     }
     else
-      return buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
+      actual = buildNormalizedPath(this.drives[drive], path) ~ (dir ? "/" : "");
+    if (!exists(actual) && path != toLower(path))
+      return this.actualPath(toLower(consolePath), dir);
+    return actual;
   }
 
   /**
@@ -494,9 +567,9 @@ class Machine
       throw new Exception("Path is not absolute!");
     if (!this.drives.get(drive, null))
       throw new Exception("Drive '" ~ drive ~ "' does not exist!");
-    string path = consolePath[drive.length + 1 .. $];
+    string path = toLower(consolePath[drive.length + 1 .. $]);
     if (rename)
-      path2 = rename[drive2.length + 1 .. $];
+      path2 = toLower(rename[drive2.length + 1 .. $]);
     if (this.net.isUrl(this.drives[drive]))
       return this.net.sync(this.drives[drive] ~ path, rename ? this.drives[drive2] ~ path2 : null);
     return true;
@@ -527,7 +600,7 @@ class Machine
     if (i <= 0)
       return null;
     else
-      return toUpper(path[0 .. i]) ~ end;
+      return toLower(path[0 .. i]) ~ end;
   }
 
   /**
@@ -588,6 +661,25 @@ class Machine
     return this.midiData.length > 0;
   }
 
+  /**
+    grab an object to drag around
+  */
+  void dragObject(string obj, Pixmap icon)
+  {
+    this.draggedObjects ~= obj;
+    this.draggedIcons ~= icon;
+  }
+
+  /**
+    display the busy pointer
+  */
+  void showBusy()
+  {
+    this.audio.lastTick = 0;
+    if (!this.isBusy)
+      this.drawScreens(true);
+  }
+
   // === _privates === //
   private SDL_Renderer* ren; /// the main renderer
   private auto rect = new SDL_Rect();
@@ -597,20 +689,22 @@ class Machine
   private uint lastmb = 0;
   private ubyte[] gameBtns;
   private ulong lastgmb = 0;
-  version (Win64)
+  /* version (Win64)
   {
     private MnInput[] midiDevs;
-  }
+  } */
   private ubyte[] midiData;
   private uint midiTimeout;
   private uint scale;
   private uint bootupState = 5;
   private uint nextBootup;
-  private bool newInput;
   private bool oldAspect;
   private Pixmap pointer;
   private int pointerX;
   private int pointerY;
+  private bool isBusy;
+  private SDL_Texture* TVlayer;
+  private int rollbar = 0;
 
   private void initWindow()
   {
@@ -631,7 +725,8 @@ class Machine
       this.destroyWindow();
     }
     // Create a window
-    this.win = SDL_CreateWindow(toStringz("Homegirl " ~ VERSION), x, y, w, h, flags);
+    this.win = SDL_CreateWindow(toStringz(this.title ? this.title
+        : ("Homegirl " ~ VERSION)), x, y, w, h, flags);
     if (win == null)
     {
       SDL_Quit();
@@ -646,7 +741,12 @@ class Machine
       throw new Exception(format("SDL_CreateRenderer Error: %s", SDL_GetError()));
     }
     SDL_StartTextInput();
-    // SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
+    if (this.TVlayer)
+    {
+      SDL_DestroyTexture(this.TVlayer);
+      this.TVlayer = null;
+    }
   }
 
   private void destroyWindow()
@@ -679,17 +779,19 @@ class Machine
     uint scale = cast(int) fmax(1.0, floor(fmin(dx / width, dy / height)));
     dx = (dx - width * scale) / 2;
     dy = (dy - height * scale) / 2;
-    int mx;
-    int my;
+    int mx, my;
     ubyte mb = cast(ubyte) SDL_GetMouseState(&mx, &my);
-    if (mx > dx)
-      mx = (mx - dx) / scale;
-    else
-      mx = ((dx - mx) / scale) * -1;
-    if (my > dy)
-      my = (my - dy) / scale;
-    else
-      my = ((dy - my) / scale) * -1;
+    mb = (mb / 2) + (mb % 2);
+    if (mx < dx)
+      mx = dx;
+    if (my < dy)
+      my = dy;
+    mx = (mx - dx) / scale;
+    my = (my - dy) / scale;
+    if (mx >= width)
+      mx = width - 1;
+    if (my >= height)
+      my = height - 1;
 
     Viewport vp;
     bool validFocus = false;
@@ -703,6 +805,7 @@ class Machine
       if (screen.containsViewport(this.focusedViewport))
         validFocus = validFocus || true;
     }
+
     if (SDL_GetTicks() > this.cursorBlank)
     {
       SDL_ShowCursor(SDL_DISABLE);
@@ -720,11 +823,19 @@ class Machine
         this.pointerY = pvp.pointerY;
         SDL_ShowCursor(SDL_DISABLE);
       }
-      else
-      {
-        SDL_ShowCursor(SDL_ENABLE);
-      }
     }
+    if (mb == 0)
+    {
+      if (vp && vp.getBasket() && this.draggedObjects.length > 0)
+      {
+        vp.getBasket().deposit(this.draggedObjects);
+        vp.queueProgramStep(-1);
+      }
+      this.draggedObjects = [];
+      this.draggedIcons = [];
+    }
+    if (this.draggedObjects.length && this.focusedViewport)
+      this.focusedViewport.setMouseBtn(0);
     if (this.lastmb == 0 && mb == 1)
       this.focusViewport(vp);
     if (!validFocus && this.screens.length)
@@ -733,20 +844,25 @@ class Machine
       this.focusViewport(this.focusedViewport.getParent());
     if (this.lastmb != mb)
     {
-      this.newInput = true;
       this.lastmb = mb;
       if (this.focusedViewport)
+      {
         this.focusedViewport.setMouseBtn(mb);
+        this.focusedViewport.queueProgramStep(-1);
+      }
     }
-    if (mb && (this.lastmx != mx || this.lastmy != my))
+    if (this.lastmx != mx || this.lastmy != my)
     {
-      this.newInput = true;
+      if (this.focusedViewport)
+        this.focusedViewport.queueProgramStep(-2);
       this.lastmx = mx;
       this.lastmy = my;
+      if (mb && this.focusedViewport)
+        this.focusedViewport.queueProgramStep(-1);
     }
   }
 
-  private void drawScreens()
+  private void drawScreens(bool busy = false)
   {
     const width = 640;
     uint height = 360;
@@ -771,21 +887,30 @@ class Machine
     int highest = 1024;
 
     bool oldAspect = false;
+    if (this.screens.length && this.screens[$ - 1].pixmap.height
+        * this.screens[$ - 1].pixelHeight > 400)
+      oldAspect = true;
+    rect.x = 0;
+    rect.y = 0;
+    rect.w = width;
+    rect.h = height; // - screen.top / screen.pixelHeight;
+    rect2.x = dx;
+    rect2.y = dy;
+    rect2.w = width * scale;
+    rect2.h = height * scale;
     for (uint i = 0; i < this.screens.length; i++)
     {
       auto screen = this.screens[i];
       if (screen.top < 0)
         screen.top = 0;
-      if (screen.top > height)
-        screen.top = height;
+      // if (screen.top > height)
+      //   screen.top = height;
       auto pixmap = screen.pixmap;
       int nextPos = height;
       if (this.screens.length > i + 1)
         nextPos = this.screens[i + 1].top;
       if (screen.top >= nextPos)
         continue;
-      if (screen.pixmap.height * screen.pixelHeight > 400)
-        oldAspect = true;
 
       SDL_SetRenderDrawColor(ren, pixmap.palette[0], pixmap.palette[1], pixmap.palette[2], 255);
       if (screen.top <= highest)
@@ -796,7 +921,7 @@ class Machine
       else
       {
         this.rect.x = 0;
-        this.rect.y = dy + screen.top * scale - 8 * scale;
+        this.rect.y = dy + screen.top * scale - 5 * scale;
         SDL_GetWindowSize(this.win, &this.rect.w, &this.rect.h);
         SDL_RenderFillRect(ren, rect);
       }
@@ -804,33 +929,109 @@ class Machine
       rect.y = 0;
       rect.w = pixmap.width;
       rect.h = pixmap.height; // - screen.top / screen.pixelHeight;
-      rect2.x = dx;
       rect2.y = dy + screen.top * scale;
-      rect2.w = rect.w * screen.pixelWidth * scale;
-      rect2.h = rect.h * screen.pixelHeight * scale;
       screen.render();
-      if (!pixmap.texture)
-        pixmap.initTexture(this.ren);
+      pixmap.initTexture(this.ren);
       uint sx = screen.pixelHeight / min(screen.pixelWidth, screen.pixelHeight);
       uint sy = screen.pixelWidth / min(screen.pixelWidth, screen.pixelHeight);
-      pixmap.updateTexture(this.pointer, screen.mouseX - this.pointerX * sx,
-          screen.mouseY - this.pointerY * sy, sx, sy);
-      SDL_RenderCopy(this.ren, pixmap.texture, rect, rect2);
+      pixmap.updateTexture();
+      if (this.draggedIcons.length > 0)
+      {
+        auto cm = screen.pixmap.copymode;
+        int off = cast(int) min(3, this.draggedIcons.length) - 1;
+        for (uint j = 0; j < min(3, this.draggedIcons.length); j++)
+        {
+          auto pix = this.draggedIcons[j];
+          pixmap.copyToTexture(pix, false, off + screen.mouseX - pix.width / 2,
+              off + screen.mouseY - pix.height / 2);
+          off -= 2;
+        }
+      }
+      if (busy && this.busyPointer)
+        pixmap.copyToTexture(this.busyPointer, true, screen.mouseX - this.busyPointerX * sx,
+            screen.mouseY - this.busyPointerY * sy, sx, sy);
+      else if (this.pointer)
+        pixmap.copyToTexture(this.pointer, true, screen.mouseX - this.pointerX * sx,
+            screen.mouseY - this.pointerY * sy, sx, sy);
+      SDL_RenderCopy(this.ren, pixmap.getTexture(), rect, rect2);
       rect2.y = dy + height * scale;
       SDL_RenderFillRect(ren, rect2);
     }
     if (this.lastmb == 0)
       this.oldAspect = oldAspect;
+    if (this.CRTfilter)
+    {
+      const b = 32;
+      rect.w = width + b;
+      rect.h = height + b;
+      rect2.w = (width + b) * scale;
+      rect2.h = (height + b) * scale;
+      rect2.x = dx - b / 2 * scale;
+      rect2.y = dy - b / 2 * scale;
+      this.rollbar += scale;
+      this.applyCRTfilter();
+    }
     SDL_RenderPresent(this.ren);
+    this.isBusy = busy;
+  }
+
+  private void applyCRTfilter()
+  {
+    if (!this.TVlayer)
+      this.createTVlayer(rect.w, rect.h);
+    SDL_RenderCopy(this.ren, this.TVlayer, rect, rect2);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+    SDL_GetWindowSize(this.win, &rect.w, &rect.h);
+    rect.y = 0;
+    rect.x = rect2.x + rect2.w;
+    SDL_RenderFillRect(ren, rect);
+    rect.x = rect2.x - rect.w;
+    SDL_RenderFillRect(ren, rect);
+    rect.x = 0;
+    rect.y = rect2.y + rect2.h;
+    SDL_RenderFillRect(ren, rect);
+    rect.y = rect2.y - rect.h;
+    SDL_RenderFillRect(ren, rect);
+    SDL_SetRenderDrawColor(ren, 0, 0, 0, 7);
+    if (this.rollbar > rect.h)
+      this.rollbar -= rect.h * 2;
+    rect.y = this.rollbar;
+    rect.h /= 2;
+    SDL_RenderFillRect(ren, rect);
+  }
+
+  private void handleTextInput(TextEditor te, string txt)
+  {
+    const startBr = "'\"({[";
+    const endBr = "'\")}]";
+    const i = countUntil(startBr, txt);
+    const j = countUntil(endBr, txt);
+    if (j >= 0 && te.selectedBytes == 0 && te.pos1 < te.text.length && te.text[te.pos1] == txt[0])
+    {
+      te.right();
+    }
+    else if (i >= 0)
+    {
+      const sel = te.getSelectedText();
+      const pos2 = min(te.pos1, te.pos2);
+      te.insertText(startBr[i .. i + 1] ~ sel ~ endBr[i .. i + 1]);
+      te.left();
+      te.pos2 = pos2 + 1;
+      te.recalculate();
+    }
+    else
+    {
+      te.insertText(txt);
+    }
   }
 
   private void handleTextEdit(SDL_Keycode key)
   {
     if (!this.focusedViewport)
       return;
-    if (!this.focusedViewport.textinput)
+    if (!this.focusedViewport.getTextinput())
       return;
-    TextEditor te = this.focusedViewport.textinput;
+    TextEditor te = this.focusedViewport.getTextinput();
     if (SDL_GetModState() & KMOD_CTRL)
     {
       switch (key)
@@ -857,23 +1058,60 @@ class Machine
     switch (key)
     {
     case SDLK_TAB:
-      te.insertText("\t");
+      if (te.selectedBytes > 0)
+      {
+        te.setSelectedBytes(te.selectedBytes);
+        while (te.pos2 > 0 && te.text[te.pos2 - 1] != 10)
+          te.pos2--;
+        if (te.pos2 > 0)
+          te.pos2--;
+        if (te.pos1 > 0)
+          te.pos1--;
+        while (te.pos1 < te.text.length && te.text[te.pos1] != 10)
+          te.pos1++;
+        const ind = te.detectIndentation();
+        const pos2 = min(te.pos1, te.pos2);
+        const sel = te.getSelectedText();
+        if (SDL_GetModState() & KMOD_SHIFT)
+          te.insertText(replace(sel, "\n" ~ ind, "\n"));
+        else
+          te.insertText(replace(sel, "\n", "\n" ~ ind));
+        te.pos2 = pos2;
+        if (te.pos1 < te.text.length)
+          te.pos1++;
+        if (te.pos2 < te.text.length)
+          te.pos2++;
+        te.recalculate();
+      }
+      else
+      {
+        te.insertText("\t");
+      }
       break;
     case SDLK_RETURN:
     case SDLK_KP_ENTER:
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.end();
       te.insertText("\n");
+      te.indent();
       break;
     case SDLK_BACKSPACE:
-      te.backSpace();
+      te.backSpace(cast(bool)(SDL_GetModState() & KMOD_CTRL));
       break;
     case SDLK_DELETE:
-      te.deleteChar();
+      te.deleteChar(cast(bool)(SDL_GetModState() & KMOD_CTRL));
       break;
     case SDLK_RIGHT:
-      te.right(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.nextWord(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.right(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_LEFT:
-      te.left(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.previousWord(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.left(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_DOWN:
       te.down(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
@@ -881,11 +1119,23 @@ class Machine
     case SDLK_UP:
       te.up(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
+    case SDLK_PAGEDOWN:
+      te.pageDown(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
+    case SDLK_PAGEUP:
+      te.pageUp(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      break;
     case SDLK_HOME:
-      te.home(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.docStart(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.home(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     case SDLK_END:
-      te.end(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      if (SDL_GetModState() & KMOD_CTRL)
+        te.docEnd(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
+      else
+        te.end(cast(bool)(SDL_GetModState() & KMOD_SHIFT));
       break;
     default:
     }
@@ -964,7 +1214,7 @@ class Machine
     if (this.lastgmb != neo)
     {
       this.lastgmb = neo;
-      this.newInput = true;
+      this.focusedViewport.queueProgramStep(-1);
       for (uint i = 0; i < gameBtns.length; i++)
         this.focusedViewport.setGameBtn(gameBtns[i], cast(ubyte)(i + 1));
     }
@@ -972,7 +1222,7 @@ class Machine
 
   private void initMidi()
   {
-    version (Win64)
+    /* version (Win64)
     {
       MnInputPort[] inputPorts = mnFetchInputs();
       foreach (MnInputPort port; inputPorts)
@@ -981,12 +1231,12 @@ class Machine
         input.open(port);
         this.midiDevs ~= input;
       }
-    }
+    } */
   }
 
   private void handleMidi()
   {
-    version (Win64)
+    /* version (Win64)
     {
       if (SDL_GetTicks() > this.midiTimeout)
       {
@@ -1001,7 +1251,99 @@ class Machine
         }
       }
       this.newInput = this.newInput || this.hasMidi();
+    } */
+  }
+
+  private void defaultBusyPointer()
+  {
+    this.busyPointer = new Pixmap(17, 24, 2);
+    this.busyPointer.pixels = [
+      0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2,
+      2, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 1, 2, 1, 0, 0,
+      0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2,
+      2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2,
+      2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 1,
+      2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 2, 1, 1, 1, 1,
+      2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2,
+      1, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 0, 1, 2, 2, 2,
+      2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1,
+      1, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0,
+      0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2,
+      2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+      2, 2, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+      2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0
+    ];
+    this.busyPointerX = 8;
+    this.busyPointerY = 10;
+  }
+
+  private void createTVlayer(uint width, uint height)
+  {
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_SetRenderDrawBlendMode(this.ren, SDL_BLENDMODE_BLEND);
+    this.TVlayer = SDL_CreateTexture(this.ren, SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING, width, height);
+    SDL_SetTextureBlendMode(this.TVlayer, SDL_BLENDMODE_BLEND);
+
+    ubyte* texdata = null;
+    int pitch;
+    SDL_LockTexture(this.TVlayer, null, cast(void**)&texdata, &pitch);
+
+    uint dest = 0;
+    ubyte top, left, scan, a;
+    uint bx = 2;
+    uint by = 4;
+    uint mul = 32;
+    for (uint y = 0; y < height; y++)
+    {
+      for (uint x = 0; x < width; x++)
+      {
+        top = cast(ubyte) max(0, 255 - 255 * sin(cast(float) x / width * PI) * mul);
+        left = cast(ubyte) max(0, 255 - 255 * sin(cast(float) y / height * PI) * mul);
+        if (y < by * mul)
+        {
+          top = cast(ubyte) max(0, 255 - 255 * sin(cast(float) x / width * PI) * (cast(float) y / by));
+        }
+        if ((height - y) < by * mul)
+        {
+          top = cast(ubyte) max(0,
+              255 - 255 * sin(cast(float) x / width * PI) * (cast(float)(height - y) / by));
+        }
+
+        if (x < bx * mul)
+        {
+          left = cast(ubyte) max(0, 255 - 255 * sin(cast(float) y / height * PI) * (
+              cast(float) x / bx));
+        }
+        if ((width - x) < bx * mul)
+        {
+          left = cast(ubyte) max(0,
+              255 - 255 * sin(cast(float) y / height * PI) * (cast(float)(width - x) / bx));
+        }
+
+        if (y % 2)
+        {
+          scan = 63;
+        }
+        else if ((x + y / 2) % 2)
+        {
+          scan = 15;
+        }
+        else
+        {
+          scan = 0;
+        }
+        a = cast(ubyte) min(255, (top + left) / 2 + scan);
+        texdata[dest++] = a;
+        texdata[dest++] = 0;
+        texdata[dest++] = 0;
+        texdata[dest++] = 0;
+      }
     }
+    SDL_UnlockTexture(this.TVlayer);
   }
 }
 
@@ -1035,5 +1377,6 @@ enum Permissions
   readOtherDrives = 256,
   writeOtherDrives = 512,
   readEnv = 1024,
-  writeEnv = 2048
+  writeEnv = 2048,
+  recordAudio = 4096
 }

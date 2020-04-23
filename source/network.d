@@ -16,6 +16,7 @@ import machine;
 class Network
 {
   string cacheDir; /// path to cache folder
+  string referer; /// url to the program currently using this network
 
   /**
     create network
@@ -94,12 +95,20 @@ class Network
     SysTime accessTime, modificationTime, now;
     url = onlyPath(url);
     string filename = this.actualFile(url);
+    string voidfilename = filename[0 .. $ - 6] ~ ".~void";
     bool getit = true;
-    if (exists(filename) && getSize(filename))
+    if (existsExactly(filename) && getSize(filename))
     {
       getTimes(filename, accessTime, modificationTime);
       now = Clock.currTime();
       const age = now.toUnixTime() - accessTime.toUnixTime();
+      getit = age > 600;
+    }
+    else if (existsExactly(voidfilename))
+    {
+      getTimes(voidfilename, accessTime, modificationTime);
+      now = Clock.currTime();
+      const age = now.toUnixTime() - modificationTime.toUnixTime();
       getit = age > 600;
     }
     if (getit)
@@ -108,10 +117,10 @@ class Network
       url = this.url;
       if (res.code < 300)
       {
+        this.httpReq.flushCookieJar();
         if (!exists(dirName(filename)))
           mkdirRecurse(dirName(filename));
         std.file.write(filename, res.data);
-        this.httpReq.flushCookieJar();
         try
         {
           getTimes(filename, accessTime, modificationTime);
@@ -131,6 +140,9 @@ class Network
       }
       else
       {
+        this.httpReq.flushCookieJar();
+        if (exists(dirName(voidfilename)))
+          std.file.write(voidfilename, res.data);
         if (exists(filename))
           remove(filename);
         string dirname = filename[0 .. $ - 6] ~ ".~dir";
@@ -157,6 +169,7 @@ class Network
       httpReq.url = url;
       this.url = url;
       httpReq.clearRequestHeaders();
+      httpReq.addRequestHeader("Referer", this.referer);
       httpReq.addRequestHeader("Location", rename);
       httpReq.perform();
       if (res.code >= 300)
@@ -227,6 +240,7 @@ class Network
     httpReq.url = url;
     this.url = url;
     httpReq.clearRequestHeaders();
+    httpReq.addRequestHeader("Referer", this.referer);
     if (type)
       httpReq.addRequestHeader("Content-Type", type);
     if (payload)
@@ -300,6 +314,21 @@ class Network
       if (baseName(href) != "~index.~file" && !exists(href))
         std.file.write(href, "");
     }
+  }
+
+  private bool existsExactly(string filename)
+  {
+    if (!exists(filename))
+      return false;
+    if (baseName(filename) == baseName(dirEntries(dirName(filename),
+        baseName(filename), SpanMode.shallow).front))
+    {
+      if (filename.length > this.cacheDir.length)
+        return this.existsExactly(dirName(filename));
+      else
+        return true;
+    }
+    return false;
   }
 }
 
