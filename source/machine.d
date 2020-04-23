@@ -26,7 +26,7 @@ import pixmap;
 import image_loader;
 import network;
 
-const VERSION = "1.5.3"; /// version of the software
+const VERSION = "1.5.4"; /// version of the software
 
 /**
   Class representing "the machine"!
@@ -139,15 +139,16 @@ class Machine
         }
         break;
       case SDL_TEXTINPUT:
-        this.focusedViewport.queueProgramStep(-1);
+        if (this.focusedViewport)
+          this.focusedViewport.queueProgramStep(-1);
         if (this.focusedViewport && this.focusedViewport.getTextinput())
           this.handleTextInput(this.focusedViewport.getTextinput(),
               to!string(cast(char*) event.text.text));
         break;
       case SDL_KEYDOWN:
-        this.focusedViewport.queueProgramStep(-1);
         if (this.focusedViewport)
         {
+          this.focusedViewport.queueProgramStep(-1);
           if ((SDL_GetModState() & KMOD_CTRL && event.key.keysym.sym < 128)
               || event.key.keysym.sym == 9 || event.key.keysym.sym == 27)
             this.focusedViewport.setHotkey(cast(char) event.key.keysym.sym);
@@ -190,7 +191,8 @@ class Machine
         }
         break;
       case SDL_KEYUP:
-        this.focusedViewport.queueProgramStep(-1);
+        if (this.focusedViewport)
+          this.focusedViewport.queueProgramStep(-1);
         break;
       default:
         // writeln("event ", event.type);
