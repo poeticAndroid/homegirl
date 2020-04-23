@@ -39,6 +39,10 @@ local PERMDESC = {
 }
 
 function _init(args)
+  if #args < 1 then
+    print("Usage: perm <drive>")
+    return sys.exit(1)
+  end
   local perms = sys.permissions(args[1])
   for i = 2, #args do
     if tonumber(args[i]) then

@@ -1,6 +1,10 @@
 Screen = require("screen")
 
 function _init(args)
+  if #args < 1 then
+    print("Usage: show <image path>")
+    return sys.exit(1)
+  end
   mode = 0
   anim = image.load(args[1])
   if anim == nil then
