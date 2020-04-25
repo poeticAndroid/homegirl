@@ -119,10 +119,16 @@ function submit(line)
         task = sys.startchild(cmd .. ".lua", args)
       end
       if task == nil then
-        task = sys.startchild(_DRIVE .. "cmd/" .. cmd, args)
+        task = sys.startchild("user:cmd/" .. cmd, args)
       end
       if task == nil then
-        task = sys.startchild(_DRIVE .. "cmd/" .. cmd .. ".lua", args)
+        task = sys.startchild("user:cmd/" .. cmd .. ".lua", args)
+      end
+      if task == nil then
+        task = sys.startchild("sys:cmd/" .. cmd, args)
+      end
+      if task == nil then
+        task = sys.startchild("sys:cmd/" .. cmd .. ".lua", args)
       end
       if task == nil then
         out("Unknown command " .. cmd .. "\n")
