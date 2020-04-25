@@ -128,14 +128,10 @@ do
     self.bgtextcolor = l > 22 and self.darkcolor or self.lightcolor
     if self.children then
       for name, child in pairs(self.children) do
-        child.darkcolor = self.darkcolor
-        child.lightcolor = self.lightcolor
-        child.fgcolor = self.fgcolor
-        child.bgcolor = self.bgcolor
-        child.fgtextcolor = self.fgtextcolor
-        child.bgtextcolor = self.bgtextcolor
+        child:autocolor()
       end
     end
+    self:redraw()
   end
 
   function Widget:outset(x, y, w, h)

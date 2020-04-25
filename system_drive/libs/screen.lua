@@ -79,6 +79,10 @@ do
     return self._title
   end
 
+  function Screen:redraw()
+    self:title(self._title)
+  end
+
   function Screen:step(time)
     local prevvp = view.active()
     view.active(self.titlevp)
